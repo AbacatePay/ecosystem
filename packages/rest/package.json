@@ -1,0 +1,22 @@
+{
+	"name": "@abacatepay/rest",
+	"version": "0.0.1",
+	"type": "module",
+	"exports": {
+		".": {
+			"types": "./dist/index.d.ts",
+			"default": "./dist/index.js"
+		}
+	},
+	"main": "./dist/index.js",
+	"types": "./dist/index.d.ts",
+	"files": [
+		"dist"
+	],
+	"scripts": {
+		"build": "bun build src/index.ts --outdir dist --target node"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "^2.3.11"
+	}
+}
