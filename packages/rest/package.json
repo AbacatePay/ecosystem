@@ -2,9 +2,12 @@
 	"name": "@abacatepay/rest",
 	"version": "0.0.1",
 	"type": "module",
+	"sideEffects": false,
+	"license": "Apache-2.0",
 	"exports": {
 		".": {
 			"types": "./dist/index.d.ts",
+			"import": "./dist/index.js",
 			"default": "./dist/index.js"
 		}
 	},
@@ -15,9 +18,32 @@
 	],
 	"scripts": {
 		"test": "bun test",
-		"build": "bun build src/index.ts --outdir dist --target node"
+		"build": "rm -rf dist && bun build src/index.ts --outdir dist --target node && bun run types",
+		"types": "bunx tsc --emitDeclarationOnly",
+		"prepublishOnly": "bun run build"
+	},
+	"engines": {
+		"node": ">=18",
+		"bun": ">=1.0.0"
+	},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/almeidazs/abacatepay-npm"
+	},
+	"keywords": [
+		"abacatepay",
+		"payments",
+		"sdk",
+		"rest",
+		"api",
+		"typescript"
+	],
+	"publishConfig": {
+		"access": "public"
 	},
 	"devDependencies": {
-		"@biomejs/biome": "^2.3.11"
-	}
+		"@biomejs/biome": "^2.3.11",
+		"typescript": "^5.0.0"
+	},
+	"description": "A REST client for AbacatePay API"
 }
