@@ -5,76 +5,114 @@ import type {
 } from './rest';
 
 export const Routes = {
-	customer: {
+	customers: {
 		/**
-		 * POST - https://api.abacatepay.com/v2/customer/create
+		 * POST - https://api.abacatepay.com/v2/customers/create
 		 */
-		create: '/customer/create',
+		create: '/customers/create',
 
 		/**
-		 * GET - https://api.abacatepay.com/v2/customer/list
+		 * GET - https://api.abacatepay.com/v2/customers/list
 		 */
-		list: '/customer/list',
+		list: '/customers/list',
+
+		/**
+		 * GET - https://api.abacatepay.com/v2/customers/get
+		 */
+		get(id: string) {
+			return `/customers/get?id=${id}` as const;
+		},
+
+		/**
+		 * DELETE - https://api.abacatepay.com/v2/customers/delete
+		 */
+		delete: '/customers/delete',
 	},
-	billing: {
+	checkouts: {
 		/**
-		 * POST - https://api.abacatepay.com/v2/billing/create
+		 * POST - https://api.abacatepay.com/v2/checkouts/create
 		 */
-		create: '/billing/create',
+		create: '/checkouts/create',
 
 		/**
-		 * GET - https://api.abacatepay.com/v2/billing/list
+		 * GET - https://api.abacatepay.com/v2/checkouts/list
 		 */
-		list: '/billing/list',
+		list: '/checkouts/list',
+
+		/**
+		 * GET - https://api.abacatepay.com/v2/checkouts/get
+		 */
+		get(id: string) {
+			return `/checkouts/get?id=${id}` as const;
+		},
 	},
-	pix: {
+	transparents: {
 		/**
-		 * POST - https://api.abacatepay.com/v2/pixQrCode/create
+		 * POST - https://api.abacatepay.com/v2/transparents/create
 		 */
-		createQRCode: '/pixQrCode/create',
+		createQRCode: '/transparents/create',
 
 		/**
-		 * POST - https://api.abacatepay.com/v2/pixQrCode/simulate-payment
+		 * POST - https://api.abacatepay.com/v2/transparents/simulate-payment
 		 */
 		simulatePayment({ id }: RESTPostSimulatePaymentQueryParams) {
-			return `/pixQrCode/simulate-payment?id=${id}` as const;
+			return `/transparents/simulate-payment?id=${id}` as const;
 		},
 
 		/**
-		 * GET - https://api.abacatepay.com/v2/pixQrCode/check
+		 * GET - https://api.abacatepay.com/v2/transparents/check
 		 */
 		checkStatus({ id }: RESTGetCheckQRCodePixStatusQueryParams) {
-			return `/pixQrCode/check?id=${id}` as const;
+			return `/transparents/check?id=${id}` as const;
 		},
 	},
-	coupon: {
+	coupons: {
 		/**
-		 * POST - https://api.abacatepay.com/v2/coupon/create
+		 * POST - https://api.abacatepay.com/v2/coupons/create
 		 */
-		create: '/coupon/create',
+		create: '/coupons/create',
 
 		/**
-		 * GET - https://api.abacatepay.com/v2/coupon/list
+		 * GET - https://api.abacatepay.com/v2/coupons/list
 		 */
-		list: '/coupon/list',
+		list: '/coupons/list',
+
+		/**
+		 * GET - https://api.abacatepay.com/v2/coupons/get
+		 */
+		get(id: string) {
+			return `/coupons/get?id=${id}` as const;
+		},
+
+		/**
+		 * DELETE - https://api.abacatepay.com/v2/coupons/delete
+		 */
+		delete: '/coupons/delete',
+
+		/**
+		 * PATCH - https://api.abacatepay.com/v2/coupons/toggle
+		 */
+		toggleStatus: '/coupons/toggle',
 	},
-	withdraw: {
+	payouts: {
 		/**
-		 * POST - https://api.abacatepay.com/v2/withdraw/create
+		 * POST - https://api.abacatepay.com/v2/payouts/create
 		 */
-		create: '/withdraw/create',
+		create: '/payouts/create',
 
 		/**
-		 * GET - https://api.abacatepay.com/v2/withdraw/get
+		 * GET - https://api.abacatepay.com/v2/payouts/get
 		 */
 		get({ externalId }: RESTGetSearchWithdrawQueryParams) {
-			return `/withdraw/get?externalId=${externalId}` as const;
+			return `/payouts/get?externalId=${externalId}` as const;
 		},
 
 		/**
-		 * GET - https://api.abacatepay.com/v2/withdraw/list
+		 * GET - https://api.abacatepay.com/v2/payouts/list
 		 */
-		list: '/withdraw/list',
+		list({ page = 1, limit = 20 } = {} as Record<'page' | 'limit', number>) {
+			return `/payouts/list?page=${page}&limit=${limit}`;
+		},
 	},
 	store: {
 		/**
@@ -96,6 +134,46 @@ export const Routes = {
 		/**
 		 * GET - https://api.abacatepay.com/v2/public-mrr/renevue
 		 */
-		revenue: '/public-mrr/revenue',
+		revenue(start: string, end: string) {
+			return `/public-mrr/revenue?startDate=${start}&endDate=${end}` as const;
+		},
+	},
+	subscriptions: {
+		/**
+		 * POST - https://api.abacatepay.com/v2/subscriptions/create
+		 */
+		create: '/subscriptions/create',
+
+		/**
+		 * GET - https://api.abacatepay.com/v2/subscriptions/list
+		 */
+		list({ cursor, limit = 20 } = {} as { cursor?: string; limit?: number }) {
+			const query = new URLSearchParams({ limit: `${limit}` });
+
+			if (cursor) query.append('cursor', cursor);
+
+			return `/subscriptions/list?${query}` as const;
+		},
+	},
+
+	products: {
+		/**
+		 * POST - https://api.abacatepay.com/v2/products/create
+		 */
+		create: '/products/create',
+
+		/**
+		 * GET - https://api.abacatepay.com/v2/products/list
+		 */
+		list({ page = 1, limit = 20 } = {} as Record<'page' | 'limit', number>) {
+			return `/products/list?page=${page}&limit=${limit}` as const;
+		},
+
+		/**
+		 * GET - https://api.abacatepay.com/v2/products/get
+		 */
+		get({ id, externalId } = {} as Record<'id' | 'externalId', string>) {
+			return `/products/get?${new URLSearchParams({ id, externalId })}`
+		}
 	},
 } as const;
