@@ -20,31 +20,58 @@ interface HandleErrorOptions {
 
 const FIVE_SEC_IN_MS = 5_000;
 
+/**
+ * Represents the class that manages handlers for endpoints
+ */
 export class REST {
-	public constructor(public readonly options = {} as RESTOptions) {}
+	public constructor(
+		/**
+		 * Options to use in all requests
+		 */
+		public readonly options = {} as RESTOptions
+	) {}
 
+	/**
+	 * Sets the authorization token that should be used for requests
+	 * @param secret The secret to use
+	 */
 	public setSecret(secret: string) {
 		this.options.secret = secret;
 
 		return this;
 	}
 
+	/**
+	 * Runs a GET request from the API
+	 */
 	public get<R>(route: string, options?: MakeRequestOptionsWithoutMethod) {
 		return this.makeRequest<R>(route, { ...options, method: 'GET' });
 	}
 
+	/**
+	 * Runs a POST request from the API
+	 */
 	public post<R>(route: string, options?: MakeRequestOptionsWithoutMethod) {
 		return this.makeRequest<R>(route, { ...options, method: 'POST' });
 	}
 
+	/**
+	 * Runs a DELETE request from the API
+	 */
 	public delete<R>(route: string, options?: MakeRequestOptionsWithoutMethod) {
 		return this.makeRequest<R>(route, { ...options, method: 'DELETE' });
 	}
 
+	/**
+	 * Runs a PUT request from the API
+	 */
 	public put<R>(route: string, options?: MakeRequestOptionsWithoutMethod) {
 		return this.makeRequest<R>(route, { ...options, method: 'PUT' });
 	}
 
+	/**
+	 * Runs a PATCH request from the API
+	 */
 	public patch<R>(route: string, options?: MakeRequestOptionsWithoutMethod) {
 		return this.makeRequest<R>(route, { ...options, method: 'PATCH' });
 	}
