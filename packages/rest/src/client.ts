@@ -4,7 +4,12 @@ import type {
 	MakeRequestOptionsWithoutMethod,
 	RESTOptions,
 } from './types';
-import { backoff, RETRYABLE_STATUS, sleep } from './utils';
+import {
+	backoff,
+	RATE_LIMIT_STATUS_CODE,
+	RETRYABLE_STATUS,
+	sleep,
+} from './utils';
 
 interface HandleErrorOptions {
 	route: string;
@@ -65,6 +70,7 @@ export class REST {
 
 			return this.process<R>(response);
 		} catch (err) {
+			// biome-ignore lint/suspicious/noExplicitAny: Use any to check if the error is a timeout error
 			const isTimeoutError = (err as any)?.name === 'TimeoutError';
 
 			if (isTimeoutError)
@@ -90,10 +96,11 @@ export class REST {
 			if (attempt >= retry.max)
 				throw new HTTPError(
 					route,
-					`${retry.max} attempts failed when fetching`,
+					`${retry.max} attempts were performed, all failed`,
 				);
 
-			if (onRateLimit) await onRateLimit(response);
+			if (response.status === RATE_LIMIT_STATUS_CODE && onRateLimit)
+				await onRateLimit(response);
 
 			const delay = (retry.backoff ?? backoff)(attempt);
 
