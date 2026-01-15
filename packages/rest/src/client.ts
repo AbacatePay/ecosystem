@@ -4,7 +4,7 @@ import type {
 	MakeRequestOptionsWithoutMethod,
 	RESTOptions,
 } from './types';
-import { RETRYABLE_STATUS, sleep } from './utils';
+import { backoff, RETRYABLE_STATUS, sleep } from './utils';
 
 interface HandleErrorOptions {
 	route: string;
@@ -14,7 +14,6 @@ interface HandleErrorOptions {
 }
 
 const FIVE_SEC_IN_MS = 5_000;
-const THREE_SECONDS_IN_MS = 3_000;
 
 export class REST {
 	public constructor(public readonly options = {} as RESTOptions) {}
@@ -96,7 +95,9 @@ export class REST {
 
 			if (onRateLimit) await onRateLimit(response);
 
-			await sleep(retry.delay ?? THREE_SECONDS_IN_MS);
+			const delay = (retry.backoff ?? backoff)(attempt);
+
+			await sleep(delay);
 
 			return this.makeRequest<R>(route, options, attempt + 1);
 		}

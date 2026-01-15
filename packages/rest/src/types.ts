@@ -22,8 +22,7 @@ export type MakeRequestOptionsWithoutMethod = Omit<
 
 export interface RetryOptions {
 	max: number;
-	// TODO: Change this to backoff
-	delay?: number;
+	backoff?(attempt: number): number;
 }
 
 export type HTTPMethodLike =
