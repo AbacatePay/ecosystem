@@ -13,8 +13,8 @@ export const RETRYABLE_STATUS = [
 	504,
 ];
 
-export const BASE_DELAY_MS = 300;
-export const MAX_DELAY_MS = 10_000;
+const BASE_DELAY_MS = 300;
+const MAX_DELAY_MS = 10_000;
 
 export const backoff = (attempt: number) => {
 	const exp = Math.min(MAX_DELAY_MS, BASE_DELAY_MS * 2 ** attempt);
