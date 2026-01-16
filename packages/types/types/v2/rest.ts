@@ -11,6 +11,7 @@ import type {
 	PaymentStatus,
 } from '.';
 import type { APIProduct } from './entities/products';
+import type { APISubscription } from './entities/subscription';
 
 /**
  * Any response returned by the AbacatePay API
@@ -31,6 +32,9 @@ export type APIResponse<Data> =
 			error: string;
 	  };
 
+/**
+ * Any response returned by the AbacatePay API that has a `pagination` field (Not cursor based)
+ */
 export type APIResponseWithPagination<Data> =
 	| {
 			/**
@@ -58,6 +62,46 @@ export type APIResponseWithPagination<Data> =
 				 * Number of pages
 				 */
 				totalPages: number;
+			};
+	  }
+	| {
+			data: null;
+			/**
+			 * Error message returned from the API
+			 */
+			error: string;
+	  };
+
+/**
+ * Any response returned by the AbacatePay API that has a `pagination` field and is cursor-based
+ */
+export type APIResponseWithCursorBasedPagination<Data> =
+	| {
+			/**
+			 * The data of the response
+			 */
+			data: Data;
+			error: null;
+			/**
+			 * Pagination info
+			 */
+			pagination: {
+				/**
+				 * Number of items per page
+				 */
+				limit: number;
+				/**
+				 * Indicates whether there is a next page.
+				 */
+				hasNext: boolean;
+				/**
+				 * Indicates whether there is a previous page.
+				 */
+				hasPrevious: boolean;
+				/**
+				 * Cursor for the next page
+				 */
+				nextCursor: string | null;
 			};
 	  }
 	| {
@@ -580,3 +624,47 @@ export interface RESTGetProductQueryParams {
  * @reference https://docs.abacatepay.com/pages/products/get
  */
 export type RESTGetProductData = APIProduct;
+
+/**
+ * https://api.abacatepay.com/v2/subscriptions/create
+ *
+ * @reference https://docs.abacatepay.com/pages/subscriptions/create
+ */
+export interface RESTPostCreateSubscriptionBody extends Pick<APISubscription, 'amount' | 'name' | 'externalId' | 'method' | 'frequency' | 'customerId' | 'retryPolicy'> {
+	/**
+	 * Subscription description
+	 */
+	description?: string;
+}
+
+/**
+ * https://api.abacatepay.com/v2/subscriptions/create
+ *
+ * @reference https://docs.abacatepay.com/pages/subscriptions/create
+ */
+export type RESTPostCreateSubscriptionData = APISubscription;
+
+/**
+ * https://api.abacatepay.com/v2/subscriptions/list
+ *
+ * @reference https://docs.abacatepay.com/pages/subscriptions/list
+ */
+export interface RESTGetListSubscriptionsQueryParams {
+	/**
+	 * Cursor for the pagination
+	 */
+	cursor?: string;
+	/**
+	 * Number of items per page
+	 * 
+	 * @default 20
+	 */
+	limit?: number;
+}
+
+/**
+ * https://api.abacatepay.com/v2/subscriptions/list
+ *
+ * @reference https://docs.abacatepay.com/pages/subscriptions/list
+ */
+export type RESTGetListSubscriptionsData = APISubscription[];
