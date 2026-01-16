@@ -1,4 +1,4 @@
-import type { PaymentMethod } from './charge';
+import type { PaymentMethod } from './checkout';
 
 /**
  * https://docs.abacatepay.com/pages/subscriptions/reference#estrutura

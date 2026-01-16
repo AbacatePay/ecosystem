@@ -1,4 +1,4 @@
-import type { PaymentStatus } from './charge';
+import type { PaymentStatus } from './checkout';
 
 export interface APIQRCodePIX {
 	/**

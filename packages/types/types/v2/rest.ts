@@ -1,12 +1,11 @@
 import type {
-	APICharge,
+	APICheckout,
 	APICoupon,
 	APICustomer,
 	APIPayout,
 	APIQRCodePIX,
 	APIStore,
 	CouponDiscountKind,
-	PaymentFrequency,
 	PaymentMethod,
 	PaymentStatus,
 } from '.';
@@ -130,78 +129,34 @@ export type RESTPostCreateCustomerBody = Pick<APICustomer, 'email'> &
 export type RESTPostCreateCustomerData = APICustomer;
 
 /**
- * https://api.abacatepay.com/v2/billing/create
+ * https://api.abacatepay.com/v2/checkouts/create
  *
- * @reference https://docs.abacatepay.com/pages/payment/create
+ * @reference https://docs.abacatepay.com/pages/checkout/create
  */
-export interface RESTPostCreateNewChargeBody {
+export interface RESTPostCreateNewCheckoutBody {
 	/**
-	 * Payment methods that will be used. Currently, only `PIX` is supported, `CARD` is in beta.
+	 * Payment method that will be used.
 	 *
 	 * @see {@link PaymentMethod}
 	 */
-	methods: PaymentMethod[];
-	/**
-	 * Defines the type of billing frequency. For one-time charges, use `ONE_TIME`. For charges that can be paid more than once, use `MULTIPLE_PAYMENTS`.
-	 *
-	 * @see {@link PaymentFrequency}
-	 */
-	frequency: PaymentFrequency;
-	/**
-	 * List of products your customer is paying for.
-	 */
-	products: {
-		/**
-		 * The product id on your system. We use this id to create your product on AbacatePay automatically, so make sure your id is unique.
-		 *
-		 * @example "prod-1234"
-		 */
-		externalId: string;
-		/**
-		 * Product name.
-		 *
-		 * @example "Assinatura de Programa Fitness"
-		 */
-		name: string;
-		/**
-		 * Quantity of product being purchased.
-		 *
-		 * @example 2
-		 */
-		quantity: number;
-		/**
-		 * Price per unit of product in cents. The minimum is 100 (1 BRL).
-		 */
-		price: number;
-		/**
-		 * Detailed product description.
-		 */
-		description?: string;
-	}[];
+	methods?: PaymentMethod;
 	/**
 	 * URL to redirect the customer if they click on the "Back" option.
 	 */
-	returnUrl: string;
+	returnUrl?: string;
 	/**
 	 * URL to redirect the customer when payment is completed.
 	 */
-	completionUrl: string;
+	completionUrl?: string;
 	/**
 	 * The ID of a customer already registered in your store.
 	 */
 	customerId?: string;
 	/**
-	 * /**
 	 * Your customer's data to create it.
 	 * The customer object is not mandatory, but when entering any `customer` information, all `name`, `cellphone`, `email` and `taxId` fields are mandatory.
 	 */
-	customer?: APICustomer['metadata'];
-	/**
-	 * If true coupons can be used in billing.
-	 *
-	 * @default false
-	 */
-	allowCoupons?: boolean;
+	customer?: Pick<APICustomer, 'name' | 'email' | 'taxId' | 'cellphone'>;
 	/**
 	 * List of coupons available for resem used with billing (0-50 max.).
 	 */
@@ -213,15 +168,20 @@ export interface RESTPostCreateNewChargeBody {
 	/**
 	 * Optional billing metadata.
 	 */
-	metadata?: Record<string, unknown>;
+	metadata?: Record<string, object>;
+	/**
+	 * List of items included in the charge.
+	 * This is the only required field — the total value is calculated from these items.
+	 */
+	items: APICheckout['items'];
 }
 
 /**
- * https://api.abacatepay.com/v2/billing/create
+ * https://api.abacatepay.com/v2/checkouts/create
  *
- * @reference https://docs.abacatepay.com/pages/payment/create
+ * @reference https://docs.abacatepay.com/pages/checkouts/create
  */
-export type RESTPostCreateNewChargeData = APICharge;
+export type RESTPostCreateNewCheckoutData = APICheckout;
 
 /**
  * https://api.abacatepay.com/v2/pixQrCode/create
@@ -299,11 +259,30 @@ export interface RESTGetCheckQRCodePixStatusData {
 }
 
 /**
- * https://api.abacatepay.com/v2/billing/list
+ * https://api.abacatepay.com/v2/checkouts/list
  *
- * @reference https://docs.abacatepay.com/pages/payment/list
+ * @reference https://docs.abacatepay.com/pages/checkouts/list
  */
-export type RESTGetListBillingsData = APICharge[];
+export type RESTGetListCheckoutsData = APICheckout[];
+
+/**
+ * https://api.abacatepay.com/v2/checkouts/get
+ *
+ * @reference https://docs.abacatepay.com/pages/checkouts/get
+ */
+export type RESTGetCheckoutData = APICheckout;
+
+/**
+ * https://api.abacatepay.com/v2/checkouts/get
+ *
+ * @reference https://docs.abacatepay.com/pages/checkouts/get
+ */
+export interface RESTGetCheckoutQueryParams {
+	/**
+	 * Unique billing identifier.
+	 */
+	id: string;
+}
 
 /**
  * https://api.abacatepay.com/v2/customers/list

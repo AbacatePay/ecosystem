@@ -3,7 +3,7 @@ import type {
 	PaymentFrequency,
 	PaymentMethod,
 	PaymentStatus,
-} from './entities/charge';
+} from './entities/checkout';
 import type { APICustomer } from './entities/customer';
 import type { APIWithdraw, WithdrawStatus } from './entities/payouts';
 
