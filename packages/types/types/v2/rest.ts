@@ -113,11 +113,14 @@ export type APIResponseWithCursorBasedPagination<Data> =
 	  };
 
 /**
- * https://api.abacatepay.com/v2/customer/create
+ * https://api.abacatepay.com/v2/customers/create
  *
  * @reference https://docs.abacatepay.com/pages/client/create
  */
-export type RESTPostCreateCustomerBody = APICustomer['metadata'];
+export type RESTPostCreateCustomerBody = Pick<APICustomer, 'email'> &
+	Partial<
+		Pick<APICustomer, 'name' | 'taxId' | 'zipCode' | 'cellphone' | 'metadata'>
+	>;
 
 /**
  * https://api.abacatepay.com/v2/customer/create
@@ -303,11 +306,65 @@ export interface RESTGetCheckQRCodePixStatusData {
 export type RESTGetListBillingsData = APICharge[];
 
 /**
- * https://api.abacatepay.com/v2/customer/list
+ * https://api.abacatepay.com/v2/customers/list
  *
  * @reference https://docs.abacatepay.com/pages/client/list
  */
 export type RESTGetListCustomersData = APICustomer[];
+
+/**
+ * https://api.abacatepay.com/v2/customers/list
+ *
+ * @reference https://docs.abacatepay.com/pages/client/list
+ */
+export interface RESTGetListCustomersQueryParams {
+	/**
+	 * Number of the page.
+	 */
+	page?: number;
+	/**
+	 * Number of items per page.
+	 */
+	limit?: number;
+}
+
+/**
+ * https://api.abacatepay.com/v2/customers/get
+ *
+ * @reference https://docs.abacatepay.com/pages/client/get
+ */
+export interface RESTGetCustomerQueryParams {
+	/**
+	 * The ID of the customer.
+	 */
+	id: string;
+}
+
+/**
+ * https://api.abacatepay.com/v2/customers/get
+ *
+ * @reference https://docs.abacatepay.com/pages/client/get
+ */
+export type RESTGetCustomerData = Omit<APICustomer, 'country' | 'zipCode'>;
+
+/**
+ * https://api.abacatepay.com/v2/customers/delete
+ *
+ * @reference https://docs.abacatepay.com/pages/client/delete
+ */
+export interface RESTDeleteCustomerBody {
+	/**
+	 * Unique public identifier of the customer to be deleted.
+	 */
+	id: string;
+}
+
+/**
+ * https://api.abacatepay.com/v2/customers/delete
+ *
+ * @reference https://docs.abacatepay.com/pages/client/delete
+ */
+export type RESTDeleteCustomerData = Omit<APICustomer, 'country' | 'zipCode'>;
 
 /**
  * https://api.abacatepay.com/v2/coupons/create

@@ -7,24 +7,35 @@ export interface APICustomer {
 	 */
 	id: string;
 	/**
-	 * Customer data.
+	 * Indicates whether the client was created in a testing environment.
 	 */
-	metadata: {
-		/**
-		 * Customer's full name.
-		 */
-		name: string;
-		/**
-		 * Customer's email.
-		 */
-		email: string;
-		/**
-		 * Customer's CPF or CNPJ.
-		 */
-		taxId: string;
-		/**
-		 * Customer's cell phone.
-		 */
-		cellphone: string;
-	};
+	devMode: boolean;
+	/**
+	 * Customer country.
+	 */
+	country: string;
+	/**
+	 * Customer's full name.
+	 */
+	name: string;
+	/**
+	 * Customer's email.
+	 */
+	email: string;
+	/**
+	 * Customer's CPF or CNPJ.
+	 */
+	taxId: string;
+	/**
+	 * Customer's cell phone.
+	 */
+	cellphone: string;
+	/**
+	 * Customer zip code.
+	 */
+	zipCode: string;
+	/**
+	 * Additional customer metadata.
+	 */
+	metadata?: Record<string, object>;
 }
