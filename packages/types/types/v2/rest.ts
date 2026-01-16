@@ -427,6 +427,38 @@ export interface RESTGetRevenueByPeriodQueryParams {
 }
 
 /**
+ * https://api.abacatepay.com/v2/public-mrr/revenue
+ *
+ * @reference https://docs.abacatepay.com/pages/trustMRR/list
+ */
+export interface RESTGetRevenueByPeriodData {
+	/**
+	 * Total revenue for the period in cents.
+	 */
+	totalRevenue: number;
+	/**
+	 * Total transactions in the period.
+	 */
+	totalTransactions: number;
+	/**
+	 * Object with transactions grouped by day (key is the date in YYYY-MM-DD format).
+	 */
+	transactionsPerDay: Record<
+		string,
+		{
+			/**
+			 * Total value of the day's transactions in cents.
+			 */
+			amount: number;
+			/**
+			 * Number of transactions for the day.
+			 */
+			count: number;
+		}
+	>;
+}
+
+/**
  * https://api.abacatepay.com/v2/public-mrr/merchant-info
  *
  * @reference https://docs.abacatepay.com/pages/trustMRR/get
@@ -629,7 +661,17 @@ export type RESTGetProductData = APIProduct;
  *
  * @reference https://docs.abacatepay.com/pages/subscriptions/create
  */
-export interface RESTPostCreateSubscriptionBody extends Pick<APISubscription, 'amount' | 'name' | 'externalId' | 'method' | 'frequency' | 'customerId' | 'retryPolicy'> {
+export interface RESTPostCreateSubscriptionBody
+	extends Pick<
+		APISubscription,
+		| 'amount'
+		| 'name'
+		| 'externalId'
+		| 'method'
+		| 'frequency'
+		| 'customerId'
+		| 'retryPolicy'
+	> {
 	/**
 	 * Subscription description.
 	 */
@@ -655,7 +697,7 @@ export interface RESTGetListSubscriptionsQueryParams {
 	cursor?: string;
 	/**
 	 * Number of items per page.
-	 * 
+	 *
 	 * @default 20
 	 */
 	limit?: number;
