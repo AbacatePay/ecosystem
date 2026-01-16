@@ -5,7 +5,7 @@ import type {
 	PaymentStatus,
 } from './entities/checkout';
 import type { APICustomer } from './entities/customer';
-import type { APIWithdraw, WithdrawStatus } from './entities/payouts';
+import type { APIWithdraw, WithdrawStatus } from './entities/payout';
 
 export interface BaseWebhookEvent<
 	Type extends WebhookEventType,
