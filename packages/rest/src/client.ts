@@ -163,7 +163,9 @@ export class REST {
 	}
 
 	private makeHeaders(custom?: Record<string, string>) {
-		const { secret = process.env.ABACATEPAY_SECRET ?? process.env.ABACATEPAY_API_KEY } = this.options;
+		const {
+			secret = process.env.ABACATEPAY_SECRET ?? process.env.ABACATEPAY_API_KEY,
+		} = this.options;
 
 		if (!secret)
 			throw new AbacatePayError(

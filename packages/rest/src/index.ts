@@ -6,3 +6,5 @@ export {
 } from './errors';
 
 export * from './types';
+
+export { API_VERSION, version } from './version';
