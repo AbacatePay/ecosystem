@@ -1,13 +1,15 @@
 import { type TAnySchema, Type as t } from '@sinclair/typebox';
 import {
 	APICheckout,
+	APICoupon,
+	APICustomer,
+	APIPayout,
+	APIProduct,
+	APIQRCodePIX,
+	CouponDiscountKind,
 	PaymentMethod,
 	PaymentStatus,
-} from './resources/checkout';
-import { APICoupon, CouponDiscountKind } from './resources/coupon';
-import { APICustomer } from './resources/customer';
-import { APIPayout } from './resources/payout';
-import { APIQRCodePIX } from './resources/pix';
+} from '.';
 
 /**
  * Any response returned by the AbacatePay API
@@ -453,3 +455,79 @@ export const RESTGetCheckQRCodePixStatusData = t.Object({
 	}),
 	status: PaymentStatus,
 });
+
+/**
+ * https://api.abacatepay.com/v2/products/create
+ *
+ * @reference https://docs.abacatepay.com/pages/products/create
+ */
+export const RESTPostCreateProductBody = t.Intersect([
+	t.Object({
+		description: t.Optional(
+			t.String({
+				description: 'Description for the product.',
+			}),
+		),
+	}),
+	t.Pick(APIProduct, ['name', 'price', 'currency', 'externalId']),
+]);
+
+/**
+ * https://api.abacatepay.com/v2/products/create
+ *
+ * @reference https://docs.abacatepay.com/pages/products/create
+ */
+export const RESTPostCreateProductData = APIProduct;
+
+/**
+ * https://api.abacatepay.com/v2/products/list
+ *
+ * @reference https://docs.abacatepay.com/pages/products/list
+ */
+export const RESTGetListProductsQueryParams = t.Object({
+	page: t.Optional(
+		t.Integer({
+			minimum: 1,
+			default: 1,
+			description: 'Page number.',
+		}),
+	),
+	limit: t.Optional(
+		t.Integer({
+			minimum: 1,
+			description: 'Number of items per page.',
+		}),
+	),
+});
+
+/**
+ * https://api.abacatepay.com/v2/products/list
+ *
+ * @reference https://docs.abacatepay.com/pages/products/list
+ */
+export const RESTGetListProductsData = t.Array(APIProduct);
+
+/**
+ * https://api.abacatepay.com/v2/products/get
+ *
+ * @reference https://docs.abacatepay.com/pages/products/get
+ */
+export const RESTGetProductQueryParams = t.Object({
+	id: t.Optional(
+		t.String({
+			description: 'The product ID.',
+		}),
+	),
+	externalId: t.Optional(
+		t.String({
+			description: 'External ID of the product.',
+		}),
+	),
+});
+
+/**
+ * https://api.abacatepay.com/v2/products/get
+ *
+ * @reference https://docs.abacatepay.com/pages/products/get
+ */
+export const RESTGetProductData = APIProduct;

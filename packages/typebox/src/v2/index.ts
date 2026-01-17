@@ -1,3 +1,7 @@
 export * from './resources/checkout';
+export * from './resources/coupon';
 export * from './resources/customer';
+export * from './resources/payout';
+export * from './resources/pix';
+export * from './resources/product';
 export * from './rest';
