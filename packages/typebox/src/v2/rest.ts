@@ -1,5 +1,6 @@
 import { type TAnySchema, Type as t } from '@sinclair/typebox';
 import { APICheckout, PaymentMethod } from './resources/checkout';
+import { APICoupon, CouponDiscountKind } from './resources/coupon';
 import { APICustomer } from './resources/customer';
 
 /**
@@ -177,3 +178,123 @@ export const RESTGetCheckoutQueryParams = t.Object({
 		description: 'Unique billing identifier.',
 	}),
 });
+
+/**
+ * https://api.abacatepay.com/v2/coupons/create
+ *
+ * @reference https://docs.abacatepay.com/pages/coupons/create
+ */
+export const RESTPostCreateCouponBody = t.Object({
+	code: t.String({
+		examples: ['DEYVIN_20'],
+		description: 'Unique coupon identifier.',
+	}),
+	discount: t.Integer({
+		description: 'Discount amount to be applied.',
+	}),
+	discountKind: CouponDiscountKind,
+	notes: t.Optional(
+		t.String({
+			description: 'Coupon description',
+		}),
+	),
+	maxRedeems: t.Optional(
+		t.Integer({
+			minimum: -1,
+			description:
+				'Number of times the coupon can be redeemed. -1 means this coupon can be redeemed without limits.',
+		}),
+	),
+	metadata: t.Record(t.String(), t.Any(), {
+		description: 'Key value object for coupon metadata.',
+	}),
+});
+
+/**
+ * https://api.abacatepay.com/v2/coupon/create
+ *
+ * @reference https://docs.abacatepay.com/pages/coupon/create
+ */
+export const RESTPostCreateCouponData = APICoupon;
+
+/**
+ * https://api.abacatepay.com/v2/coupons/list
+ *
+ * @reference https://docs.abacatepay.com/pages/coupons/list
+ */
+export const RESTGetListCouponsData = t.Array(APICoupon);
+
+/**
+ * https://api.abacatepay.com/v2/coupons/list
+ *
+ * @reference https://docs.abacatepay.com/pages/coupons/list
+ */
+export const RESTGetListCouponsQueryParams = t.Object({
+	page: t.Optional(
+		t.Integer({
+			minimum: 1,
+			default: 1,
+			description: 'Page number.',
+		}),
+	),
+	limit: t.Optional(
+		t.Integer({
+			minimum: 1,
+			description: 'Number of items per page.',
+		}),
+	),
+});
+
+/**
+ * https://api.abacatepay.com/v2/coupons/get
+ *
+ * @reference https://docs.abacatepay.com/pages/coupons/get
+ */
+export const RESTGetCouponQueryParams = t.Object({
+	id: t.String({
+		description: 'The ID of the coupon.',
+	}),
+});
+
+/**
+ * https://api.abacatepay.com/v2/coupons/get
+ *
+ * @reference https://docs.abacatepay.com/pages/coupons/get
+ */
+export const RESTGetCouponData = APICoupon;
+
+/**
+ * https://api.abacatepay.com/v2/coupons/delete
+ *
+ * @reference https://docs.abacatepay.com/pages/coupons/delete
+ */
+export const RESTDeleteCouponBody = t.Object({
+	id: t.String({
+		description: 'The ID of the coupon.',
+	}),
+});
+
+/**
+ * https://api.abacatepay.com/v2/coupons/delete
+ *
+ * @reference https://docs.abacatepay.com/pages/coupons/delete
+ */
+export const RESTDeleteCouponData = APICoupon;
+
+/**
+ * https://api.abacatepay.com/v2/coupons/toggle
+ *
+ * @reference https://docs.abacatepay.com/pages/coupons/toggle
+ */
+export const RESTPatchToggleCouponStatusBody = t.Object({
+	id: t.String({
+		description: 'The ID of the coupon.',
+	}),
+});
+
+/**
+ * https://api.abacatepay.com/v2/coupons/toggle
+ *
+ * @reference https://docs.abacatepay.com/pages/coupons/toggle
+ */
+export const RESTPatchToggleCouponStatusData = APICoupon;
