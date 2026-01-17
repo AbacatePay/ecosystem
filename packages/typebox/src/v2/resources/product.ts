@@ -1,10 +1,12 @@
-import { Type as t } from '@sinclair/typebox';
+import { type Static, Type as t } from '@sinclair/typebox';
 import { StringEnum } from '../../utils';
 
 export const ProductStatus = StringEnum(
 	['ACTIVE', 'INACTIVE'],
 	'Product status.',
 );
+
+export type ProductStatus = Static<typeof ProductStatus>;
 
 /**
  * https://docs.abacatepay.com/pages/products/reference#estrutura
@@ -40,3 +42,5 @@ export const APIProduct = t.Object({
 		description: 'Product description.',
 	}),
 });
+
+export type APIProduct = Static<typeof APIProduct>;

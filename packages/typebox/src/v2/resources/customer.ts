@@ -1,4 +1,4 @@
-import { Type as t } from '@sinclair/typebox';
+import { type Static, Type as t } from '@sinclair/typebox';
 
 /**
  * https://docs.abacatepay.com/pages/client/reference#estrutura
@@ -36,3 +36,5 @@ export const APICustomer = t.Object({
 		}),
 	),
 });
+
+export type APICustomer = Static<typeof APICustomer>;

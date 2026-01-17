@@ -1,4 +1,4 @@
-import { Type as t } from '@sinclair/typebox';
+import { type Static, Type as t } from '@sinclair/typebox';
 import { PaymentStatus } from './checkout';
 
 /**
@@ -35,3 +35,5 @@ export const APIQRCodePIX = t.Object({
 		description: 'QRCode expiration date and time.',
 	}),
 });
+
+export type APIQRCodePIX = Static<typeof APIQRCodePIX>;

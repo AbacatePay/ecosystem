@@ -1,4 +1,4 @@
-import { Type as t } from '@sinclair/typebox';
+import { type Static, Type as t } from '@sinclair/typebox';
 import { StringEnum } from '../../utils';
 
 /**
@@ -9,10 +9,14 @@ export const CouponDiscountKind = StringEnum(
 	'Type of discount applied by the coupon.',
 );
 
+export type CouponDiscountKind = Static<typeof CouponDiscountKind>;
+
 export const CouponStatus = StringEnum(
 	['ACTIVE', 'INACTIVE', 'EXPIRED'],
 	'Coupon status.',
 );
+
+export type CouponStatus = Static<typeof CouponStatus>;
 
 /**
  * https://docs.abacatepay.com/pages/coupon/reference#estrutura
@@ -54,3 +58,5 @@ export const APICoupon = t.Object({
 			'Object to store additional information about the coupon, such as campaign, category, or other data relevant to your organization.',
 	}),
 });
+
+export type APICoupon = Static<typeof APICoupon>;

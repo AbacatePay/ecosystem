@@ -1,4 +1,4 @@
-import { Type as t } from '@sinclair/typebox';
+import { type Static, Type as t } from '@sinclair/typebox';
 
 /**
  * https://docs.abacatepay.com/pages/store/reference#estrutura
@@ -28,3 +28,5 @@ export const APIStore = t.Object({
 		},
 	),
 });
+
+export type APIStore = Static<typeof APIStore>;

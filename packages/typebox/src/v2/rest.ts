@@ -1,4 +1,4 @@
-import { type TAnySchema, Type as t } from '@sinclair/typebox';
+import { type Static, type TAnySchema, Type as t } from '@sinclair/typebox';
 import {
 	APICheckout,
 	APICoupon,
@@ -157,12 +157,20 @@ export const RESTPostCreateNewCheckoutBody = t.Object({
 	items: APICheckout.properties.items,
 });
 
+export type RESTPostCreateNewCheckoutBody = Static<
+	typeof RESTPostCreateNewCheckoutBody
+>;
+
 /**
  * https://api.abacatepay.com/v2/checkouts/create
  *
  * @reference https://docs.abacatepay.com/pages/checkouts/create
  */
 export const RESTPostCreateNewCheckoutData = APICheckout;
+
+export type RESTPostCreateNewCheckoutData = Static<
+	typeof RESTPostCreateNewCheckoutData
+>;
 
 /**
  * https://api.abacatepay.com/v2/checkouts/list
@@ -171,12 +179,16 @@ export const RESTPostCreateNewCheckoutData = APICheckout;
  */
 export const RESTGetListCheckoutsData = t.Array(APICheckout);
 
+export type RESTGetListCheckoutsData = Static<typeof RESTGetListCheckoutsData>;
+
 /**
  * https://api.abacatepay.com/v2/checkouts/get
  *
  * @reference https://docs.abacatepay.com/pages/checkouts/get
  */
 export const RESTGetCheckoutData = APICheckout;
+
+export type RESTGetCheckoutData = Static<typeof RESTGetCheckoutData>;
 
 /**
  * https://api.abacatepay.com/v2/checkouts/get
@@ -188,6 +200,10 @@ export const RESTGetCheckoutQueryParams = t.Object({
 		description: 'Unique billing identifier.',
 	}),
 });
+
+export type RESTGetCheckoutQueryParams = Static<
+	typeof RESTGetCheckoutQueryParams
+>;
 
 /**
  * https://api.abacatepay.com/v2/coupons/create
@@ -220,6 +236,8 @@ export const RESTPostCreateCouponBody = t.Object({
 	}),
 });
 
+export type RESTPostCreateCouponBody = Static<typeof RESTPostCreateCouponBody>;
+
 /**
  * https://api.abacatepay.com/v2/coupon/create
  *
@@ -227,12 +245,16 @@ export const RESTPostCreateCouponBody = t.Object({
  */
 export const RESTPostCreateCouponData = APICoupon;
 
+export type RESTPostCreateCouponData = Static<typeof RESTPostCreateCouponData>;
+
 /**
  * https://api.abacatepay.com/v2/coupons/list
  *
  * @reference https://docs.abacatepay.com/pages/coupons/list
  */
 export const RESTGetListCouponsData = t.Array(APICoupon);
+
+export type RESTGetListCouponsData = Static<typeof RESTGetListCouponsData>;
 
 /**
  * https://api.abacatepay.com/v2/coupons/list
@@ -255,6 +277,10 @@ export const RESTGetListCouponsQueryParams = t.Object({
 	),
 });
 
+export type RESTGetListCouponsQueryParams = Static<
+	typeof RESTGetListCouponsQueryParams
+>;
+
 /**
  * https://api.abacatepay.com/v2/coupons/get
  *
@@ -266,12 +292,16 @@ export const RESTGetCouponQueryParams = t.Object({
 	}),
 });
 
+export type RESTGetCouponQueryParams = Static<typeof RESTGetCouponQueryParams>;
+
 /**
  * https://api.abacatepay.com/v2/coupons/get
  *
  * @reference https://docs.abacatepay.com/pages/coupons/get
  */
 export const RESTGetCouponData = APICoupon;
+
+export type RESTGetCouponData = Static<typeof RESTGetCouponData>;
 
 /**
  * https://api.abacatepay.com/v2/coupons/delete
@@ -284,12 +314,16 @@ export const RESTDeleteCouponBody = t.Object({
 	}),
 });
 
+export type RESTDeleteCouponBody = Static<typeof RESTDeleteCouponBody>;
+
 /**
  * https://api.abacatepay.com/v2/coupons/delete
  *
  * @reference https://docs.abacatepay.com/pages/coupons/delete
  */
 export const RESTDeleteCouponData = APICoupon;
+
+export type RESTDeleteCouponData = Static<typeof RESTDeleteCouponData>;
 
 /**
  * https://api.abacatepay.com/v2/coupons/toggle
@@ -302,12 +336,20 @@ export const RESTPatchToggleCouponStatusBody = t.Object({
 	}),
 });
 
+export type RESTPatchToggleCouponStatusBody = Static<
+	typeof RESTPatchToggleCouponStatusBody
+>;
+
 /**
  * https://api.abacatepay.com/v2/coupons/toggle
  *
  * @reference https://docs.abacatepay.com/pages/coupons/toggle
  */
 export const RESTPatchToggleCouponStatusData = APICoupon;
+
+export type RESTPatchToggleCouponStatusData = Static<
+	typeof RESTPatchToggleCouponStatusData
+>;
 
 /**
  * https://api.abacatepay.com/v2/payouts/create
@@ -329,12 +371,20 @@ export const RESTPostCreateNewPayoutBody = t.Object({
 	),
 });
 
+export type RESTPostCreateNewPayoutBody = Static<
+	typeof RESTPostCreateNewPayoutBody
+>;
+
 /**
  * https://api.abacatepay.com/v2/payouts/create
  *
  * @reference https://docs.abacatepay.com/pages/payouts/create
  */
 export const RESTPostCreateNewPayoutData = APIPayout;
+
+export type RESTPostCreateNewPayoutData = Static<
+	typeof RESTPostCreateNewPayoutData
+>;
 
 /**
  * https://api.abacatepay.com/v2/payouts/get
@@ -346,6 +396,10 @@ export const RESTGetSearchPayoutQueryParams = t.Object({
 		description: 'Unique payout identifier in your system.',
 	}),
 });
+
+export type RESTGetSearchPayoutQueryParams = Static<
+	typeof RESTGetSearchPayoutQueryParams
+>;
 
 /**
  * https://api.abacatepay.com/v2/payouts/list
@@ -368,12 +422,18 @@ export const RESTGetListPayoutsQueryParams = t.Object({
 	),
 });
 
+export type RESTGetListPayoutsQueryParams = Static<
+	typeof RESTGetListPayoutsQueryParams
+>;
+
 /**
  * https://api.abacatepay.com/v2/payouts/list
  *
  * @reference https://docs.abacatepay.com/pages/payouts/list
  */
 export const RESTGetListPayoutsData = t.Array(APIPayout);
+
+export type RESTGetListPayoutsData = Static<typeof RESTGetListPayoutsData>;
 
 /**
  * https://api.abacatepay.com/v2/transparents/create
@@ -399,12 +459,20 @@ export const RESTPostCreateQRCodePixBody = t.Intersect([
 	}),
 ]);
 
+export type RESTPostCreateQRCodePixBody = Static<
+	typeof RESTPostCreateQRCodePixBody
+>;
+
 /**
  * https://api.abacatepay.com/v2/transparents/create
  *
  * @reference https://docs.abacatepay.com/pages/transparents/create
  */
 export const RESTPostCreateQRCodePixData = APIQRCodePIX;
+
+export type RESTPostCreateQRCodePixData = Static<
+	typeof RESTPostCreateQRCodePixData
+>;
 
 /**
  * https://api.abacatepay.com/v2/transparents/simulate-payment
@@ -417,6 +485,10 @@ export const RESTPostSimulateQRCodePixPaymentQueryParams = t.Object({
 	}),
 });
 
+export type RESTPostSimulateQRCodePixPaymentQueryParams = Static<
+	typeof RESTPostSimulateQRCodePixPaymentQueryParams
+>;
+
 /**
  * https://api.abacatepay.com/v2/transparents/simulate-payment
  *
@@ -428,12 +500,20 @@ export const RESTPostSimulateQRCodePixPaymentBody = t.Object({
 	}),
 });
 
+export type RESTPostSimulateQRCodePixPaymentBody = Static<
+	typeof RESTPostSimulateQRCodePixPaymentBody
+>;
+
 /**
  * https://api.abacatepay.com/v2/transparents/simulate-payment
  *
  * @reference https://docs.abacatepay.com/pages/transparents/simulate-payment
  */
 export const RESTPostSimulateQRCodePixPaymentData = APIQRCodePIX;
+
+export type RESTPostSimulateQRCodePixPaymentData = Static<
+	typeof RESTPostSimulateQRCodePixPaymentData
+>;
 
 /**
  * https://api.abacatepay.com/v2/pixQrCode/check
@@ -446,6 +526,10 @@ export const RESTGetCheckQRCodePixStatusQueryParams = t.Object({
 	}),
 });
 
+export type RESTGetCheckQRCodePixStatusQueryParams = Static<
+	typeof RESTGetCheckQRCodePixStatusQueryParams
+>;
+
 /**
  * https://api.abacatepay.com/v2/transparents/check
  *
@@ -457,6 +541,10 @@ export const RESTGetCheckQRCodePixStatusData = t.Object({
 	}),
 	status: PaymentStatus,
 });
+
+export type RESTGetCheckQRCodePixStatusData = Static<
+	typeof RESTGetCheckQRCodePixStatusData
+>;
 
 /**
  * https://api.abacatepay.com/v2/products/create
@@ -474,12 +562,20 @@ export const RESTPostCreateProductBody = t.Intersect([
 	t.Pick(APIProduct, ['name', 'price', 'currency', 'externalId']),
 ]);
 
+export type RESTPostCreateProductBody = Static<
+	typeof RESTPostCreateProductBody
+>;
+
 /**
  * https://api.abacatepay.com/v2/products/create
  *
  * @reference https://docs.abacatepay.com/pages/products/create
  */
 export const RESTPostCreateProductData = APIProduct;
+
+export type RESTPostCreateProductData = Static<
+	typeof RESTPostCreateProductData
+>;
 
 /**
  * https://api.abacatepay.com/v2/products/list
@@ -502,12 +598,18 @@ export const RESTGetListProductsQueryParams = t.Object({
 	),
 });
 
+export type RESTGetListProductsQueryParams = Static<
+	typeof RESTGetListProductsQueryParams
+>;
+
 /**
  * https://api.abacatepay.com/v2/products/list
  *
  * @reference https://docs.abacatepay.com/pages/products/list
  */
 export const RESTGetListProductsData = t.Array(APIProduct);
+
+export type RESTGetListProductsData = Static<typeof RESTGetListProductsData>;
 
 /**
  * https://api.abacatepay.com/v2/products/get
@@ -527,6 +629,10 @@ export const RESTGetProductQueryParams = t.Object({
 	),
 });
 
+export type RESTGetProductQueryParams = Static<
+	typeof RESTGetProductQueryParams
+>;
+
 /**
  * https://api.abacatepay.com/v2/products/get
  *
@@ -534,12 +640,16 @@ export const RESTGetProductQueryParams = t.Object({
  */
 export const RESTGetProductData = APIProduct;
 
+export type RESTGetProductData = Static<typeof RESTGetProductData>;
+
 /**
  * https://api.abacatepay.com/v2/store/get
  *
  * @reference https://docs.abacatepay.com/pages/store/get
  */
 export const RESTGetStoreDetailsData = APIStore;
+
+export type RESTGetStoreDetailsData = Static<typeof RESTGetStoreDetailsData>;
 
 /**
  * https://api.abacatepay.com/v2/public-mrr/mrr
@@ -558,6 +668,8 @@ export const RESTGetMRRData = t.Object({
 			'Total active subscriptions. Value 0 indicates that there are no currently active subscriptions.',
 	}),
 });
+
+export type RESTGetMRRData = Static<typeof RESTGetMRRData>;
 
 /**
  * https://api.abacatepay.com/v2/subscriptions/create
@@ -583,12 +695,20 @@ export const RESTPostCreateSubscriptionBody = t.Intersect([
 	]),
 ]);
 
+export type RESTPostCreateSubscriptionBody = Static<
+	typeof RESTPostCreateSubscriptionBody
+>;
+
 /**
  * https://api.abacatepay.com/v2/subscriptions/create
  *
  * @reference https://docs.abacatepay.com/pages/subscriptions/create
  */
 export const RESTPostCreateSubscriptionData = APISubscription;
+
+export type RESTPostCreateSubscriptionData = Static<
+	typeof RESTPostCreateSubscriptionData
+>;
 
 /**
  * https://api.abacatepay.com/v2/subscriptions/list
@@ -609,12 +729,20 @@ export const RESTGetListSubscriptionsQueryParams = t.Object({
 	),
 });
 
+export type RESTGetListSubscriptionsQueryParams = Static<
+	typeof RESTGetListSubscriptionsQueryParams
+>;
+
 /**
  * https://api.abacatepay.com/v2/subscriptions/list
  *
  * @reference https://docs.abacatepay.com/pages/subscriptions/list
  */
 export const RESTGetListSubscriptionsData = t.Array(APISubscription);
+
+export type RESTGetListSubscriptionsData = Static<
+	typeof RESTGetListSubscriptionsData
+>;
 
 /**
  * https://api.abacatepay.com/v2/customers/create
@@ -628,6 +756,10 @@ export const RESTPostCreateCustomerBody = t.Intersect([
 	),
 ]);
 
+export type RESTPostCreateCustomerBody = Static<
+	typeof RESTPostCreateCustomerBody
+>;
+
 /**
  * https://api.abacatepay.com/v2/customers/create
  *
@@ -635,12 +767,18 @@ export const RESTPostCreateCustomerBody = t.Intersect([
  */
 export const RESTPostCreateCustomerData = APICustomer;
 
+export type RESTPostCreateCustomerData = Static<
+	typeof RESTPostCreateCustomerData
+>;
+
 /**
  * https://api.abacatepay.com/v2/customers/list
  *
  * @reference https://docs.abacatepay.com/pages/client/list
  */
 export const RESTGetListCustomersData = t.Array(APICustomer);
+
+export type RESTGetListCustomersData = Static<typeof RESTGetListCustomersData>;
 
 /**
  * https://api.abacatepay.com/v2/customers/list
@@ -663,6 +801,10 @@ export const RESTGetListCustomersQueryParams = t.Object({
 	),
 });
 
+export type RESTGetListCustomersQueryParams = Static<
+	typeof RESTGetListCustomersQueryParams
+>;
+
 /**
  * https://api.abacatepay.com/v2/customers/get
  *
@@ -674,12 +816,18 @@ export const RESTGetCustomerQueryParams = t.Object({
 	}),
 });
 
+export type RESTGetCustomerQueryParams = Static<
+	typeof RESTGetCustomerQueryParams
+>;
+
 /**
  * https://api.abacatepay.com/v2/customers/get
  *
  * @reference https://docs.abacatepay.com/pages/client/get
  */
 export const RESTGetCustomerData = t.Omit(APICustomer, ['country', 'zipCode']);
+
+export type RESTGetCustomerData = Static<typeof RESTGetCustomerData>;
 
 /**
  * https://api.abacatepay.com/v2/customers/delete
@@ -692,6 +840,8 @@ export const RESTDeleteCustomerBody = t.Object({
 	}),
 });
 
+export type RESTDeleteCustomerBody = Static<typeof RESTDeleteCustomerBody>;
+
 /**
  * https://api.abacatepay.com/v2/customers/delete
  *
@@ -701,6 +851,8 @@ export const RESTDeleteCustomerData = t.Omit(APICustomer, [
 	'country',
 	'zipCode',
 ]);
+
+export type RESTDeleteCustomerData = Static<typeof RESTDeleteCustomerData>;
 
 /**
  * https://api.abacatepay.com/v2/public-mrr/revenue
@@ -715,6 +867,10 @@ export const RESTGetRevenueByPeriodQueryParams = t.Object({
 		description: 'Period end date (YYYY-MM-DD format).',
 	}),
 });
+
+export type RESTGetRevenueByPeriodQueryParams = Static<
+	typeof RESTGetRevenueByPeriodQueryParams
+>;
 
 /**
  * https://api.abacatepay.com/v2/public-mrr/revenue
@@ -745,6 +901,10 @@ export const RESTGetRevenueByPeriodData = t.Object({
 	),
 });
 
+export type RESTGetRevenueByPeriodData = Static<
+	typeof RESTGetRevenueByPeriodData
+>;
+
 /**
  * https://api.abacatepay.com/v2/public-mrr/merchant-info
  *
@@ -762,3 +922,5 @@ export const RESTGetMerchantData = t.Object({
 		description: 'Store creation date.',
 	}),
 });
+
+export type RESTGetMerchantData = Static<typeof RESTGetMerchantData>;

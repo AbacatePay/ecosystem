@@ -1,10 +1,12 @@
-import { Type as t } from '@sinclair/typebox';
+import { type Static, Type as t } from '@sinclair/typebox';
 import { StringEnum } from '../../utils';
 
 /**
  * https://docs.abacatepay.com/pages/payouts/reference#atributos
  */
 export const PayoutStatus = StringEnum([], 'Transaction status.');
+
+export type PayoutStatus = Static<typeof PayoutStatus>;
 
 /**
  * https://docs.abacatepay.com/pages/payouts/reference
@@ -37,3 +39,5 @@ export const APIPayout = t.Object({
 		description: 'Transaction update date.',
 	}),
 });
+
+export type APIPayout = Static<typeof APIPayout>;

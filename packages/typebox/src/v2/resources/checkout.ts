@@ -1,4 +1,4 @@
-import { Type as t } from '@sinclair/typebox';
+import { type Static, Type as t } from '@sinclair/typebox';
 import { StringEnum } from '../../utils';
 
 /**
@@ -9,10 +9,14 @@ export const PaymentStatus = StringEnum(
 	'Billing status. Can be `PENDING`, `EXPIRED`, `CANCELLED`, `PAID`, `REFUNDED`.',
 );
 
+export type PaymentStatus = Static<typeof PaymentStatus>;
+
 /**
  * https://docs.abacatepay.com/pages/payment/create#body-methods
  */
 export const PaymentMethod = StringEnum(['PIX', 'CARD'], 'Payment method.');
+
+export type PaymentMethod = Static<typeof PaymentMethod>;
 
 /**
  * https://docs.abacatepay.com/pages/checkouts/reference#estrutura
@@ -95,3 +99,5 @@ export const APICheckout = t.Object({
 		description: 'Charge last updated date and time.',
 	}),
 });
+
+export type APICheckout = Static<typeof APICheckout>;

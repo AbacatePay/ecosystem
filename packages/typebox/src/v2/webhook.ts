@@ -10,6 +10,8 @@ export const WebhookEventType = StringEnum(
 	'Webhook event type.',
 );
 
+export type WebhookEventType = Static<typeof WebhookEventType>;
+
 export const BaseWebhookEvent = <
 	Type extends Static<typeof WebhookEventType>,
 	Schema extends TAnySchema,
@@ -53,6 +55,8 @@ export const WebhookPayoutFailedEvent = BaseWebhookEvent(
 	}),
 );
 
+export type WebhookPayoutFailedEvent = Static<typeof WebhookPayoutFailedEvent>;
+
 /**
  * https://docs.abacatepay.com/pages/webhooks#payout-done
  */
@@ -74,6 +78,8 @@ export const WebhookPayoutDoneEvent = BaseWebhookEvent(
 		),
 	}),
 );
+
+export type WebhookPayoutDoneEvent = Static<typeof WebhookPayoutDoneEvent>;
 
 /**
  * https://docs.abacatepay.com/pages/webhooks#billing-paid
@@ -140,6 +146,8 @@ export const WebhookBillingPaidEvent = BaseWebhookEvent(
 	}),
 );
 
+export type WebhookBillingPaidEvent = Static<typeof WebhookBillingPaidEvent>;
+
 /**
  * https://docs.abacatepay.com/pages/webhooks
  */
@@ -148,3 +156,5 @@ export const WebhookEvent = t.Union([
 	WebhookBillingPaidEvent,
 	WebhookPayoutFailedEvent,
 ]);
+
+export type WebhookEvent = Static<typeof WebhookEvent>;

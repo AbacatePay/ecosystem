@@ -1,4 +1,4 @@
-import { Type as t } from '@sinclair/typebox';
+import { type Static, Type as t } from '@sinclair/typebox';
 import { StringEnum } from '../../utils';
 import { PaymentMethod } from './checkout';
 
@@ -17,10 +17,14 @@ export const APISubscriptionEvent = t.Object({
 	}),
 });
 
+export type APISubscriptionEvent = Static<typeof APISubscriptionEvent>;
+
 export const SubscriptionStatus = StringEnum(
 	['ACTIVE', 'PENDING', 'CANCELLED', 'EXPIRED', 'FAILED'],
 	'Subscription status.',
 );
+
+export type SubscriptionStatus = Static<typeof SubscriptionStatus>;
 
 /**
  * https://docs.abacatepay.com/pages/subscriptions/reference#estrutura
@@ -92,3 +96,5 @@ export const APISubscription = t.Object({
 		description: 'Array of events related to the subscription.',
 	}),
 });
+
+export type APISubscription = Static<typeof APISubscription>;
