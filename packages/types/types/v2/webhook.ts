@@ -99,11 +99,11 @@ export type WebhookBillingPaidEvent = BaseWebhookEvent<
 					 */
 					id: string;
 					/**
-					 * Kind of the payment
+					 * Kind of the payment.
 					 */
 					kind: 'PIX';
 					/**
-					 * Billing status, can only be `PAID` here
+					 * Billing status, can only be `PAID` here.
 					 *
 					 * @see {@link PaymentStatus.Paid}
 					 */

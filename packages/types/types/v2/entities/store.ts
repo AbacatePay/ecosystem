@@ -15,7 +15,7 @@ export interface APIStore {
 	/**
 	 * Object containing information about your account balances.
 	 *
-	 * @remarks All balance values ​​are returned in cents. To convert to Reais, divide by 100. For example: 15000 cents = R$150.00
+	 * @remarks All balance values ​​are returned in cents. To convert to Reais, divide by 100. For example: 15000 cents = R$150.00.
 	 */
 	balance: {
 		/**

@@ -13,12 +13,12 @@ import type { APIProduct } from './entities/products';
 import type { APISubscription } from './entities/subscription';
 
 /**
- * Any response returned by the AbacatePay API
+ * Any response returned by the AbacatePay API.
  */
 export type APIResponse<Data> =
 	| {
 			/**
-			 * The data of the response
+			 * The data of the response.
 			 */
 			data: Data;
 			error: null;
@@ -26,39 +26,39 @@ export type APIResponse<Data> =
 	| {
 			data: null;
 			/**
-			 * Error message returned from the API
+			 * Error message returned from the API.
 			 */
 			error: string;
 	  };
 
 /**
- * Any response returned by the AbacatePay API that has a `pagination` field (Not cursor based)
+ * Any response returned by the AbacatePay API that has a `pagination` field (Not cursor based).
  */
 export type APIResponseWithPagination<Data> =
 	| {
 			/**
-			 * The data of the response
+			 * The data of the response.
 			 */
 			data: Data;
 			error: null;
 			/**
-			 * Pagination info
+			 * Pagination info.
 			 */
 			pagination: {
 				/**
-				 * Current page
+				 * Current page.
 				 */
 				page: number;
 				/**
-				 * Number of items per page
+				 * Number of items per page.
 				 */
 				limit: number;
 				/**
-				 * Number of items
+				 * Number of items.
 				 */
 				items: number;
 				/**
-				 * Number of pages
+				 * Number of pages.
 				 */
 				totalPages: number;
 			};
@@ -66,27 +66,27 @@ export type APIResponseWithPagination<Data> =
 	| {
 			data: null;
 			/**
-			 * Error message returned from the API
+			 * Error message returned from the API.
 			 */
 			error: string;
 	  };
 
 /**
- * Any response returned by the AbacatePay API that has a `pagination` field and is cursor-based
+ * Any response returned by the AbacatePay API that has a `pagination` field and is cursor-based.
  */
 export type APIResponseWithCursorBasedPagination<Data> =
 	| {
 			/**
-			 * The data of the response
+			 * The data of the response.
 			 */
 			data: Data;
 			error: null;
 			/**
-			 * Pagination info
+			 * Pagination info.
 			 */
 			pagination: {
 				/**
-				 * Number of items per page
+				 * Number of items per page.
 				 */
 				limit: number;
 				/**
@@ -98,7 +98,7 @@ export type APIResponseWithCursorBasedPagination<Data> =
 				 */
 				hasPrevious: boolean;
 				/**
-				 * Cursor for the next page
+				 * Cursor for the next page.
 				 */
 				nextCursor: string | null;
 			};
@@ -106,7 +106,7 @@ export type APIResponseWithCursorBasedPagination<Data> =
 	| {
 			data: null;
 			/**
-			 * Error message returned from the API
+			 * Error message returned from the API.
 			 */
 			error: string;
 	  };
@@ -380,7 +380,7 @@ export interface RESTPostCreateCouponBody {
 	 */
 	discountKind: CouponDiscountKind;
 	/**
-	 * Coupon description
+	 * Coupon description.
 	 */
 	notes?: string;
 	/**
@@ -448,13 +448,13 @@ export interface RESTGetSearchPayoutQueryParams {
  */
 export interface RESTGetListPayoutsQueryParams {
 	/**
-	 * Number of the page
+	 * Number of the page.
 	 *
 	 * @default 1
 	 */
 	page?: number;
 	/**
-	 * Number of items per page
+	 * Number of items per page.
 	 *
 	 * @default 20
 	 */
@@ -649,7 +649,7 @@ export type RESTPatchToggleCouponStatusData = APICoupon;
 export interface RESTPostCreateProductBody
 	extends Pick<APIProduct, 'externalId' | 'name' | 'price' | 'currency'> {
 	/**
-	 * Description for the product
+	 * Description for the product.
 	 */
 	description?: string;
 }
