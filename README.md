@@ -1,112 +1,47 @@
 <div align="center">
 
-# AbacatePay REST
+# Ecossistema AbacatePay 🥑
 
-Um REST Client para a API da AbacatePay — rápido, seguro e testado.</br>
-O [`@abacatepay/rest`](https://www.npmjs.com/package/@abacatepay/rest) é um **cliente REST leve e totalmente tipado** para interagir com a API do AbacatePay.</br>
-Projetado para **Node.js, Bun e runtimes modernos**, com retries inteligentes, timeout e tratamento de erros consistente.
+Monorepo oficial contendo **todas as bibliotecas open source do ecossistema AbacatePay**, publicadas sob o escopo [`@abacatepay`](https://www.npmjs.com/org/abacatepay) no NPM.
+
+Cada pacote é versionado, testado e publicado **de forma independente**, com histórico próprio de releases.
 
 <img src="https://res.cloudinary.com/dkok1obj5/image/upload/v1767631413/avo_clhmaf.png" width="100%" alt="AbacatePay Open Source"/>
 
-## Instalação
+## Packages
 
-Use com o seu *package manager* favorito
-
-</div>
-
-```bash
-bun add @abacatepay/rest
-# Ou
-pnpm add @abacatepay/rest
-# Ou
-npm install @abacatepay/rest
-```
-
-<div align="center">
-
-## Uso Básico
-
-Simule um pagamento QRCodePix que tenha o ID `pix_char_123456`
-</div>
-
-```ts
-import { REST } from '@abacatepay/rest';
-
-const client = new REST({
-	secret: process.env.ABACATEPAY_API_KEY!,
-});
-
-const pix = await client.post('/pixQrCode/simulate-payment', {
-    query: { id: 'pix_char_123456' },
-});
-
-console.log(pix);
-```
-
-<div align="center">
-
-## Retry & Backoff
-
-Por padrão, o REST faz **3 retries** automaticamente para erros **retryable** (rate limit, 5xx, erro de rede).
+Todos os pacotes vivem em `packages/*` e são publicados como `@abacatepay/<nome>`.
 
 </div>
 
-```ts
-const client = new REST({
-    retry: {
-        max: 5
-    },
-})
-```
+- [`@abacatepay/sdk`](https://www.npmjs.com/package/@abacatepay/sdk) - Um SDK ergonômico para a integração com a API da AbacatePay.
+- [`@abacatepay/rest`](https://www.npmjs.com/package/@abacatepay/rest) — Client REST completo e tipado para a API da AbacatePay.
+- [`@abacatepay/types`](https://www.npmjs.com/package/@abacatepay/types) - Tipagens e helpers completos da API da AbacatePay (Com versionamento).
+- [`@abacatepay/typebox`](https://www.npmjs.com/package/@abacatepay/typebox) - Schemas oficiais da API AbacatePay em TypeBox, com validação runtime, e suporte a OpenAPI.
+- [`@abacatepay/eslint-plugin`](https://www.npmjs.com/package/@abacatepay/eslint-plugin) - Um plugin ESLint para regras relacionada a AbacatePay.
 
 <div align="center">
 
-### Backoff customizado
-</div>
-
-```ts
-const client = new REST({
-	retry: {
-		max: 7,
-		backoff(attempt) {
-			// Backoff exponencial
-			return Math.min(10_000, 500 * 2 ** attempt);
-		},
-	},
-});
-```
-
-<p align="center">Se nenhum backoff for fornecido, o REST usa backoff exponencial com jitter automaticamente.</p>
-
-<div align="center">
-
-## Tratando erros
-
-O REST Client expõe erros tipados para facilitar o controle e o tratamento deles
+## Publicação & Versionamento
 
 </div>
 
-```ts
-import { AbacatePayError, HTTPError } from '@abacatepay/rest';
+- Utilizamos monorepo com workspaces (Bun)
+- Cada pacote possui:
+  - versionamento próprio
+  - changelog individual
+  - release independente
+- O fluxo de releases é automatizado via CI
 
-try {
-	await client.get('/customers/invalid');
-} catch (err) {
-	if (err instanceof AbacatePayError) {
-		console.error('Erro da API:', err.message);
-
-		return;
-	}
-
-	if (err instanceof HTTPError) {
-		console.error(`Erro de rede/HTTP em ${err.route}: ${err.message}`);
-	}
-}
-```
+<p align="center">
+  <sub>
+    <samp>
+      Você pode ver todos os releases por <a href="https://github.com/almeidazs/ecosystem/releases">aqui</a>
+    </samp>
+  </sub>
+</p>
 
 <div align="center">
-
-Você pode ver a documentação completa por [aqui](https://docs.abacatepay.com/pages/rest).
 
 Feito com 🥑 pela equipe AbacatePay</br>
 Open source, de verdade.
