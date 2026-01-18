@@ -21,19 +21,19 @@ interface HandleErrorOptions {
 const FIVE_SEC_IN_MS = 5_000;
 
 /**
- * Represents the class that manages handlers for endpoints
+ * Represents the class that manages handlers for endpoints.
  */
 export class REST {
 	public constructor(
 		/**
-		 * Options to use in all requests
+		 * Options to use in all requests.
 		 */
 		public readonly options = {} as RESTOptions,
 	) {}
 
 	/**
-	 * Sets the authorization token that should be used for requests
-	 * @param secret The secret to use
+	 * Sets the authorization token that should be used for requests.
+	 * @param secret The secret to use.
 	 */
 	public setSecret(secret: string) {
 		this.options.secret = secret;
@@ -42,35 +42,35 @@ export class REST {
 	}
 
 	/**
-	 * Runs a GET request from the API
+	 * Runs a GET request from the API.
 	 */
 	public get<R>(route: string, options?: MakeRequestOptionsWithoutMethod) {
 		return this.makeRequest<R>(route, { ...options, method: 'GET' });
 	}
 
 	/**
-	 * Runs a POST request from the API
+	 * Runs a POST request from the API.
 	 */
 	public post<R>(route: string, options?: MakeRequestOptionsWithoutMethod) {
 		return this.makeRequest<R>(route, { ...options, method: 'POST' });
 	}
 
 	/**
-	 * Runs a DELETE request from the API
+	 * Runs a DELETE request from the API.
 	 */
 	public delete<R>(route: string, options?: MakeRequestOptionsWithoutMethod) {
 		return this.makeRequest<R>(route, { ...options, method: 'DELETE' });
 	}
 
 	/**
-	 * Runs a PUT request from the API
+	 * Runs a PUT request from the API.
 	 */
 	public put<R>(route: string, options?: MakeRequestOptionsWithoutMethod) {
 		return this.makeRequest<R>(route, { ...options, method: 'PUT' });
 	}
 
 	/**
-	 * Runs a PATCH request from the API
+	 * Runs a PATCH request from the API.
 	 */
 	public patch<R>(route: string, options?: MakeRequestOptionsWithoutMethod) {
 		return this.makeRequest<R>(route, { ...options, method: 'PATCH' });
@@ -97,7 +97,7 @@ export class REST {
 
 			return this.process<R>(response);
 		} catch (err) {
-			// biome-ignore lint/suspicious/noExplicitAny: Use any to check if the error is a timeout error
+			// biome-ignore lint/suspicious/noExplicitAny: Use any to check if the error is a timeout error.
 			const isTimeoutError = (err as any)?.name === 'TimeoutError';
 
 			if (isTimeoutError)
