@@ -127,7 +127,7 @@ export class REST {
 					response.status,
 					options.method,
 				);
-
+			if (retry.onRetry) await retry.onRetry({ attempt, options, response });
 			if (response.status === RATE_LIMIT_STATUS_CODE && onRateLimit)
 				await onRateLimit(response);
 

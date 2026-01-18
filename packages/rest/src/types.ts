@@ -73,6 +73,17 @@ export interface RetryOptions {
 	 * @param attempt Current retry attempt.
 	 */
 	backoff?(attempt: number): number;
+	/**
+	 * Function to execute every time a retry is made
+	 * @param context The context for the retry
+	 */
+	onRetry?(context: RetryContext): unknown;
+}
+
+export interface RetryContext {
+	attempt: number;
+	response: Response;
+	options: MakeRequestOptions;
 }
 
 /**
