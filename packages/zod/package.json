@@ -1,0 +1,81 @@
+{
+	"name": "@abacatepay/zod",
+	"version": "0.0.1",
+	"description": "Official Zod schemas for the AbacatePay API, including requests, responses, and webhooks.",
+	"type": "module",
+	"sideEffects": false,
+	"license": "Apache-2.0",
+	"exports": {
+		".": {
+			"types": "./dist/index.d.ts",
+			"import": "./dist/index.js",
+			"default": "./dist/index.js"
+		},
+		"./v1": {
+			"types": "./dist/v1/index.d.ts",
+			"import": "./dist/v1/index.js"
+		},
+		"./v1/*": {
+			"types": "./dist/v1/*.d.ts",
+			"import": "./dist/v1/*.js"
+		},
+		"./v2": {
+			"types": "./dist/v2/index.d.ts",
+			"import": "./dist/v2/index.js"
+		},
+		"./v2/*": {
+			"types": "./dist/v2/*.d.ts",
+			"import": "./dist/v2/*.js"
+		},
+		"./v*": null
+	},
+	"typesVersions": {
+		"*": {
+			"v1": [
+				"dist/v1/index.d.ts"
+			],
+			"v2": [
+				"dist/v2/index.d.ts"
+			]
+		}
+	},
+	"main": "./dist/index.js",
+	"types": "./dist/index.d.ts",
+	"files": [
+		"dist"
+	],
+	"scripts": {
+		"test": "bun test",
+		"build": "rm -rf dist && bun run gen:version && bun build src/index.ts --outdir dist --target node && bun run types",
+		"types": "bunx tsc --emitDeclarationOnly",
+		"prepublishOnly": "bun run build",
+		"gen:version": "bun run scripts/version.ts"
+	},
+	"engines": {
+		"node": ">=18",
+		"bun": ">=1.0.0"
+	},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/almeidazs/ecosystem"
+	},
+	"keywords": [
+		"abacatepay",
+		"payments",
+		"zod",
+		"api",
+		"typescript"
+	],
+	"publishConfig": {
+		"access": "public"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "^2.3.11",
+		"typescript": "^5.0.0",
+		"@commitlint/config-conventional": "^18.0.0"
+	},
+	"peerDependencies": {
+		"zod": "^3",
+		"typescript": "^5"
+	}
+}
