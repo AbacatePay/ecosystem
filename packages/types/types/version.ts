@@ -5,6 +5,6 @@
  */
 export const version = '2.0.1' as const;
 /**
- * Current version of the AbacatePay API
+ * Current version of the AbacatePay API.
  */
 export const API_VERSION = '2' as const;

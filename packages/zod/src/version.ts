@@ -3,8 +3,8 @@
 /**
  * Current version of [@abacatepay/zod](https://www.npmjs.com/package/@abacatepay/zod).
  */
-export const version = '0.0.1' as const;
+export const version = '0.0.2' as const;
 /**
- * Current version of the AbacatePay API
+ * Current version of the AbacatePay API.
  */
 export const API_VERSION = '2' as const;
