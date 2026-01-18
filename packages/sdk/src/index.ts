@@ -45,6 +45,7 @@ import type {
 import { Routes } from '@abacatepay/types/v2';
 import type { AbacatePayOptions } from './types';
 
+export { AbacatePayError, HTTPError } from '@abacatepay/rest';
 export * from './types';
 export { version } from './version';
 
