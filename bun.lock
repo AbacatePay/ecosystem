@@ -33,7 +33,7 @@
     },
     "packages/sdk": {
       "name": "@abacatepay/sdk",
-      "version": "0.0.1",
+      "version": "1.0.0",
       "dependencies": {
         "@abacatepay/rest": "^0.0.1",
         "@abacatepay/types": "^2.0.1",
@@ -63,6 +63,19 @@
         "typescript": "^5.9.3",
       },
     },
+    "packages/zod": {
+      "name": "@abacatepay/zod",
+      "version": "0.0.1",
+      "devDependencies": {
+        "@biomejs/biome": "^2.3.11",
+        "@commitlint/config-conventional": "^18.0.0",
+        "typescript": "^5.0.0",
+      },
+      "peerDependencies": {
+        "typescript": "^5",
+        "zod": "^4",
+      },
+    },
   },
   "packages": {
     "@abacatepay/eslint-plugin": ["@abacatepay/eslint-plugin@workspace:packages/eslint-plugin"],
@@ -74,6 +87,8 @@
     "@abacatepay/typebox": ["@abacatepay/typebox@workspace:packages/typebox"],
 
     "@abacatepay/types": ["@abacatepay/types@workspace:packages/types"],
+
+    "@abacatepay/zod": ["@abacatepay/zod@workspace:packages/zod"],
 
     "@babel/code-frame": ["@babel/code-frame@7.28.6", "", { "dependencies": { "@babel/helper-validator-identifier": "^7.28.5", "js-tokens": "^4.0.0", "picocolors": "^1.1.1" } }, "sha512-JYgintcMjRiCvS8mMECzaEn+m3PfoQiyqukOMCCVQtoJGYJw8j/8LBJEiqkHLkfwCcs74E3pbAUFNg7d9VNJ+Q=="],
 
@@ -429,9 +444,9 @@
 
     "yocto-queue": ["yocto-queue@0.1.0", "", {}, "sha512-rVksvsnNCdJ/ohGc6xgPwyN8eheCxsiLM8mxuE/t/mOVqJewPuO1miLpTHQiRgTKCLexL4MeAFVagts7HmNZ2Q=="],
 
-    "@abacatepay/sdk/@abacatepay/rest": ["@abacatepay/rest@0.0.1", "", {}, "sha512-3IY/m3J7ypbSPpZzPBJkFLvXkSIygJ4QdYcd0KKwwJC7XQAvR0lVUCDElLzdQvijzLjjMamW8TJLtPaS+Swhmg=="],
+    "zod": ["zod@4.3.5", "", {}, "sha512-k7Nwx6vuWx1IJ9Bjuf4Zt1PEllcwe7cls3VNzm4CQ1/hgtFUK2bRNG3rvnpPUhFjmqJKAKtjV576KnUkHocg/g=="],
 
-    "@abacatepay/sdk/@abacatepay/types": ["@abacatepay/types@2.0.1", "", {}, "sha512-nh0tX4bHIp8RL3ebywjqB94f0sO17u9p1j5epT9dKrxDVMY0N6yM4BbyZ35YhhrpvluP6J3vHY55gjPiHOu9FQ=="],
+    "@abacatepay/zod/@commitlint/config-conventional": ["@commitlint/config-conventional@18.6.3", "", { "dependencies": { "@commitlint/types": "^18.6.1", "conventional-changelog-conventionalcommits": "^7.0.2" } }, "sha512-8ZrRHqF6je+TRaFoJVwszwnOXb/VeYrPmTwPhf0WxpzpGTcYy1p0SPyZ2eRn/sRi/obnWAcobtDAq6+gJQQNhQ=="],
 
     "@commitlint/config-validator/ajv": ["ajv@8.17.1", "", { "dependencies": { "fast-deep-equal": "^3.1.3", "fast-uri": "^3.0.1", "json-schema-traverse": "^1.0.0", "require-from-string": "^2.0.2" } }, "sha512-B/gBuNg5SiMTrPkC+A2+cW0RszwxYmn6VYxB/inlBStS5nx6xHIt/ehKRhIMhqusl7a8LjQoZnjCs5vhwxOQ1g=="],
 
@@ -446,6 +461,8 @@
     "@eslint-community/eslint-utils/eslint-visitor-keys": ["eslint-visitor-keys@3.4.3", "", {}, "sha512-wpc+LXeiyiisxPlEkUzU6svyS1frIO3Mgxj1fdy7Pm8Ygzguax2N3Fa/D/ag1WqbOprdI+uY6wMUl8/a2G+iag=="],
 
     "import-fresh/resolve-from": ["resolve-from@4.0.0", "", {}, "sha512-pb/MYmXstAkysRFx8piNI1tGFNQIFA3vkE3Gq4EuA1dF6gHp/+vgZqsCGJapvy8N3Q+4o7FwvquPJcnZ7RYy4g=="],
+
+    "@abacatepay/zod/@commitlint/config-conventional/@commitlint/types": ["@commitlint/types@18.6.1", "", { "dependencies": { "chalk": "^4.1.0" } }, "sha512-gwRLBLra/Dozj2OywopeuHj2ac26gjGkz2cZ+86cTJOdtWfiRRr4+e77ZDAGc6MDWxaWheI+mAV5TLWWRwqrFg=="],
 
     "@commitlint/config-validator/ajv/json-schema-traverse": ["json-schema-traverse@1.0.0", "", {}, "sha512-NM8/P9n3XjXhIZn1lLhkFaACTOURQXjWhV4BA/RnOv8xvgqtqpAX9IO4mRQxSx1Rlo4tqzeqb0sOlruaOy3dug=="],
 
