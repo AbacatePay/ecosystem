@@ -51,7 +51,7 @@ export const AbacatePay = ({ secret, rest }: AbacatePayOptions) => {
 	});
 
 	return {
-        rest: client,
+		rest: client,
 		customers: {
 			get(id: string) {
 				return client.get<RESTGetCustomerData>(Routes.customers.get(id));
@@ -190,8 +190,8 @@ export const AbacatePay = ({ secret, rest }: AbacatePayOptions) => {
 				return client.get<RESTGetProductData>(Routes.products.get(query));
 			},
 			list(query?: RESTGetListProductsQueryParams) {
-                // TODO: Fix the type
-                // @ts-expect-error
+				// TODO: Fix the type
+				// @ts-expect-error
 				return client.get<RESTGetListProductsData>(Routes.products.list(query));
 			},
 		},

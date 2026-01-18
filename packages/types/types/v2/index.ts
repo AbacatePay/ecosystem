@@ -7,5 +7,6 @@ export * from './entities/products';
 export * from './entities/store';
 export * from './entities/subscription';
 export * from './rest';
+export { Routes } from './routes';
 export * from './utils';
 export * from './webhook';
