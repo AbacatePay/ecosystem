@@ -42,8 +42,12 @@ import type {
 	RESTPostCreateSubscriptionData,
 	RESTPostSimulateQRCodePixPaymentData,
 } from '@abacatepay/types/v2';
-import { Routes } from '@abacatepay/types/v2/routes';
+import { Routes } from '@abacatepay/types/v2';
 import type { AbacatePayOptions } from './types';
+
+export * from './types';
+
+export { version } from './version';
 
 export const AbacatePay = ({ secret, rest }: AbacatePayOptions) => {
 	const client = new REST({
