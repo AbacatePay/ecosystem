@@ -49,7 +49,7 @@ export interface MakeRequestOptions
 	/**
 	 * Query string parameters to append to the called endpoint.
 	 */
-	query?: string | Record<string, string> | URLSearchParams;
+	query?: string | Record<string, string> | URLSearchParams | [string, string][];
 }
 
 /**
