@@ -46,8 +46,11 @@ import { Routes } from '@abacatepay/types/v2';
 import type { AbacatePayOptions } from './types';
 
 export { AbacatePayError, HTTPError } from '@abacatepay/rest';
+export { API_BASE_URL, API_VERSION } from '@abacatepay/types';
 export * from './types';
 export { version } from './version';
+
+export const ABACATEPAY_DOCS_URL = 'https://docs.abacatepay.com/';
 
 /**
  * This is the main entry point for interacting with the AbacatePay API,
