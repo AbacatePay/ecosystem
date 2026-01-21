@@ -1,6 +1,6 @@
 {
 	"name": "@abacatepay/zod",
-	"version": "0.0.2",
+	"version": "1.0.0",
 	"description": "Official Zod schemas for the AbacatePay API, including requests, responses, and webhooks.",
 	"type": "module",
 	"sideEffects": false,
