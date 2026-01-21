@@ -46,7 +46,7 @@
 	],
 	"scripts": {
 		"test": "bun test",
-		"build": "rm -rf dist && bun run gen:version && bun build src/index.ts --outdir dist --target node && bun run types",
+		"build": "rm -rf dist && bun run gen:version && tsc",
 		"types": "bunx tsc --emitDeclarationOnly",
 		"prepublishOnly": "bun run build",
 		"gen:version": "bun run scripts/version.ts"
