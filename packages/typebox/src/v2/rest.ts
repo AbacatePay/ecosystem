@@ -23,11 +23,17 @@ export const APIResponse = <Schema extends TAnySchema>(schema: Schema) =>
 			error: t.Null({
 				description: 'Error message returned from the API.',
 			}),
+			success: t.Literal(true, {
+				description: 'Whether the response was successfull or not.',
+			}),
 		}),
 		t.Object({
 			data: t.Null(),
 			error: t.String({
 				description: 'Error message returned from the API.',
+			}),
+			success: t.Literal(false, {
+				description: 'Whether the response was successfull or not.',
 			}),
 		}),
 	]);
@@ -48,6 +54,9 @@ export const APIResponseWithPagination = <Schema extends TAnySchema>(
 			data: schema,
 			error: t.Null({
 				description: 'Error message returned from the API',
+			}),
+			success: t.Literal(true, {
+				description: 'Whether the response was successfull or not.',
 			}),
 			pagination: t.Object({
 				page: t.Integer({
@@ -73,6 +82,9 @@ export const APIResponseWithPagination = <Schema extends TAnySchema>(
 			error: t.String({
 				description: 'Error message returned from the API.',
 			}),
+			success: t.Literal(false, {
+				description: 'Whether the response was successfull or not.',
+			}),
 		}),
 	]);
 
@@ -91,6 +103,9 @@ export const APIResponseWithCursorBasedPagination = <Schema extends TAnySchema>(
 			data: schema,
 			error: t.Null({
 				description: 'Error message returned from the API',
+			}),
+			success: t.Literal(false, {
+				description: 'Whether the response was successfull or not.',
 			}),
 			pagination: t.Object({
 				limit: t.Integer({
@@ -112,6 +127,9 @@ export const APIResponseWithCursorBasedPagination = <Schema extends TAnySchema>(
 			data: t.Null(),
 			error: t.String({
 				description: 'Error message returned from the API.',
+			}),
+			success: t.Literal(false, {
+				description: 'Whether the response was successfull or not.',
 			}),
 		}),
 	]);
