@@ -3,12 +3,11 @@ import type { Context } from 'hono';
 import type { WebhookOptions } from './types';
 import { verifyWebhookSignature } from './utils';
 
+const BAD_REQUEST_STATUS_CODE = 400;
+const UNAUTHORIZED_STATUS_CODE = 401;
+
 export { version } from './version';
 
-/**
- * A simple utility which resolves incoming webhook payloads by signing the webhook secret properly.
- * @param options Options to use
- */
 export const Webhooks = ({
 	onPayload,
 	onPayoutDone,
@@ -18,25 +17,39 @@ export const Webhooks = ({
 		process.env.ABACATE_PAY_WEBHOOK_SECRET,
 }: WebhookOptions) => {
 	return async (ctx: Context) => {
-		if (ctx.req.query('webhookSecret') !== secret) return;
+		const webhookSecret = ctx.req.query('webhookSecret');
 
-		const signature = ctx.res.headers.get('x-webhook-signature');
+		if (webhookSecret !== secret)
+			return ctx.json({ error: 'Unauthorized' }, UNAUTHORIZED_STATUS_CODE);
 
-		if (!signature) return;
+		const signature = ctx.req.header('x-webhook-signature');
+
+		if (!signature)
+			return ctx.json({ error: 'Missing signature' }, BAD_REQUEST_STATUS_CODE);
 
 		const raw = await ctx.req.text();
 
-		if (!verifyWebhookSignature(raw, signature)) return;
+		if (!verifyWebhookSignature(raw, signature))
+			return ctx.json({ error: 'Invalid signature' }, UNAUTHORIZED_STATUS_CODE);
 
-		const data = WebhookEvent.parse(JSON.parse(raw));
+		const { success, data } = WebhookEvent.safeParse(JSON.parse(raw));
+
+		if (!success)
+			return ctx.json({ error: 'Invalid payload' }, BAD_REQUEST_STATUS_CODE);
 
 		switch (data.event) {
 			case 'billing.paid':
-				return (onBillingPaid ?? onPayload)?.(data);
+				await (onBillingPaid ?? onPayload)?.(data);
+
+				break;
 			case 'payout.done':
-				return (onPayoutDone ?? onPayload)?.(data);
+				await (onPayoutDone ?? onPayload)?.(data);
+
+				break;
 			case 'payout.failed':
-				return (onPayoutFailed ?? onPayload)?.(data);
+				await (onPayoutFailed ?? onPayload)?.(data);
+
+				break;
 		}
 	};
 };
