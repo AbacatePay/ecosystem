@@ -15,7 +15,8 @@ export const Webhooks = ({
 	onPayoutDone,
 	onBillingPaid,
 	onPayoutFailed,
-	secret = process.env.ABACATEPAY_WEBHOOK_SECRET ?? process.env.ABACATE_PAY_WEBHOOK_SECRET,
+	secret = process.env.ABACATEPAY_WEBHOOK_SECRET ??
+		process.env.ABACATE_PAY_WEBHOOK_SECRET,
 }: WebhookOptions) => {
 	if (!secret) throw new Error('Webhook secret is missing in the options');
 
