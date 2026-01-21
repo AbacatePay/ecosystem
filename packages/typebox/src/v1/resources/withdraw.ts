@@ -23,16 +23,21 @@ export const APIWithdraw = t.Object({
 		description:
 			'Indicates whether the transaction was created in a testing environment.',
 	}),
-	receiptUrl: t.String({ format: 'uri', description: 'Transaction proof URL.',}),
+	receiptUrl: t.String({
+		format: 'uri',
+		description: 'Transaction proof URL.',
+	}),
 	amount: t.Integer({
 		description: 'Withdraw value in cents.',
 	}),
 	platformFee: t.Integer({
 		description: 'Platform fee in cents.',
 	}),
-	externalId: t.Optional(t.String({
-		description: 'External transaction identifier.',
-	})),
+	externalId: t.Optional(
+		t.String({
+			description: 'External transaction identifier.',
+		}),
+	),
 	createdAt: t.Date({
 		description: 'Transaction creation date.',
 	}),
@@ -40,7 +45,7 @@ export const APIWithdraw = t.Object({
 		description: 'Transaction update date.',
 	}),
 	kind: t.Literal('WITHDRAW', {
-		description: 'Transaction type. It will always be \'WITHDRAW\'',
+		description: "Transaction type. It will always be 'WITHDRAW'",
 	}),
 });
 

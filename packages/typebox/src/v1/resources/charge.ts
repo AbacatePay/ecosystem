@@ -22,14 +22,18 @@ export type PaymentMethod = Static<typeof PaymentMethod>;
 /**
  * https://docs.abacatepay.com/pages/payment/create#body-frequency
  */
-export const PaymentFrequency = StringEnum(['ONE_TIME', 'MULTIPLE_PAYMENTS'], 'Payment frequency.');
+export const PaymentFrequency = StringEnum(
+	['ONE_TIME', 'MULTIPLE_PAYMENTS'],
+	'Payment frequency.',
+);
 
 export type PaymentFrequency = Static<typeof PaymentFrequency>;
 
 export const APIProduct = t.Object({
 	externalId: t.String({
 		examples: ['prod-1234'],
-		description: 'The product id on your system. We use this id to create your product on AbacatePay automatically, so make sure your id is unique.',
+		description:
+			'The product id on your system. We use this id to create your product on AbacatePay automatically, so make sure your id is unique.',
 	}),
 	name: t.String({
 		description: 'Product name.',
@@ -43,11 +47,14 @@ export const APIProduct = t.Object({
 	price: t.Integer({
 		minimum: 100,
 		examples: [100],
-		description: 'Price per unit of product in cents. The minimum is 100 (1 BRL).',
+		description:
+			'Price per unit of product in cents. The minimum is 100 (1 BRL).',
 	}),
-	description: t.Optional(t.String({
-		description: 'Detailed product description.',
-	})),
+	description: t.Optional(
+		t.String({
+			description: 'Detailed product description.',
+		}),
+	),
 });
 
 /**
@@ -76,11 +83,13 @@ export const APICharge = t.Object({
 		}),
 		returnUrl: t.String({
 			format: 'uri',
-			description: 'URL that the customer will be redirected to when clicking the “back” button.',
+			description:
+				'URL that the customer will be redirected to when clicking the “back” button.',
 		}),
 		completionUrl: t.String({
 			format: 'uri',
-			description: 'URL that the customer will be redirected to when making payment.',
+			description:
+				'URL that the customer will be redirected to when making payment.',
 		}),
 	}),
 	methods: t.Array(PaymentMethod, {
@@ -94,13 +103,16 @@ export const APICharge = t.Object({
 	nextBilling: t.Union([t.Date(), t.Null()], {
 		description: 'Date and time of next charge, or null for one-time charges.',
 	}),
-	allowCoupons: t.Optional(t.Boolean({
-		description: 'Whether or not to allow coupons for billing.',
-	})),
+	allowCoupons: t.Optional(
+		t.Boolean({
+			description: 'Whether or not to allow coupons for billing.',
+		}),
+	),
 	coupons: t.Array(t.String(), {
 		default: [],
 		maxItems: 50,
-		description: 'Coupons allowed in billing. Coupons are only considered if `allowCoupons` is true.',
+		description:
+			'Coupons allowed in billing. Coupons are only considered if `allowCoupons` is true.',
 	}),
 	createdAt: t.Date({
 		description: 'Charge creation date and time.',

@@ -53,10 +53,12 @@ export const APICoupon = t.Object({
 	updatedAt: t.Date({
 		description: 'Coupon last updated date and time.',
 	}),
-	metadata: t.Optional(t.Record(t.String(), t.Any(), {
-		description:
-			'Object to store additional information about the coupon, such as campaign, category, or other data relevant to your organization.',
-	})),
+	metadata: t.Optional(
+		t.Record(t.String(), t.Any(), {
+			description:
+				'Object to store additional information about the coupon, such as campaign, category, or other data relevant to your organization.',
+		}),
+	),
 });
 
 export type APICoupon = Static<typeof APICoupon>;
