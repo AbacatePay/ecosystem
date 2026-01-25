@@ -15,10 +15,9 @@ export { version } from './version';
  */
 export const Webhooks = (options: WebhookOptions) => {
 	if (!options.secret)
-		throw new AbacatePayElysiaError(
-			'Webhook secret is missing.',
-			{ code: 'WEBHOOK_SECRET_MISSING' },
-		);
+		throw new AbacatePayElysiaError('Webhook secret is missing.', {
+			code: 'WEBHOOK_SECRET_MISSING',
+		});
 
 	return async (context: Context) => {
 		if (context.query.webhookSecret !== options.secret)

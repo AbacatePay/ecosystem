@@ -15,12 +15,9 @@ export { version } from './version';
 
 export const Webhooks = (options: WebhookOptions) => {
 	if (!options.secret)
-		throw new AbacatePayHonoError(
-			'Webhook secret is missing.',
-			{
-				code: 'WEBHOOK_SECRET_MISSING',
-			},
-		);
+		throw new AbacatePayHonoError('Webhook secret is missing.', {
+			code: 'WEBHOOK_SECRET_MISSING',
+		});
 
 	return async (ctx: Context) => {
 		const webhookSecret = ctx.req.query('webhookSecret');

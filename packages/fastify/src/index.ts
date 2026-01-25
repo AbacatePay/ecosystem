@@ -16,10 +16,9 @@ export { version } from './version';
 
 export const Webhooks = (options: WebhookOptions) => {
 	if (!options.secret)
-		throw new AbacatePayFastifyError(
-			'Webhook secret is missing.',
-			{ code: 'WEBHOOK_SECRET_MISSING' },
-		);
+		throw new AbacatePayFastifyError('Webhook secret is missing.', {
+			code: 'WEBHOOK_SECRET_MISSING',
+		});
 
 	return async (req: FastifyRequest, reply: FastifyReply) => {
 		const { webhookSecret } = req.query as Record<string, string | undefined>;

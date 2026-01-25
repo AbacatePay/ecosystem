@@ -46,6 +46,7 @@
 		"build": "bun run gen:version && tsc",
 		"prepublishOnly": "bun run build",
 		"gen:version": "bun run scripts/version.ts",
+		"test": "bun test",
 		"fmt": "bunx biome check --write package.json types && clear"
 	},
 	"devDependencies": {
