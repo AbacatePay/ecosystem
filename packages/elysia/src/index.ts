@@ -5,6 +5,7 @@ import {
 	type WebhookOptions,
 } from '@abacatepay/adapters/webhooks';
 import type { Context } from 'elysia';
+import { AbacatePayElysiaError } from './errors';
 
 export { version } from './version';
 
@@ -14,7 +15,10 @@ export { version } from './version';
  */
 export const Webhooks = (options: WebhookOptions) => {
 	if (!options.secret)
-		throw new Error('Webhook secret is missing in the options');
+		throw new AbacatePayElysiaError(
+			'Webhook secret is missing. Set ABACATEPAY_WEBHOOK_SECRET.',
+			{ code: 'WEBHOOK_SECRET_MISSING' },
+		);
 
 	return async (context: Context) => {
 		if (context.query.webhookSecret !== options.secret) return;
