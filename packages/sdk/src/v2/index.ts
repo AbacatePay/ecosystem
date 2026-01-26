@@ -55,6 +55,7 @@ export const AbacatePay = ({ secret, rest }: AbacatePayOptions) => {
 	const client = new REST({
 		secret,
 		...rest,
+		version: 2,
 	});
 
 	return {
