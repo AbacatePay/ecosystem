@@ -1,6 +1,6 @@
 {
 	"name": "@abacatepay/typebox",
-	"version": "1.0.0",
+	"version": "1.0.1",
 	"description": "Official TypeBox schemas for the AbacatePay API, including requests, responses, and webhooks.",
 	"type": "module",
 	"sideEffects": false,
