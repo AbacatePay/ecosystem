@@ -1,5 +1,5 @@
 {
-	"version": "2.0.1",
+	"version": "2.0.2",
 	"name": "@abacatepay/types",
 	"description": "Abacate Pay API typings that are always up to date.",
 	"type": "module",
