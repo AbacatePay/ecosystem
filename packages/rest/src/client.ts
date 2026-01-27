@@ -11,10 +11,11 @@ import {
 	isTimeoutError,
 	RATE_LIMIT_STATUS_CODE,
 	RETRYABLE_STATUS,
+	SERVICE_UNAVAILABLE_STATUS_CODE,
 	sleep,
 } from './utils';
 
-const FIVE_SEC_IN_MS = 5_000;
+const DEFAULT_TIMEOUT_IN_MS = 5_000;
 
 /**
  * Represents the class that manages handlers for endpoints.
@@ -78,7 +79,8 @@ export class REST {
 		attempt = 0,
 	): Promise<R> {
 		const url = this.makeURL(route, options.query);
-		const timeout = this.options.timeout ?? FIVE_SEC_IN_MS;
+		const { timeout = DEFAULT_TIMEOUT_IN_MS } = this.options;
+
 		const retry = options.retry ?? this.options.retry ?? { max: 3 };
 
 		try {
@@ -111,7 +113,7 @@ export class REST {
 			throw new HTTPError(
 				`${retry.max} attempts were performed, all failed`,
 				route,
-				0,
+				SERVICE_UNAVAILABLE_STATUS_CODE,
 				options.method,
 			);
 
