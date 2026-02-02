@@ -2,7 +2,7 @@
 
 ## AbacatePay API Types
 
-O [@abacatepay/types](https://www.npmjs.com/package/@abacatepay/types) fornece **tipagens oficiais** e **helpers modernos** para trabalhar com a API da AbacatePay de forma **segura**, **previsível** e **alinhada** à documentação oficial.
+O [`@abacatepay/types`](https://www.npmjs.com/package/@abacatepay/types) fornece **tipagens oficiais** e **helpers modernos** para trabalhar com a API da AbacatePay de forma **segura**, **previsível** e **alinhada** à documentação oficial.
 
 O pacote é **TypeScript-first** e serve como base para integrações diretas via **fetch**, **SDKs** internos, **CLIs** e validações em **aplicações** backend.
 
