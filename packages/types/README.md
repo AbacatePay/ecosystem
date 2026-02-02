@@ -89,37 +89,30 @@ async function createCoupon(body: RESTPostCreateCouponBody) {
 }
 ```
 
-<p align="center"><strong>Crie um servidor e escute eventos de Webhooks do Aabacate</strong></p>
+<p align="center"><strong>Crie um servidor com Elysia e escute eventos de Webhooks do Aabacate</strong></p>
 
 ```ts
-import { WebhookEvent } from '@abacatepay/zod/v2';
+import { WebhookEvent } from '@abacatepay/typebox/v2';
 import { WebhookEventType } from '@abacatepay/types/v2';
 
-Bun.serve({
-    routes: {
-        async '/webhooks/abacate'(request) {
-            const raw = await request.json();
-            
-            const { data, event } = WebhookEvent.parse(raw);
-
-            switch (event) {
-                case WebhookEventType.BillingPaid:
-                    console.log(`Um novo pagamento de ${data.payment.amount} foi feito`);
-
-                    break;
-                case WebhookEventType.WithdrawDone:
-                    console.log(`Um novo saque foi feito ${data.transaction.receiptUrl}`);
-
-                    break;
-                case WebhookEventType.WithdrawFailed:
-                    console.log(`O saque com o ID ${data.transaction.id} falhou`);
-            }
-
-            return new Response('OK');
-        },
-    },
-});
+const app = new Elysia()
+	.post('/webhooks/abacatepay', ({ body: { event, data } }) => {
+			switch (event) {
+				case WebhookEventType.BillingPaid:
+					...
+				case WebhookEventType.PayoutDone:
+					...
+				case WebhookEventType.PayoutFailed:
+					...
+			}
+	}, {
+		body: WebhookEvent,
+);
 ```
 
-<p align="center">Feito com 🥑 pela equipe AbacatePay</br>
+<div align="center">
+
+Nota, você pode fazer isso de uma maneira mais simples com [`@abacatepay/adapters`](https://www.npmjs.com/package/@abacatepay/adapters).
+
+Feito com 🥑 pela equipe AbacatePay</br>
 Open source, de verdade.</p>
