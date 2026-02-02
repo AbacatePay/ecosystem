@@ -7,7 +7,7 @@ import { StringEnum } from '../../utils';
 export const CouponDiscountKind = StringEnum(
 	['FIXED', 'PERCENTAGE'],
 	'Type of discount applied by the coupon.',
-);
+).meta({ example: 'FIXED' });
 
 /**
  * https://docs.abacatepay.com/pages/coupon/reference#atributos
@@ -20,7 +20,7 @@ export type CouponDiscountKind = z.infer<typeof CouponDiscountKind>;
 export const CouponStatus = StringEnum(
 	['ACTIVE', 'INACTIVE', 'EXPIRED'],
 	'Coupon status.',
-);
+).meta({ example: 'ACTIVE' });
 
 /**
  * https://docs.abacatepay.com/pages/coupon/reference#atributos
@@ -33,6 +33,7 @@ export type CouponStatus = z.infer<typeof CouponStatus>;
 export const APICoupon = z.object({
 	id: z
 		.string()
+		.meta({ example: 'SUMMER' })
 		.describe(
 			'Unique coupon code that your customers will use to apply the discount.',
 		),
@@ -40,17 +41,20 @@ export const APICoupon = z.object({
 	status: CouponStatus,
 	maxRedeems: z
 		.int()
+		.meta({ example: 25 })
 		.describe(
 			'Limit on the number of times the coupon can be used. Use `-1` for unlimited coupons or a specific number to limit usage.',
 		),
 	redeemsCount: z
 		.int()
 		.min(0)
+		.meta({ example: 0 })
 		.describe(
 			'Counter of how many times the coupon has been used by customers.',
 		),
 	devMode: z
 		.boolean()
+		.meta({ example: false })
 		.describe(
 			'Indicates whether the coupon was created in a development (true) or production (false) environment.',
 		),
@@ -60,10 +64,17 @@ export const APICoupon = z.object({
 			'Internal description of the coupon for your organization and control.',
 		)
 		.optional(),
-	createdAt: z.coerce.date().describe('Coupon creation date and time.'),
-	updatedAt: z.coerce.date().describe('Coupon last updated date and time.'),
+	createdAt: z.coerce
+		.date()
+		.describe('Coupon creation date and time.')
+		.meta({ example: new Date() }),
+	updatedAt: z.coerce
+		.date()
+		.describe('Coupon last updated date and time.')
+		.meta({ example: new Date() }),
 	metadata: z
 		.record(z.string(), z.any())
+		.meta({ example: {} })
 		.describe(
 			'Object to store additional information about the coupon, such as campaign, category, or other data relevant to your organization.',
 		),

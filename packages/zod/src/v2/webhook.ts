@@ -8,7 +8,7 @@ import { APIPayout, PaymentMethod } from '.';
 export const WebhookEventType = StringEnum(
 	['payout.failed', 'payout.done', 'billing.paid'],
 	'Webhook event type.',
-);
+).meta({ example: 'payout.done' });
 
 /**
  * https://docs.abacatepay.com/pages/webhooks
@@ -24,12 +24,17 @@ export const BaseWebhookEvent = <
 ) =>
 	z.object({
 		data: schema,
-		id: z.string().describe('Unique identifier for the webhook.'),
+		id: z
+			.string()
+			.describe('Unique identifier for the webhook.')
+			.meta({ example: 'log_123' }),
 		event: z
 			.literal(type)
+			.meta({ example: 'payout.done' })
 			.describe('This field identifies the type of event received.'),
 		devMode: z
 			.boolean()
+			.meta({ example: true })
 			.describe(
 				'Indicates whether the event occurred in the development environment.',
 			),
@@ -45,6 +50,7 @@ export const WebhookPayoutFailedEvent = BaseWebhookEvent(
 			.extend({
 				status: z
 					.literal('CANCELLED')
+					.meta({ example: 'CANCELLED' })
 					.describe('Status of the payout. Always `CANCELLED`.'),
 			})
 			.describe('Transaction data.'),
@@ -66,6 +72,7 @@ export const WebhookPayoutDoneEvent = BaseWebhookEvent(
 			.extend({
 				status: z
 					.literal('COMPLETE')
+					.meta({ example: 'COMPLETE' })
 					.describe('Status of the payout. Always `COMPLETE`.'),
 			})
 			.describe('Transaction data.'),
@@ -89,8 +96,12 @@ export const WebhookBillingPaidEvent = BaseWebhookEvent(
 					.object({
 						amount: z
 							.int()
+							.meta({ example: 4000 })
 							.describe('Charge amount in cents (e.g. 4000 = R$40.00).'),
-						fee: z.int().describe('The fee charged by AbacatePay.'),
+						fee: z
+							.int()
+							.describe('The fee charged by AbacatePay.')
+							.meta({ example: 80 }),
 						method: PaymentMethod,
 					})
 					.describe('Payment data.'),
@@ -101,11 +112,19 @@ export const WebhookBillingPaidEvent = BaseWebhookEvent(
 						pixQrCode: z.object({
 							amount: z
 								.int()
+								.meta({ example: 4000 })
 								.describe('Charge amount in cents (e.g. 4000 = R$40.00).'),
-							id: z.string().describe('Unique billing identifier.'),
-							kind: z.literal('PIX').describe('Kind of the payment'),
+							id: z
+								.string()
+								.describe('Unique billing identifier.')
+								.meta({ example: 'pix_char_123' }),
+							kind: z
+								.literal('PIX')
+								.describe('Kind of the payment')
+								.meta({ example: 'PIX' }),
 							status: z
 								.literal('PAID')
+								.meta({ example: 'PAID' })
 								.describe('Billing status, can only be `PAID` here'),
 						}),
 					}),
@@ -113,14 +132,23 @@ export const WebhookBillingPaidEvent = BaseWebhookEvent(
 						billing: z.object({
 							amount: z
 								.int()
-								.describe('Charge amount in cents (e.g. 4000 = R$40.00).'),
-							id: z.string().describe('Unique billing identifier.'),
-							externalId: z.string().describe('Bill ID in your system.'),
+								.describe('Charge amount in cents (e.g. 4000 = R$40.00).')
+								.meta({ example: 4000 }),
+							id: z
+								.string()
+								.describe('Unique billing identifier.')
+								.meta({ example: 'bill_123' }),
+							externalId: z
+								.string()
+								.describe('Bill ID in your system.')
+								.meta({ example: 'order_123' }),
 							status: z
 								.literal('PAID')
+								.meta({ example: 'PAID' })
 								.describe('Status of the payment. Always `PAID`.'),
 							url: z
 								.url()
+								.meta({ example: 'https://myshop.com/premium' })
 								.describe('URL where the user can complete the payment.'),
 						}),
 					}),
