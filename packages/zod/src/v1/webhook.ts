@@ -14,7 +14,7 @@ import {
 export const WebhookEventType = StringEnum(
 	['withdraw.failed', 'withdraw.done', 'billing.paid'],
 	'Webhook event type.',
-);
+).meta({ example: 'withdraw.done' });
 
 /**
  * https://docs.abacatepay.com/pages/webhooks
@@ -30,12 +30,17 @@ export const BaseWebhookEvent = <
 ) =>
 	z.object({
 		data: schema,
-		id: z.string().describe('Unique identifier for the webhook.'),
+		id: z
+			.string()
+			.describe('Unique identifier for the webhook.')
+			.meta({ example: 'log_123' }),
 		event: z
 			.literal([type])
+			.meta({ example: 'withdraw.done' })
 			.describe('This field identifies the type of event received.'),
 		devMode: z
 			.boolean()
+			.meta({ example: false })
 			.describe(
 				'Indicates whether the event occurred in the development environment.',
 			),
@@ -53,7 +58,8 @@ export const WebhookWithdrawFailedEvent = BaseWebhookEvent(
 				z.object({
 					status: z
 						.literal(['CANCELLED'])
-						.describe('Status of the withdraw. Always `CANCELLED`.'),
+						.describe('Status of the withdraw. Always `CANCELLED`.')
+						.meta({ example: 'CANCELLED' }),
 				}),
 			)
 			.describe('Transaction data.'),
@@ -79,7 +85,8 @@ export const WebhookWithdrawDoneEvent = BaseWebhookEvent(
 				z.object({
 					status: z
 						.literal(['COMPLETE'])
-						.describe('Status of the withdraw. Always `COMPLETE`.'),
+						.describe('Status of the withdraw. Always `COMPLETE`.')
+						.meta({ example: 'COMPLETE' }),
 				}),
 			)
 			.describe('Transaction data.'),
@@ -103,8 +110,12 @@ export const WebhookBillingPaidEvent = BaseWebhookEvent(
 					payment: z.object({
 						amount: z
 							.int()
-							.describe('Charge amount in cents (e.g. 4000 = R$40.00).'),
-						fee: z.int().describe('The fee charged by AbacatePay.'),
+							.describe('Charge amount in cents (e.g. 4000 = R$40.00).')
+							.meta({ example: 4000 }),
+						fee: z
+							.int()
+							.describe('The fee charged by AbacatePay.')
+							.meta({ example: 80 }),
 						method: PaymentMethod,
 					}),
 				})
@@ -114,11 +125,19 @@ export const WebhookBillingPaidEvent = BaseWebhookEvent(
 					pixQrCode: z.object({
 						amount: z
 							.int()
-							.describe('Charge amount in cents (e.g. 4000 = R$40.00).'),
-						id: z.string().describe('Unique billing identifier.'),
-						kind: z.literal(['PIX']).describe('Kind of the payment'),
+							.describe('Charge amount in cents (e.g. 4000 = R$40.00).')
+							.meta({ example: 4000 }),
+						id: z
+							.string()
+							.describe('Unique billing identifier.')
+							.meta({ example: 'bill_123' }),
+						kind: z
+							.literal(['PIX'])
+							.describe('Kind of the payment')
+							.meta({ example: 'PIX' }),
 						status: z
 							.literal(['PAID'])
+							.meta({ example: 'PAID' })
 							.describe('Billing status, can only be `PAID` here'),
 					}),
 				}),
@@ -126,24 +145,36 @@ export const WebhookBillingPaidEvent = BaseWebhookEvent(
 					billing: z.object({
 						amount: z
 							.int()
+							.meta({ example: 4000 })
 							.describe('Charge amount in cents (e.g. 4000 = R$40.00).'),
-						id: z.string().describe('Unique billing identifier.'),
+						id: z
+							.string()
+							.meta({ example: 'bill_123' })
+							.describe('Unique billing identifier.'),
 						status: z
 							.literal(['PAID'])
+							.meta({ example: 'PAID' })
 							.describe('Status of the payment. Always `PAID`.'),
 						couponsUsed: z
 							.array(z.string())
+							.meta({ example: ['SUMMER'] })
 							.describe('Counpons used in the billing.'),
 					}),
 					customer: APICustomer,
 					frequency: PaymentFrequency,
-					kind: z.array(PaymentMethod).describe('Payment methods.'),
-					paidAmount: z.int().describe('Charge amount in cents.'),
+					kind: z
+						.array(PaymentMethod)
+						.meta({ example: 'PIX' })
+						.describe('Payment methods.'),
+					paidAmount: z
+						.int()
+						.describe('Charge amount in cents.')
+						.meta({ example: 4000 }),
 					products: z
 						.intersection(
 							APIProduct.pick({ quantity: true, externalId: true }),
 							z.object({
-								id: z.string(),
+								id: z.string().meta({ example: 'prod_abc' }),
 							}),
 						)
 						.describe('Products used in the billing.'),
