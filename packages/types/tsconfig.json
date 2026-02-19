@@ -1,12 +1,13 @@
 {
-	"extends": "../../tsconfig.base.json",
-	"compilerOptions": {
-		"emitDeclarationOnly": false,
-		"outDir": "./dist",
-		"rootDir": "./types",
-		"resolveJsonModule": true,
-		"esModuleInterop": true,
-		"composite": true
-	},
-	"include": ["types"]
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "emitDeclarationOnly": false,
+    "outDir": "./dist",
+    "rootDir": "./types",
+    "resolveJsonModule": true,
+    "esModuleInterop": true
+  },
+  "include": [
+    "types"
+  ]
 }

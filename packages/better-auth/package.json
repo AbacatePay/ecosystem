@@ -1,62 +1,62 @@
 {
-	"name": "@abacatepay/better-auth",
-	"version": "1.0.0",
-	"repository": {
-		"type": "git",
-		"url": "git+https://github.com/AbacatePay/ecosystem.git"
-	},
-	"main": "./dist/index.js",
-	"devDependencies": {
-		"@biomejs/biome": "^2.3.11",
-		"typescript": "^5.0.0"
-	},
-	"author": {
-		"name": "AbacatePay",
-		"email": "opensource@abacatepay.com",
-		"url": "https://abacatepay.com"
-	},
-	"maintainers": [
-		{
-			"name": "Almeida",
-			"url": "https://github.com/almeidazs"
-		}
-	],
-	"exports": {
-		".": {
-			"types": "./dist/index.d.ts",
-			"import": "./dist/index.js",
-			"default": "./dist/index.js"
-		}
-	},
-	"description": "Checkouts, Webhooks and OAuth made simple with AbacatePay.",
-	"engines": {
-		"node": ">=18",
-		"bun": ">=1.0.0"
-	},
-	"files": [
-		"dist"
-	],
-	"keywords": [
-		"abacatepay",
-		"payments",
-		"better-auth",
-		"auth",
-		"webhooks"
-	],
-	"license": "Apache-2.0",
-	"publishConfig": {
-		"access": "public"
-	},
-	"scripts": {
-		"test": "bun test",
-		"build": "rm -rf dist && bun run scripts/version.ts && tsc",
-		"types": "bunx tsc --emitDeclarationOnly",
-		"prepublishOnly": "bun run build"
-	},
-	"sideEffects": false,
-	"type": "module",
-	"types": "./dist/index.d.ts",
-	"peerDependencies": {
-		"better-auth": "^1.4.17"
-	}
+  "name": "@abacatepay/better-auth",
+  "version": "1.0.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AbacatePay/ecosystem.git"
+  },
+  "main": "./dist/index.js",
+  "devDependencies": {
+    "@biomejs/biome": "^2.3.11",
+    "typescript": "^5.0.0"
+  },
+  "author": {
+    "name": "AbacatePay",
+    "email": "opensource@abacatepay.com",
+    "url": "https://abacatepay.com"
+  },
+  "maintainers": [
+    {
+      "name": "Almeida",
+      "url": "https://github.com/almeidazs"
+    }
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
+  },
+  "description": "Checkouts, Webhooks and OAuth made simple with AbacatePay.",
+  "engines": {
+    "node": ">=18",
+    "bun": ">=1.0.0"
+  },
+  "files": [
+    "dist"
+  ],
+  "keywords": [
+    "abacatepay",
+    "payments",
+    "better-auth",
+    "auth",
+    "webhooks"
+  ],
+  "license": "Apache-2.0",
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "test": "bun test",
+    "build": "rm -rf dist && bun run scripts/version.ts && tsc",
+    "types": "bunx tsc --emitDeclarationOnly",
+    "prepublishOnly": "bun run build"
+  },
+  "sideEffects": false,
+  "type": "module",
+  "types": "./dist/index.d.ts",
+  "peerDependencies": {
+    "better-auth": "^1.4.17"
+  }
 }
