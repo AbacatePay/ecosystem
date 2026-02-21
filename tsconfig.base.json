@@ -8,10 +8,22 @@
 		"declaration": true,
 		"paths": {
 			"@abacatepay/*": ["./packages/*/src"],
+			"@abacatepay/adapters/webhooks": [
+				"./packages/adapters/src/webhooks"
+			],
+			"@abacatepay/adapters/webhooks/*": [
+				"./packages/adapters/src/webhooks/*"
+			],
 			"@abacatepay/types": ["./packages/types/types"],
 			"@abacatepay/types/v1": ["./packages/types/types/v1"],
+			"@abacatepay/types/v1/*": ["./packages/types/types/v1/*"],
 			"@abacatepay/types/v2": ["./packages/types/types/v2"],
-			"@abacatepay/rest": ["./packages/rest/src"]
+			"@abacatepay/types/v2/*": ["./packages/types/types/v2/*"],
+			"@abacatepay/rest": ["./packages/rest/src"],
+			"@abacatepay/zod/v1": ["./packages/zod/src/v1"],
+			"@abacatepay/zod/v1/*": ["./packages/zod/src/v1/*"],
+			"@abacatepay/zod/v2": ["./packages/zod/src/v2"],
+			"@abacatepay/zod/v2/*": ["./packages/zod/src/v2/*"]
 		}
 	}
 }
