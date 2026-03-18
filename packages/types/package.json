@@ -3,28 +3,34 @@
   "name": "@abacatepay/types",
   "description": "Abacate Pay API typings that are always up to date.",
   "type": "module",
-  "main": "./dist/index.js",
+  "main": "./dist/index.cjs",
   "types": "./dist/index.d.ts",
+  "typings": "./dist/index.d.ts",
   "license": "Apache-2.0",
   "exports": {
     ".": {
       "import": "./dist/index.js",
+      "require": "./dist/index.cjs",
       "types": "./dist/index.d.ts"
     },
     "./v1": {
       "import": "./dist/v1/index.js",
+      "require": "./dist/v1/index.cjs",
       "types": "./dist/v1/index.d.ts"
     },
     "./v1/*": {
       "import": "./dist/v1/*.js",
+      "require": "./dist/v1/*.cjs",
       "types": "./dist/v1/*.d.ts"
     },
     "./v2": {
       "import": "./dist/v2/index.js",
+      "require": "./dist/v2/index.cjs",
       "types": "./dist/v2/index.d.ts"
     },
     "./v2/*": {
       "import": "./dist/v2/*.js",
+      "require": "./dist/v2/*.cjs",
       "types": "./dist/v2/*.d.ts"
     },
     "./v*": null
@@ -43,7 +49,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "bun run gen:version && tsc",
+    "build": "bun run gen:version && tsup",
     "prepublishOnly": "bun run build",
     "gen:version": "bun run scripts/version.ts",
     "test": "bun test",
@@ -51,6 +57,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^2.3.8",
+    "tsup": "^8.5.0",
     "typescript": "^5.9.3"
   },
   "author": {
