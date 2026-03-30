@@ -82,7 +82,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^2.3.11",
-    "typescript": "^5.0.0"
+    "typescript": "^6.0.2"
   },
   "peerDependencies": {
     "@sinclair/typebox": "^0.34.47",

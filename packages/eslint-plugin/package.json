@@ -35,7 +35,7 @@
   },
   "devDependencies": {
     "@types/eslint": "^9.6.1",
-    "typescript": "^5"
+    "typescript": "^6"
   },
   "description": "Do not hardcode your AbacatePay secrets with this plugin",
   "license": "MIT",
