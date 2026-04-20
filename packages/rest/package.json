@@ -54,7 +54,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^2.3.11",
-    "typescript": "^5.0.0"
+    "typescript": "^6.0.3"
   },
   "description": "A REST client for AbacatePay API"
 }
