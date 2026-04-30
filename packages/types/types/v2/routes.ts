@@ -1,4 +1,5 @@
 import type {
+	RESTGetListCheckoutsQueryParams,
 	RESTGetListCouponsQueryParams,
 	RESTGetListCustomersQueryParams,
 	RESTGetListPayoutsQueryParams,
@@ -42,7 +43,9 @@ export const Routes = {
 		/**
 		 * GET - https://api.abacatepay.com/v2/checkouts/list
 		 */
-		list: '/checkouts/list',
+		list({ page = 1, limit = 20 }: RESTGetListCheckoutsQueryParams = {}) {
+			return `/checkouts/list?page=${page}&limit=${limit}` as const;
+		},
 
 		/**
 		 * GET - https://api.abacatepay.com/v2/checkouts/get

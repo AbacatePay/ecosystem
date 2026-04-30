@@ -7,6 +7,7 @@ import type {
 	RESTGetCouponData,
 	RESTGetCustomerData,
 	RESTGetListCheckoutsData,
+	RESTGetListCheckoutsQueryParams,
 	RESTGetListCouponsData,
 	RESTGetListCouponsQueryParams,
 	RESTGetListCustomersData,
@@ -137,12 +138,15 @@ export const AbacatePay = ({ secret, rest }: AbacatePayOptions) => {
 			},
 
 			/**
-			 * List all checkouts.
+			 * List checkouts with optional pagination.
 			 *
-			 * @returns A list of checkouts.
+			 * @param query Optional query parameters.
+			 * @returns A paginated list of checkouts.
 			 */
-			list() {
-				return client.post<RESTGetListCheckoutsData>(Routes.checkouts.list);
+			list(query?: RESTGetListCheckoutsQueryParams) {
+				return client.get<RESTGetListCheckoutsData>(
+					Routes.checkouts.list(query),
+				);
 			},
 
 			/**

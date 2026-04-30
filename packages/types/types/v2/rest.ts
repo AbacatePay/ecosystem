@@ -299,6 +299,26 @@ export interface RESTGetCheckQRCodePixStatusData {
  *
  * @reference https://docs.abacatepay.com/pages/checkouts/list
  */
+export interface RESTGetListCheckoutsQueryParams {
+	/**
+	 * Number of the page.
+	 *
+	 * @default 1
+	 */
+	page?: number;
+	/**
+	 * Number of items per page.
+	 *
+	 * @default 20
+	 */
+	limit?: number;
+}
+
+/**
+ * https://api.abacatepay.com/v2/checkouts/list
+ *
+ * @reference https://docs.abacatepay.com/pages/checkouts/list
+ */
 export type RESTGetListCheckoutsData = APICheckout[];
 
 /**
