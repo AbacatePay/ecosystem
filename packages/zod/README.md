@@ -100,6 +100,32 @@ app.post('/checkouts', (req, res) => {
 
 <div align="center">
 
+## Checkout Transparente
+
+Valide payloads de PIX e Boleto com o mesmo schema usado pela API v2.
+</div>
+
+```ts
+import { RESTPostCreateTransparentCheckoutBody } from '@abacatepay/zod/v2';
+
+const result = RESTPostCreateTransparentCheckoutBody.safeParse({
+    method: 'BOLETO',
+    data: {
+        amount: 25_000,
+        customer: {
+            name: 'Mariana Costa',
+            taxId: '987.654.321-00',
+        },
+    },
+});
+
+if (!result.success) {
+    throw result.error;
+}
+```
+
+<div align="center">
+
 ## Uso básico
 
 Você pode validar facilmente um payload retornado pela API em runtime

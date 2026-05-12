@@ -59,6 +59,37 @@ const checkout = await abacate.checkouts.create({
 
 <div align="center">
 
+### Criando um checkout transparente
+
+</div>
+
+```ts
+const pix = await abacate.transparents.create({
+    method: 'PIX',
+    data: {
+        amount: TEN_REAIS_IN_CENTS,
+        description: 'Cobrança PIX no checkout transparente',
+    },
+});
+
+const boleto = await abacate.transparents.create({
+    method: 'BOLETO',
+    data: {
+        amount: 25_000,
+        customer: {
+            name: 'Mariana Costa',
+            taxId: '987.654.321-00',
+        },
+        fine: {
+            value: 1000,
+            type: 'FIXED',
+        },
+    },
+});
+```
+
+<div align="center">
+
 ### Procure por alguns clientes
 
 </div>

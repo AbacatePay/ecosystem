@@ -87,7 +87,11 @@ export enum PaymentStatus {
 	Expired = 'EXPIRED',
 	Cancelled = 'CANCELLED',
 	Paid = 'PAID',
+	UnderDispute = 'UNDER_DISPUTE',
 	Refunded = 'REFUNDED',
+	Redeemed = 'REDEEMED',
+	Approved = 'APPROVED',
+	Failed = 'FAILED',
 }
 
 /**
@@ -96,6 +100,7 @@ export enum PaymentStatus {
 export enum PaymentMethod {
 	Pix = 'PIX',
 	Card = 'CARD',
+	Boleto = 'BOLETO',
 }
 
 /**

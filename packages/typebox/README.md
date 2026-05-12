@@ -71,6 +71,26 @@ new Elysia().post(
 
 <div align="center">
 
+## Checkout Transparente
+
+Use o schema da API v2 para validar PIX e Boleto no mesmo endpoint.
+</div>
+
+```ts
+import { Value } from '@sinclair/typebox/value';
+import { RESTPostCreateTransparentCheckoutBody } from '@abacatepay/typebox/v2';
+
+const isValid = Value.Check(RESTPostCreateTransparentCheckoutBody, {
+    method: 'PIX',
+    data: {
+        amount: 10_000,
+        description: 'Cobrança PIX no checkout transparente',
+    },
+});
+```
+
+<div align="center">
+
 ## Uso básico
 
 Você pode validar fácilmente um payload retornado pela API em runtime

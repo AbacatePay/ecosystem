@@ -1,5 +1,7 @@
 import { type Static, type TAnySchema, Type as t } from '@sinclair/typebox';
 import {
+	APIBoletoFine,
+	APIBoletoInterest,
 	APICheckout,
 	APICoupon,
 	APICustomer,
@@ -8,6 +10,7 @@ import {
 	APIQRCodePIX,
 	APIStore,
 	APISubscription,
+	APITransparentCheckout,
 	CouponDiscountKind,
 	PaymentMethod,
 	PaymentStatus,
@@ -662,6 +665,72 @@ export type RESTPostCreateQRCodePixData = Static<
 	typeof RESTPostCreateQRCodePixData
 >;
 
+export const RESTTransparentCheckoutUtm = t.Object({
+	source: t.Optional(t.String()),
+	medium: t.Optional(t.String()),
+	campaign: t.Optional(t.String()),
+	term: t.Optional(t.String()),
+	content: t.Optional(t.String()),
+});
+
+export type RESTTransparentCheckoutUtm = Static<
+	typeof RESTTransparentCheckoutUtm
+>;
+
+export const RESTPostCreateTransparentCheckoutPixData = t.Intersect([
+	RESTPostCreateQRCodePixBody,
+	t.Object({
+		externalId: t.Optional(t.String()),
+		utm: t.Optional(RESTTransparentCheckoutUtm),
+	}),
+]);
+
+export type RESTPostCreateTransparentCheckoutPixData = Static<
+	typeof RESTPostCreateTransparentCheckoutPixData
+>;
+
+export const RESTPostCreateTransparentCheckoutBoletoData = t.Object({
+	amount: t.Integer({
+		examples: [25000],
+		description: 'Charge amount in cents.',
+	}),
+	description: t.Optional(t.String({ maxLength: 500 })),
+	customer: t.Intersect([
+		t.Pick(APICustomer, ['name', 'taxId']),
+		t.Partial(t.Pick(APICustomer, ['email', 'cellphone'])),
+	]),
+	externalId: t.Optional(t.String()),
+	interest: t.Optional(t.Union([APIBoletoInterest, t.Null()])),
+	fine: t.Optional(t.Union([APIBoletoFine, t.Null()])),
+	metadata: t.Optional(t.Record(t.String(), t.Unknown())),
+	utm: t.Optional(RESTTransparentCheckoutUtm),
+});
+
+export type RESTPostCreateTransparentCheckoutBoletoData = Static<
+	typeof RESTPostCreateTransparentCheckoutBoletoData
+>;
+
+export const RESTPostCreateTransparentCheckoutBody = t.Union([
+	t.Object({
+		method: t.Literal('PIX'),
+		data: RESTPostCreateTransparentCheckoutPixData,
+	}),
+	t.Object({
+		method: t.Literal('BOLETO'),
+		data: RESTPostCreateTransparentCheckoutBoletoData,
+	}),
+]);
+
+export type RESTPostCreateTransparentCheckoutBody = Static<
+	typeof RESTPostCreateTransparentCheckoutBody
+>;
+
+export const RESTPostCreateTransparentCheckoutData = APITransparentCheckout;
+
+export type RESTPostCreateTransparentCheckoutData = Static<
+	typeof RESTPostCreateTransparentCheckoutData
+>;
+
 /**
  * https://api.abacatepay.com/v2/transparents/simulate-payment
  *
@@ -761,6 +830,26 @@ export const RESTGetCheckQRCodePixStatusData = t.Object({
  */
 export type RESTGetCheckQRCodePixStatusData = Static<
 	typeof RESTGetCheckQRCodePixStatusData
+>;
+
+export const RESTGetListTransparentCheckoutsQueryParams = t.Object({
+	after: t.Optional(t.String()),
+	before: t.Optional(t.String()),
+	limit: t.Optional(t.Integer({ minimum: 1, maximum: 100, default: 100 })),
+	id: t.Optional(t.String()),
+	status: t.Optional(PaymentStatus),
+});
+
+export type RESTGetListTransparentCheckoutsQueryParams = Static<
+	typeof RESTGetListTransparentCheckoutsQueryParams
+>;
+
+export const RESTGetListTransparentCheckoutsData = t.Array(
+	APITransparentCheckout,
+);
+
+export type RESTGetListTransparentCheckoutsData = Static<
+	typeof RESTGetListTransparentCheckoutsData
 >;
 
 /**
