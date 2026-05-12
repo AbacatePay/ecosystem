@@ -46,4 +46,62 @@ export interface APIQRCodePIX {
 	 * QRCode expiration date and time.
 	 */
 	expiresAt: string;
+	/**
+	 * Optional metadata attached to the charge.
+	 */
+	metadata?: Record<string, unknown>;
+}
+
+/**
+ * Late interest configuration for boleto transparent checkout charges.
+ *
+ * https://docs.abacatepay.com/pages/transparents/boleto
+ */
+export interface APIBoletoInterest {
+	/**
+	 * Monthly late-interest rate in hundredths of a percent.
+	 * For example, `100` means 1% per month.
+	 */
+	value: number;
+}
+
+/**
+ * Late fine configuration for boleto transparent checkout charges.
+ *
+ * https://docs.abacatepay.com/pages/transparents/boleto
+ */
+export interface APIBoletoFine {
+	/**
+	 * Fine amount. With `PERCENTAGE`, value is in hundredths of a percent.
+	 * With `FIXED`, value is in cents.
+	 */
+	value: number;
+	/**
+	 * Fine calculation mode.
+	 */
+	type: 'PERCENTAGE' | 'FIXED';
+}
+
+/**
+ * Checkout Transparente charge returned by `/v2/transparents/*`.
+ *
+ * https://docs.abacatepay.com/pages/transparents/reference
+ */
+export interface APITransparentCheckout extends APIQRCodePIX {
+	/**
+	 * Boleto digitable line. Returned for boleto charges.
+	 */
+	barCode?: string;
+	/**
+	 * URL to view or print the boleto. Returned for boleto charges.
+	 */
+	url?: string;
+	/**
+	 * Late interest configured for boleto charges.
+	 */
+	interest?: APIBoletoInterest | null;
+	/**
+	 * Late fine configured for boleto charges.
+	 */
+	fine?: APIBoletoFine | null;
 }

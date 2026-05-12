@@ -8,6 +8,7 @@ import {
 	APIQRCodePIX,
 	APIStore,
 	APISubscription,
+	APITransparentCheckout,
 	CouponDiscountKind,
 	PaymentMethod,
 	PaymentStatus,
@@ -533,6 +534,73 @@ export type RESTPostCreateQRCodePixData = z.infer<
 	typeof RESTPostCreateQRCodePixData
 >;
 
+export const RESTTransparentCheckoutUtm = z.object({
+	source: z.string().optional(),
+	medium: z.string().optional(),
+	campaign: z.string().optional(),
+	term: z.string().optional(),
+	content: z.string().optional(),
+});
+
+export type RESTTransparentCheckoutUtm = z.infer<
+	typeof RESTTransparentCheckoutUtm
+>;
+
+export const RESTPostCreateTransparentCheckoutPixData =
+	RESTPostCreateQRCodePixBody.extend({
+		externalId: z.string().optional(),
+		utm: RESTTransparentCheckoutUtm.optional(),
+	});
+
+export type RESTPostCreateTransparentCheckoutPixData = z.infer<
+	typeof RESTPostCreateTransparentCheckoutPixData
+>;
+
+export const RESTPostCreateTransparentCheckoutBoletoData = z.object({
+	amount: z.int().describe('Charge amount in cents.'),
+	description: z.string().max(500).optional(),
+	customer: APICustomer.pick({
+		name: true,
+		taxId: true,
+	}).extend({
+		email: APICustomer.shape.email.optional(),
+		cellphone: APICustomer.shape.cellphone.optional(),
+	}),
+	externalId: z.string().optional(),
+	interest: APITransparentCheckout.shape.interest.optional(),
+	fine: APITransparentCheckout.shape.fine.optional(),
+	metadata: z.record(z.string(), z.unknown()).optional(),
+	utm: RESTTransparentCheckoutUtm.optional(),
+});
+
+export type RESTPostCreateTransparentCheckoutBoletoData = z.infer<
+	typeof RESTPostCreateTransparentCheckoutBoletoData
+>;
+
+export const RESTPostCreateTransparentCheckoutBody = z.discriminatedUnion(
+	'method',
+	[
+		z.object({
+			method: z.literal('PIX'),
+			data: RESTPostCreateTransparentCheckoutPixData,
+		}),
+		z.object({
+			method: z.literal('BOLETO'),
+			data: RESTPostCreateTransparentCheckoutBoletoData,
+		}),
+	],
+);
+
+export type RESTPostCreateTransparentCheckoutBody = z.infer<
+	typeof RESTPostCreateTransparentCheckoutBody
+>;
+
+export const RESTPostCreateTransparentCheckoutData = APITransparentCheckout;
+
+export type RESTPostCreateTransparentCheckoutData = z.infer<
+	typeof RESTPostCreateTransparentCheckoutData
+>;
+
 /**
  * https://api.abacatepay.com/v2/transparents/simulate-payment
  *
@@ -622,6 +690,26 @@ export const RESTGetCheckQRCodePixStatusData = z.object({
  */
 export type RESTGetCheckQRCodePixStatusData = z.infer<
 	typeof RESTGetCheckQRCodePixStatusData
+>;
+
+export const RESTGetListTransparentCheckoutsQueryParams = z.object({
+	after: z.string().optional(),
+	before: z.string().optional(),
+	limit: z.int().min(1).max(100).default(100).optional(),
+	id: z.string().optional(),
+	status: PaymentStatus.optional(),
+});
+
+export type RESTGetListTransparentCheckoutsQueryParams = z.infer<
+	typeof RESTGetListTransparentCheckoutsQueryParams
+>;
+
+export const RESTGetListTransparentCheckoutsData = z.array(
+	APITransparentCheckout,
+);
+
+export type RESTGetListTransparentCheckoutsData = z.infer<
+	typeof RESTGetListTransparentCheckoutsData
 >;
 
 /**

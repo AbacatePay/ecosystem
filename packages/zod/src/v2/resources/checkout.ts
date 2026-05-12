@@ -5,8 +5,18 @@ import { StringEnum } from '../../utils';
  * https://docs.abacatepay.com/pages/payment/reference#atributos
  */
 export const PaymentStatus = StringEnum(
-	['PENDING', 'EXPIRED', 'CANCELLED', 'PAID', 'REFUNDED'],
-	'Billing status. Can be `PENDING`, `EXPIRED`, `CANCELLED`, `PAID`, `REFUNDED`.',
+	[
+		'PENDING',
+		'EXPIRED',
+		'CANCELLED',
+		'PAID',
+		'UNDER_DISPUTE',
+		'REFUNDED',
+		'REDEEMED',
+		'APPROVED',
+		'FAILED',
+	],
+	'Billing status.',
 ).meta({ example: 'PENDING' });
 
 /**
@@ -18,7 +28,7 @@ export type PaymentStatus = z.infer<typeof PaymentStatus>;
  * https://docs.abacatepay.com/pages/payment/create#body-methods
  */
 export const PaymentMethod = StringEnum(
-	['PIX', 'CARD'],
+	['PIX', 'CARD', 'BOLETO'],
 	'Payment method.',
 ).meta({ example: 'PIX' });
 

@@ -44,9 +44,38 @@ export const APIQRCodePIX = z.object({
 		.date()
 		.describe('QRCode expiration date and time.')
 		.meta({ example: new Date() }),
+	metadata: z.record(z.string(), z.unknown()).optional(),
 });
 
 /**
  * https://docs.abacatepay.com/pages/transparents/reference
  */
 export type APIQRCodePIX = z.infer<typeof APIQRCodePIX>;
+
+export const APIBoletoInterest = z.object({
+	value: z.int().min(0),
+});
+
+export type APIBoletoInterest = z.infer<typeof APIBoletoInterest>;
+
+export const APIBoletoFine = z.object({
+	value: z.int().min(0),
+	type: z.enum(['PERCENTAGE', 'FIXED']),
+});
+
+export type APIBoletoFine = z.infer<typeof APIBoletoFine>;
+
+/**
+ * https://docs.abacatepay.com/pages/transparents/reference
+ */
+export const APITransparentCheckout = APIQRCodePIX.extend({
+	barCode: z.string().optional(),
+	url: z.url().optional(),
+	interest: APIBoletoInterest.nullable().optional(),
+	fine: APIBoletoFine.nullable().optional(),
+});
+
+/**
+ * https://docs.abacatepay.com/pages/transparents/reference
+ */
+export type APITransparentCheckout = z.infer<typeof APITransparentCheckout>;

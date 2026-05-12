@@ -5,6 +5,7 @@ import type {
 	RESTGetListPayoutsQueryParams,
 	RESTGetListProductsQueryParams,
 	RESTGetListSubscriptionsQueryParams,
+	RESTGetListTransparentCheckoutsQueryParams,
 	RESTGetProductQueryParams,
 } from './rest';
 
@@ -58,7 +59,29 @@ export const Routes = {
 		/**
 		 * POST - https://api.abacatepay.com/v2/transparents/create
 		 */
+		create: '/transparents/create',
 		createQRCode: '/transparents/create',
+
+		/**
+		 * GET - https://api.abacatepay.com/v2/transparents/list
+		 */
+		list({
+			after,
+			before,
+			id,
+			limit = 100,
+			status,
+		}: RESTGetListTransparentCheckoutsQueryParams = {}) {
+			const query = new URLSearchParams();
+
+			query.set('limit', String(limit));
+			if (after) query.set('after', after);
+			if (before) query.set('before', before);
+			if (id) query.set('id', id);
+			if (status) query.set('status', status);
+
+			return `/transparents/list?${query.toString()}` as const;
+		},
 
 		/**
 		 * POST - https://api.abacatepay.com/v2/transparents/simulate-payment

@@ -1,4 +1,5 @@
 import { type Static, Type as t } from '@sinclair/typebox';
+import { StringEnum } from '../../utils';
 import { PaymentStatus } from './checkout';
 
 /**
@@ -43,9 +44,44 @@ export const APIQRCodePIX = t.Object({
 		examples: ['2025-01-02T12:00:00Z'],
 		description: 'QRCode expiration date and time.',
 	}),
+	metadata: t.Optional(t.Record(t.String(), t.Unknown())),
 });
 
 /**
  * https://docs.abacatepay.com/pages/transparents/reference
  */
 export type APIQRCodePIX = Static<typeof APIQRCodePIX>;
+
+export const APIBoletoInterest = t.Object({
+	value: t.Integer({ minimum: 0 }),
+});
+
+export type APIBoletoInterest = Static<typeof APIBoletoInterest>;
+
+export const APIBoletoFine = t.Object({
+	value: t.Integer({ minimum: 0 }),
+	type: StringEnum(['PERCENTAGE', 'FIXED'], {
+		description: 'Fine calculation mode.',
+		examples: ['PERCENTAGE'],
+	}),
+});
+
+export type APIBoletoFine = Static<typeof APIBoletoFine>;
+
+/**
+ * https://docs.abacatepay.com/pages/transparents/reference
+ */
+export const APITransparentCheckout = t.Intersect([
+	APIQRCodePIX,
+	t.Object({
+		barCode: t.Optional(t.String()),
+		url: t.Optional(t.String({ format: 'uri' })),
+		interest: t.Optional(t.Union([APIBoletoInterest, t.Null()])),
+		fine: t.Optional(t.Union([APIBoletoFine, t.Null()])),
+	}),
+]);
+
+/**
+ * https://docs.abacatepay.com/pages/transparents/reference
+ */
+export type APITransparentCheckout = Static<typeof APITransparentCheckout>;

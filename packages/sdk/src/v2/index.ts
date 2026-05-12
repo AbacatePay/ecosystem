@@ -18,6 +18,8 @@ import type {
 	RESTGetListProductsQueryParams,
 	RESTGetListSubscriptionsData,
 	RESTGetListSubscriptionsQueryParams,
+	RESTGetListTransparentCheckoutsData,
+	RESTGetListTransparentCheckoutsQueryParams,
 	RESTGetMerchantData,
 	RESTGetMRRData,
 	RESTGetProductData,
@@ -41,6 +43,8 @@ import type {
 	RESTPostCreateQRCodePixData,
 	RESTPostCreateSubscriptionBody,
 	RESTPostCreateSubscriptionData,
+	RESTPostCreateTransparentCheckoutBody,
+	RESTPostCreateTransparentCheckoutData,
 	RESTPostSimulateQRCodePixPaymentData,
 } from '@abacatepay/types/v2';
 import { Routes } from '@abacatepay/types/v2';
@@ -161,6 +165,62 @@ export const AbacatePay = ({ secret, rest }: AbacatePayOptions) => {
 		},
 
 		/**
+		 * Transparent checkout operations.
+		 */
+		transparents: {
+			/**
+			 * Create a transparent checkout charge.
+			 *
+			 * @param body Transparent checkout creation payload.
+			 * @returns The created transparent checkout charge.
+			 */
+			create(body: RESTPostCreateTransparentCheckoutBody) {
+				return client.post<RESTPostCreateTransparentCheckoutData>(
+					Routes.transparents.create,
+					{ body },
+				);
+			},
+
+			/**
+			 * List transparent checkout charges with optional cursor pagination.
+			 *
+			 * @param query Optional query parameters.
+			 * @returns A list of transparent checkout charges.
+			 */
+			list(query?: RESTGetListTransparentCheckoutsQueryParams) {
+				return client.get<RESTGetListTransparentCheckoutsData>(
+					Routes.transparents.list(query),
+				);
+			},
+
+			/**
+			 * Simulate a transparent checkout PIX payment for testing purposes.
+			 *
+			 * @param id Transparent checkout charge ID.
+			 * @param metadata Optional metadata to attach to the simulation.
+			 * @returns The simulated payment result.
+			 */
+			simulate(id: string, metadata?: Record<string, object>) {
+				return client.post<RESTPostSimulateQRCodePixPaymentData>(
+					Routes.transparents.simulatePayment(id),
+					{ body: { metadata } },
+				);
+			},
+
+			/**
+			 * Retrieve the current status of a transparent checkout charge.
+			 *
+			 * @param id Transparent checkout charge ID.
+			 * @returns The transparent checkout payment status.
+			 */
+			status(id: string) {
+				return client.get<RESTGetCheckQRCodePixStatusData>(
+					Routes.transparents.checkStatus(id),
+				);
+			},
+		},
+
+		/**
 		 * PIX payment operations.
 		 */
 		pix: {
@@ -173,7 +233,7 @@ export const AbacatePay = ({ secret, rest }: AbacatePayOptions) => {
 			create(body: RESTPostCreateQRCodePixBody) {
 				return client.post<RESTPostCreateQRCodePixData>(
 					Routes.transparents.createQRCode,
-					{ body },
+					{ body: { method: 'PIX', data: body } },
 				);
 			},
 

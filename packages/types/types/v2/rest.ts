@@ -5,6 +5,7 @@ import type {
 	APIPayout,
 	APIQRCodePIX,
 	APIStore,
+	APITransparentCheckout,
 	CouponDiscountKind,
 	PaymentMethod,
 	PaymentStatus,
@@ -236,6 +237,99 @@ export interface RESTPostCreateQRCodePixBody
 export type RESTPostCreateQRCodePixData = APIQRCodePIX;
 
 /**
+ * Campaign attribution fields for transparent checkout charges.
+ *
+ * @reference https://docs.abacatepay.com/pages/transparents/reference
+ */
+export interface RESTTransparentCheckoutUtm {
+	source?: string;
+	medium?: string;
+	campaign?: string;
+	term?: string;
+	content?: string;
+}
+
+/**
+ * PIX data accepted by `/v2/transparents/create`.
+ *
+ * @reference https://docs.abacatepay.com/pages/transparents/create
+ */
+export interface RESTPostCreateTransparentCheckoutPixData
+	extends RESTPostCreateQRCodePixBody {
+	/**
+	 * ID in your system for idempotency.
+	 */
+	externalId?: string;
+	/**
+	 * Optional campaign attribution fields.
+	 */
+	utm?: RESTTransparentCheckoutUtm;
+}
+
+/**
+ * BOLETO data accepted by `/v2/transparents/create`.
+ *
+ * @reference https://docs.abacatepay.com/pages/transparents/boleto
+ */
+export interface RESTPostCreateTransparentCheckoutBoletoData {
+	/**
+	 * Charge amount in cents.
+	 */
+	amount: number;
+	/**
+	 * Charge description.
+	 */
+	description?: string;
+	/**
+	 * Payer data. `name` and `taxId` are required for boleto charges.
+	 */
+	customer: Pick<APICustomer, 'name' | 'taxId'> &
+		Partial<Pick<APICustomer, 'email' | 'cellphone'>>;
+	/**
+	 * ID in your system for idempotency.
+	 */
+	externalId?: string;
+	/**
+	 * Late interest applied after the boleto due date.
+	 */
+	interest?: APITransparentCheckout['interest'];
+	/**
+	 * One-time late fine applied after the boleto due date.
+	 */
+	fine?: APITransparentCheckout['fine'];
+	/**
+	 * Optional billing metadata.
+	 */
+	metadata?: Record<string, unknown>;
+	/**
+	 * Optional campaign attribution fields.
+	 */
+	utm?: RESTTransparentCheckoutUtm;
+}
+
+/**
+ * https://api.abacatepay.com/v2/transparents/create
+ *
+ * @reference https://docs.abacatepay.com/pages/transparents/create
+ */
+export type RESTPostCreateTransparentCheckoutBody =
+	| {
+			method: PaymentMethod.Pix;
+			data: RESTPostCreateTransparentCheckoutPixData;
+	  }
+	| {
+			method: PaymentMethod.Boleto;
+			data: RESTPostCreateTransparentCheckoutBoletoData;
+	  };
+
+/**
+ * https://api.abacatepay.com/v2/transparents/create
+ *
+ * @reference https://docs.abacatepay.com/pages/transparents/create
+ */
+export type RESTPostCreateTransparentCheckoutData = APITransparentCheckout;
+
+/**
  * https://api.abacatepay.com/v2/transparents/simulate-payment
  *
  * @reference https://docs.abacatepay.com/pages/transparents/simulate-payment
@@ -293,6 +387,26 @@ export interface RESTGetCheckQRCodePixStatusData {
 	 */
 	status: PaymentStatus;
 }
+
+/**
+ * https://api.abacatepay.com/v2/transparents/list
+ *
+ * @reference https://docs.abacatepay.com/pages/transparents/list
+ */
+export interface RESTGetListTransparentCheckoutsQueryParams {
+	after?: string;
+	before?: string;
+	limit?: number;
+	id?: string;
+	status?: PaymentStatus;
+}
+
+/**
+ * https://api.abacatepay.com/v2/transparents/list
+ *
+ * @reference https://docs.abacatepay.com/pages/transparents/list
+ */
+export type RESTGetListTransparentCheckoutsData = APITransparentCheckout[];
 
 /**
  * https://api.abacatepay.com/v2/checkouts/list
