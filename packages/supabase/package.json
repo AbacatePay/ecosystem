@@ -1,6 +1,6 @@
 {
 	"name": "@abacatepay/supabase",
-	"version": "1.0.3",
+	"version": "2.0.0",
 	"repository": {
 		"type": "git",
 		"url": "git+https://github.com/AbacatePay/ecosystem.git"
@@ -57,6 +57,6 @@
 	"type": "module",
 	"types": "./dist/index.d.ts",
 	"dependencies": {
-		"@abacatepay/adapters": "^1.0.1"
+		"@abacatepay/adapters": "^2.0.0"
 	}
 }
