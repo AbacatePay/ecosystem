@@ -37,12 +37,11 @@ jobs:
       - name: Lint code (Biome)
         run: bun run biome:check
 
+      - name: Build packages
+        run: bun run build
+
       - name: Type check
         run: bunx tsc -b --noEmit
 
       - name: Run tests
         run: bun run test
-
-      # Skip this for now
-      # - name: Build packages
-      #   run: bun run build
