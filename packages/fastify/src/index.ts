@@ -5,57 +5,80 @@ import {
 	type WebhookOptions,
 } from '@abacatepay/adapters/webhooks';
 import type { FastifyReply, FastifyRequest } from 'fastify';
-import { AbacatePayFastifyError } from './errors';
 
 const BAD_REQUEST_STATUS_CODE = 400;
 const UNAUTHORIZED_STATUS_CODE = 401;
 const NO_CONTENT_STATUS_CODE = 204;
 
-export { AbacatePayFastifyError } from './errors';
 export { version } from './version';
 
-export const Webhooks = (options: WebhookOptions) => {
+export type WebhooksHandler = (
+	req: FastifyRequest,
+	reply: FastifyReply,
+) => Promise<FastifyReply>;
+
+/**
+ * Result of {@link Webhooks}. Never throws — a missing secret resolves to
+ * `{ ok: false, error }` instead.
+ */
+export type WebhooksResult =
+	| { ok: true; error: null; handler: WebhooksHandler }
+	| { ok: false; error: string; handler: null };
+
+export const Webhooks = (options: WebhookOptions): WebhooksResult => {
 	if (!options.secret)
-		throw new AbacatePayFastifyError('Webhook secret is missing.', {
-			code: 'WEBHOOK_SECRET_MISSING',
-		});
+		return { ok: false, error: 'Webhook secret is missing.', handler: null };
 
-	return async (req: FastifyRequest, reply: FastifyReply) => {
-		const { webhookSecret } = req.query as Record<string, string | undefined>;
+	return {
+		ok: true,
+		error: null,
+		handler: async (req: FastifyRequest, reply: FastifyReply) => {
+			const { webhookSecret } = req.query as Record<string, string | undefined>;
 
-		if (webhookSecret !== options.secret)
-			return reply
-				.status(UNAUTHORIZED_STATUS_CODE)
-				.send({ error: 'Unauthorized' });
+			if (webhookSecret !== options.secret)
+				return reply
+					.status(UNAUTHORIZED_STATUS_CODE)
+					.send({ error: 'Unauthorized' });
 
-		const signature = req.headers['x-webhook-signature'];
+			const signature = req.headers['x-webhook-signature'];
 
-		if (typeof signature !== 'string')
-			return reply
-				.status(BAD_REQUEST_STATUS_CODE)
-				.send({ error: 'Missing signature' });
+			if (typeof signature !== 'string')
+				return reply
+					.status(BAD_REQUEST_STATUS_CODE)
+					.send({ error: 'Missing signature' });
 
-		const { body } = req;
+			const { body } = req;
 
-		if (typeof body !== 'string')
-			return reply
-				.status(BAD_REQUEST_STATUS_CODE)
-				.send({ error: 'Invalid raw body' });
+			if (typeof body !== 'string')
+				return reply
+					.status(BAD_REQUEST_STATUS_CODE)
+					.send({ error: 'Invalid raw body' });
 
-		if (!verify(body, signature))
-			return reply
-				.status(UNAUTHORIZED_STATUS_CODE)
-				.send({ error: 'Invalid signature' });
+			if (!verify(body, signature))
+				return reply
+					.status(UNAUTHORIZED_STATUS_CODE)
+					.send({ error: 'Invalid signature' });
 
-		const { data, success } = parse(JSON.parse(body));
+			let parsed: unknown;
 
-		if (!success)
-			return reply
-				.status(BAD_REQUEST_STATUS_CODE)
-				.send({ error: 'Invalid payload' });
+			try {
+				parsed = JSON.parse(body);
+			} catch {
+				return reply
+					.status(BAD_REQUEST_STATUS_CODE)
+					.send({ error: 'Invalid JSON' });
+			}
 
-		await dispatch(data, options);
+			const { data, success } = parse(parsed);
 
-		return reply.status(NO_CONTENT_STATUS_CODE).send();
+			if (!success)
+				return reply
+					.status(BAD_REQUEST_STATUS_CODE)
+					.send({ error: 'Invalid payload' });
+
+			await dispatch(data, options);
+
+			return reply.status(NO_CONTENT_STATUS_CODE).send();
+		},
 	};
 };
