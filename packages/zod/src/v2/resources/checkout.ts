@@ -18,7 +18,7 @@ export type PaymentStatus = z.infer<typeof PaymentStatus>;
  * https://docs.abacatepay.com/pages/payment/create#body-methods
  */
 export const PaymentMethod = StringEnum(
-	['PIX', 'CARD'],
+	['PIX', 'CARD', 'BOLETO'],
 	'Payment method.',
 ).meta({ example: 'PIX' });
 
@@ -26,6 +26,19 @@ export const PaymentMethod = StringEnum(
  * https://docs.abacatepay.com/pages/payment/create#body-methods
  */
 export type PaymentMethod = z.infer<typeof PaymentMethod>;
+
+/**
+ * https://docs.abacatepay.com/pages/payment/create#body-frequency
+ */
+export const PaymentFrequency = StringEnum(
+	['ONE_TIME', 'MULTIPLE_PAYMENTS', 'SUBSCRIPTION'],
+	'Billing frequency.',
+).meta({ example: 'ONE_TIME' });
+
+/**
+ * https://docs.abacatepay.com/pages/payment/create#body-frequency
+ */
+export type PaymentFrequency = z.infer<typeof PaymentFrequency>;
 
 /**
  * https://docs.abacatepay.com/pages/checkouts/reference#estrutura
@@ -116,6 +129,40 @@ export const APICheckout = z.object({
 		.date()
 		.describe('Charge last updated date and time.')
 		.meta({ example: new Date() }),
+	frequency: PaymentFrequency.describe(
+		'Billing frequency. Defaults to `ONE_TIME`.',
+	).optional(),
+	upSellProductId: z
+		.union([z.null(), z.string()])
+		.meta({ example: null })
+		.describe('ID of an additional product offered as an upsell.')
+		.optional(),
+	interest: z
+		.union([
+			z.null(),
+			z.object({
+				value: z
+					.int()
+					.meta({ example: 100 })
+					.describe('Monthly interest rate, in hundredths of a percent.'),
+			}),
+		])
+		.meta({ example: null })
+		.describe('Late interest configuration (Applies to BOLETO).')
+		.optional(),
+	fine: z
+		.union([
+			z.null(),
+			z.object({
+				value: z.int().meta({ example: 200 }).describe('Fine value.'),
+				type: StringEnum(['PERCENTAGE', 'FIXED'], 'Type of fine applied.').meta(
+					{ example: 'PERCENTAGE' },
+				),
+			}),
+		])
+		.meta({ example: null })
+		.describe('Late fine configuration (Applies to BOLETO).')
+		.optional(),
 });
 
 /**

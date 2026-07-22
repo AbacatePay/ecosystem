@@ -21,7 +21,7 @@ export type PaymentStatus = Static<typeof PaymentStatus>;
 /**
  * https://docs.abacatepay.com/pages/payment/create#body-methods
  */
-export const PaymentMethod = StringEnum(['PIX', 'CARD'], {
+export const PaymentMethod = StringEnum(['PIX', 'CARD', 'BOLETO'], {
 	examples: ['PIX'],
 	description: 'Payment method.',
 });
@@ -30,6 +30,19 @@ export const PaymentMethod = StringEnum(['PIX', 'CARD'], {
  * https://docs.abacatepay.com/pages/payment/create#body-methods
  */
 export type PaymentMethod = Static<typeof PaymentMethod>;
+
+/**
+ * https://docs.abacatepay.com/pages/payment/create#body-frequency
+ */
+export const PaymentFrequency = StringEnum(
+	['ONE_TIME', 'MULTIPLE_PAYMENTS', 'SUBSCRIPTION'],
+	{ examples: ['ONE_TIME'], description: 'Billing frequency.' },
+);
+
+/**
+ * https://docs.abacatepay.com/pages/payment/create#body-frequency
+ */
+export type PaymentFrequency = Static<typeof PaymentFrequency>;
 
 /**
  * https://docs.abacatepay.com/pages/checkouts/reference#estrutura
@@ -131,6 +144,48 @@ export const APICheckout = t.Object({
 		examples: ['2024-11-04T18:38:28.573Z'],
 		description: 'Charge last updated date and time.',
 	}),
+	frequency: t.Optional(PaymentFrequency),
+	upSellProductId: t.Optional(
+		t.Union([t.Null(), t.String()], {
+			examples: [null],
+			description: 'ID of an additional product offered as an upsell.',
+		}),
+	),
+	interest: t.Optional(
+		t.Union(
+			[
+				t.Null(),
+				t.Object({
+					value: t.Integer({
+						examples: [100],
+						description: 'Monthly interest rate, in hundredths of a percent.',
+					}),
+				}),
+			],
+			{
+				examples: [null],
+				description: 'Late interest configuration (Applies to BOLETO).',
+			},
+		),
+	),
+	fine: t.Optional(
+		t.Union(
+			[
+				t.Null(),
+				t.Object({
+					value: t.Integer({ examples: [200], description: 'Fine value.' }),
+					type: StringEnum(['PERCENTAGE', 'FIXED'], {
+						examples: ['PERCENTAGE'],
+						description: 'Type of fine applied.',
+					}),
+				}),
+			],
+			{
+				examples: [null],
+				description: 'Late fine configuration (Applies to BOLETO).',
+			},
+		),
+	),
 });
 
 /**

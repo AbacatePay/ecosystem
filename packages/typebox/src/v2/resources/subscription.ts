@@ -120,3 +120,92 @@ export const APISubscription = t.Object({
  * https://docs.abacatepay.com/pages/subscriptions/reference#estrutura
  */
 export type APISubscription = Static<typeof APISubscription>;
+
+/**
+ * Result of `POST /subscriptions/change-plan`.
+ *
+ * https://docs.abacatepay.com/pages/subscriptions/change-plan
+ */
+export const APISubscriptionPlanChange = t.Object({
+	id: t.String({
+		examples: ['sub_change_123'],
+		description: 'Unique identifier of this plan-change request.',
+	}),
+	subscriptionId: t.String({
+		examples: ['subs_abc123xyz'],
+		description: 'ID of the subscription being changed.',
+	}),
+	status: StringEnum(['PENDING', 'APPLIED', 'CANCELLED'], {
+		examples: ['PENDING'],
+		description: 'Status of the plan-change request.',
+	}),
+	productId: t.String({
+		examples: ['prod_123'],
+		description: 'ID of the new product.',
+	}),
+	quantity: t.Integer({
+		examples: [1],
+		description: 'New quantity for the product.',
+	}),
+	newAmount: t.Integer({
+		examples: [4000],
+		description:
+			'Amount that will be charged once the change is applied, in cents.',
+	}),
+	requestedAt: t.Date({
+		examples: ['2025-01-01T00:00:00Z'],
+		description: 'When the change was requested.',
+	}),
+});
+
+/**
+ * https://docs.abacatepay.com/pages/subscriptions/change-plan
+ */
+export type APISubscriptionPlanChange = Static<
+	typeof APISubscriptionPlanChange
+>;
+
+/**
+ * Result of `POST /subscriptions/record-usage`.
+ *
+ * https://docs.abacatepay.com/pages/subscriptions/record-usage
+ */
+export const APISubscriptionUsageRecord = t.Object({
+	id: t.String({
+		examples: ['usage_123'],
+		description: 'Unique identifier of this usage record.',
+	}),
+	subscriptionId: t.String({
+		examples: ['subs_abc123xyz'],
+		description: 'ID of the subscription the usage was recorded against.',
+	}),
+	productId: t.String({
+		examples: ['prod_123'],
+		description: 'ID of the pay-as-you-go product the usage applies to.',
+	}),
+	units: t.Integer({ examples: [5], description: 'Number of units recorded.' }),
+	unitPrice: t.Integer({
+		examples: [100],
+		description: 'Price per unit, in cents.',
+	}),
+	action: StringEnum(['add', 'subtract'], {
+		examples: ['add'],
+		description:
+			'Whether the units were added to or subtracted from the current cycle.',
+	}),
+	installmentNumber: t.Integer({
+		examples: [1],
+		description: 'The pending installment this usage record was attached to.',
+	}),
+	recordedAt: t.Date({
+		examples: ['2025-01-01T00:00:00Z'],
+		description: 'When the usage was recorded.',
+	}),
+});
+
+/**
+ * https://docs.abacatepay.com/pages/subscriptions/record-usage
+ */
+export type APISubscriptionUsageRecord = Static<
+	typeof APISubscriptionUsageRecord
+>;
