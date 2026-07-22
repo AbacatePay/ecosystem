@@ -93,6 +93,82 @@ export enum SubscriptionStatus {
 }
 
 /**
+ * Result of `POST /subscriptions/change-plan`.
+ *
+ * https://docs.abacatepay.com/pages/subscriptions/change-plan
+ */
+export interface APISubscriptionPlanChange {
+	/**
+	 * Unique identifier of this plan-change request.
+	 */
+	id: string;
+	/**
+	 * ID of the subscription being changed.
+	 */
+	subscriptionId: string;
+	/**
+	 * Status of the plan-change request.
+	 */
+	status: 'PENDING' | 'APPLIED' | 'CANCELLED';
+	/**
+	 * ID of the new product.
+	 */
+	productId: string;
+	/**
+	 * New quantity for the product.
+	 */
+	quantity: number;
+	/**
+	 * Amount that will be charged once the change is applied, in cents.
+	 */
+	newAmount: number;
+	/**
+	 * When the change was requested.
+	 */
+	requestedAt: string;
+}
+
+/**
+ * Result of `POST /subscriptions/record-usage`.
+ *
+ * https://docs.abacatepay.com/pages/subscriptions/record-usage
+ */
+export interface APISubscriptionUsageRecord {
+	/**
+	 * Unique identifier of this usage record.
+	 */
+	id: string;
+	/**
+	 * ID of the subscription the usage was recorded against.
+	 */
+	subscriptionId: string;
+	/**
+	 * ID of the pay-as-you-go product the usage applies to.
+	 */
+	productId: string;
+	/**
+	 * Number of units recorded.
+	 */
+	units: number;
+	/**
+	 * Price per unit, in cents.
+	 */
+	unitPrice: number;
+	/**
+	 * Whether the units were added to or subtracted from the current cycle.
+	 */
+	action: 'add' | 'subtract';
+	/**
+	 * The pending installment this usage record was attached to.
+	 */
+	installmentNumber: number;
+	/**
+	 * When the usage was recorded.
+	 */
+	recordedAt: string;
+}
+
+/**
  * https://docs.abacatepay.com/pages/subscriptions/reference#estrutura
  */
 export interface APISubscriptionEvent {

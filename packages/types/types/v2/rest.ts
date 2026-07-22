@@ -1,16 +1,26 @@
 import type {
+	APIBoleto,
 	APICheckout,
 	APICoupon,
 	APICustomer,
 	APIPayout,
+	APIPixTransfer,
 	APIQRCodePIX,
 	APIStore,
+	APIWebhook,
 	CouponDiscountKind,
 	PaymentMethod,
 	PaymentStatus,
+	PixKeyType,
+	WebhookEventType,
 } from '.';
+import type { APIPaymentLink } from './entities/paymentLink';
 import type { APIProduct } from './entities/products';
-import type { APISubscription } from './entities/subscription';
+import type {
+	APISubscription,
+	APISubscriptionPlanChange,
+	APISubscriptionUsageRecord,
+} from './entities/subscription';
 
 /**
  * Any response returned by the AbacatePay API.
@@ -150,20 +160,20 @@ export type RESTPostCreateCustomerBody = Pick<APICustomer, 'email'> &
  *
  * @reference https://docs.abacatepay.com/pages/client/create
  */
-export type RESTPostCreateCustomerData = APICustomer;
+export type RESTPostCreateCustomerData = APIResponse<APICustomer>;
 
 /**
  * https://api.abacatepay.com/v2/checkouts/create
  *
- * @reference https://docs.abacatepay.com/pages/checkout/create
+ * @reference https://docs.abacatepay.com/pages/payment/create
  */
 export interface RESTPostCreateNewCheckoutBody {
 	/**
-	 * Payment method that will be used.
+	 * Payment methods that will be accepted (Defaults to `[PIX, CARD]`).
 	 *
 	 * @see {@link PaymentMethod}
 	 */
-	methods?: PaymentMethod;
+	methods?: PaymentMethod[];
 	/**
 	 * URL to redirect the customer if they click on the "Back" option.
 	 */
@@ -198,17 +208,75 @@ export interface RESTPostCreateNewCheckoutBody {
 	 * This is the only required field — the total value is calculated from these items.
 	 */
 	items: APICheckout['items'];
+	/**
+	 * Billing frequency. Defaults to `ONE_TIME`.
+	 */
+	frequency?: 'ONE_TIME' | 'MULTIPLE_PAYMENTS' | 'SUBSCRIPTION';
+	/**
+	 * ID of an additional product offered as an upsell.
+	 */
+	upSellProductId?: string;
+	/**
+	 * Late interest configuration (Applies to BOLETO).
+	 */
+	interest?: {
+		/**
+		 * Monthly interest rate, in hundredths of a percent.
+		 */
+		value: number;
+	};
+	/**
+	 * Late fine configuration (Applies to BOLETO).
+	 */
+	fine?: {
+		/**
+		 * Fine value.
+		 */
+		value: number;
+		/**
+		 * Type of fine applied.
+		 */
+		type: 'PERCENTAGE' | 'FIXED';
+	};
 }
 
 /**
  * https://api.abacatepay.com/v2/checkouts/create
  *
- * @reference https://docs.abacatepay.com/pages/checkouts/create
+ * @reference https://docs.abacatepay.com/pages/payment/create
  */
-export type RESTPostCreateNewCheckoutData = APICheckout;
+export type RESTPostCreateNewCheckoutData = APIResponse<APICheckout>;
 
 /**
- * https://api.abacatepay.com/v2/transparents/create
+ * https://api.abacatepay.com/v2/checkouts/refund
+ *
+ * @reference https://docs.abacatepay.com/pages/payment/refund
+ */
+export interface RESTPostRefundCheckoutBody {
+	/**
+	 * Public ID of the resource to refund (prefixes: `bill_`, `char_`, `pix_char_`, `card_`).
+	 */
+	id: string;
+	/**
+	 * Refund reason, shown in the transaction history (Max 500 characters).
+	 */
+	reason?: string;
+}
+
+/**
+ * https://api.abacatepay.com/v2/checkouts/refund
+ *
+ * @reference https://docs.abacatepay.com/pages/payment/refund
+ */
+export type RESTPostRefundCheckoutData = APIResponse<{
+	/**
+	 * Public ID of the refund transaction that was created.
+	 */
+	refundPublicId: string;
+}>;
+
+/**
+ * Inner `data` payload sent to `POST /transparents/create` when `method` is `PIX`.
  *
  * @reference https://docs.abacatepay.com/pages/transparents/create
  */
@@ -233,7 +301,117 @@ export interface RESTPostCreateQRCodePixBody
  *
  * @reference https://docs.abacatepay.com/pages/transparents/create
  */
-export type RESTPostCreateQRCodePixData = APIQRCodePIX;
+export type RESTPostCreateQRCodePixData = APIResponse<APIQRCodePIX>;
+
+/**
+ * Inner `data` payload sent to `POST /transparents/create` when `method` is `BOLETO`.
+ *
+ * @reference https://docs.abacatepay.com/pages/transparents/boleto
+ */
+export interface RESTPostCreateBoletoBody {
+	/**
+	 * Charge amount in cents.
+	 */
+	amount: number;
+	/**
+	 * Message that will appear on the Boleto.
+	 */
+	description?: string;
+	/**
+	 * Customer data. `name` and `taxId` are mandatory for Boleto.
+	 */
+	customer: Pick<APICustomer, 'name' | 'taxId'> &
+		Partial<Pick<APICustomer, 'email' | 'cellphone'>>;
+	/**
+	 * Optional charge metadata.
+	 */
+	metadata?: Record<string, object>;
+}
+
+/**
+ * https://api.abacatepay.com/v2/transparents/create
+ *
+ * @reference https://docs.abacatepay.com/pages/transparents/boleto
+ */
+export type RESTPostCreateBoletoData = APIResponse<APIBoleto>;
+
+/**
+ * Wire-level request body for `POST /transparents/create` — the SDK builds this
+ * from {@link RESTPostCreateQRCodePixBody} / {@link RESTPostCreateBoletoBody}, callers
+ * of the SDK never construct it directly.
+ *
+ * @reference https://docs.abacatepay.com/pages/transparents/reference
+ */
+export type RESTPostCreateTransparentBody =
+	| { method: 'PIX'; data: RESTPostCreateQRCodePixBody }
+	| { method: 'BOLETO'; data: RESTPostCreateBoletoBody };
+
+/**
+ * https://api.abacatepay.com/v2/transparents/list
+ *
+ * @reference https://docs.abacatepay.com/pages/transparents/list
+ */
+export interface RESTGetListTransparentsQueryParams {
+	/**
+	 * Cursor for the next page.
+	 */
+	after?: string;
+	/**
+	 * Cursor for the previous page.
+	 */
+	before?: string;
+	/**
+	 * Number of items per page (1-100).
+	 *
+	 * @default 100
+	 */
+	limit?: number;
+	/**
+	 * Filter by QRCode/Boleto identifier.
+	 */
+	id?: string;
+	/**
+	 * Filter by status.
+	 */
+	status?: PaymentStatus;
+}
+
+/**
+ * https://api.abacatepay.com/v2/transparents/list
+ *
+ * @reference https://docs.abacatepay.com/pages/transparents/list
+ */
+export type RESTGetListTransparentsData = APIResponseWithCursorBasedPagination<
+	(APIQRCodePIX | APIBoleto)[]
+>;
+
+/**
+ * https://api.abacatepay.com/v2/transparents/refund
+ *
+ * @reference https://docs.abacatepay.com/pages/transparents/refund
+ */
+export interface RESTPostRefundTransparentBody {
+	/**
+	 * Public ID of the resource to refund (prefixes: `char_`, `pix_char_`, `card_`, `bill_`).
+	 */
+	id: string;
+	/**
+	 * Refund reason, shown in the transaction history (Max 500 characters).
+	 */
+	reason?: string;
+}
+
+/**
+ * https://api.abacatepay.com/v2/transparents/refund
+ *
+ * @reference https://docs.abacatepay.com/pages/transparents/refund
+ */
+export type RESTPostRefundTransparentData = APIResponse<{
+	/**
+	 * Public ID of the refund transaction that was created.
+	 */
+	refundPublicId: string;
+}>;
 
 /**
  * https://api.abacatepay.com/v2/transparents/simulate-payment
@@ -264,12 +442,12 @@ export interface RESTPostSimulateQRCodePixPaymentBody {
  *
  * @reference https://docs.abacatepay.com/pages/transparents/simulate-payment
  */
-export type RESTPostSimulateQRCodePixPaymentData = APIQRCodePIX;
+export type RESTPostSimulateQRCodePixPaymentData = APIResponse<APIQRCodePIX>;
 
 /**
- * https://api.abacatepay.com/v2/pixQrCode/check
+ * https://api.abacatepay.com/v2/transparents/check
  *
- * @reference https://docs.abacatepay.com/pages/pix-qrcode/check
+ * @reference https://docs.abacatepay.com/pages/transparents/check
  */
 export interface RESTGetCheckQRCodePixStatusQueryParams {
 	/**
@@ -283,7 +461,7 @@ export interface RESTGetCheckQRCodePixStatusQueryParams {
  *
  * @reference https://docs.abacatepay.com/pages/transparents/check
  */
-export interface RESTGetCheckQRCodePixStatusData {
+export type RESTGetCheckQRCodePixStatusData = APIResponse<{
 	/**
 	 * QRCode Pix expiration date.
 	 */
@@ -292,12 +470,12 @@ export interface RESTGetCheckQRCodePixStatusData {
 	 * Information about the progress of QRCode Pix.
 	 */
 	status: PaymentStatus;
-}
+}>;
 
 /**
  * https://api.abacatepay.com/v2/checkouts/list
  *
- * @reference https://docs.abacatepay.com/pages/checkouts/list
+ * @reference https://docs.abacatepay.com/pages/payment/list
  */
 export interface RESTGetListCheckoutsQueryParams {
 	/**
@@ -317,21 +495,21 @@ export interface RESTGetListCheckoutsQueryParams {
 /**
  * https://api.abacatepay.com/v2/checkouts/list
  *
- * @reference https://docs.abacatepay.com/pages/checkouts/list
+ * @reference https://docs.abacatepay.com/pages/payment/list
  */
-export type RESTGetListCheckoutsData = APICheckout[];
+export type RESTGetListCheckoutsData = APIResponseWithPagination<APICheckout[]>;
 
 /**
  * https://api.abacatepay.com/v2/checkouts/get
  *
- * @reference https://docs.abacatepay.com/pages/checkouts/get
+ * @reference https://docs.abacatepay.com/pages/payment/one
  */
-export type RESTGetCheckoutData = APICheckout;
+export type RESTGetCheckoutData = APIResponse<APICheckout>;
 
 /**
  * https://api.abacatepay.com/v2/checkouts/get
  *
- * @reference https://docs.abacatepay.com/pages/checkouts/get
+ * @reference https://docs.abacatepay.com/pages/payment/one
  */
 export interface RESTGetCheckoutQueryParams {
 	/**
@@ -341,11 +519,104 @@ export interface RESTGetCheckoutQueryParams {
 }
 
 /**
+ * https://api.abacatepay.com/v2/payment-links/create
+ *
+ * @reference https://docs.abacatepay.com/pages/payment-links/create
+ */
+export type RESTPostCreatePaymentLinkBody = Omit<
+	RESTPostCreateNewCheckoutBody,
+	'customerId' | 'customer' | 'frequency' | 'upSellProductId'
+>;
+
+/**
+ * https://api.abacatepay.com/v2/payment-links/create
+ *
+ * @reference https://docs.abacatepay.com/pages/payment-links/create
+ */
+export type RESTPostCreatePaymentLinkData = APIResponse<APIPaymentLink>;
+
+/**
+ * https://api.abacatepay.com/v2/payment-links/list
+ *
+ * @reference https://docs.abacatepay.com/pages/payment-links/list
+ */
+export interface RESTGetListPaymentLinksQueryParams {
+	/**
+	 * Number of the page.
+	 *
+	 * @default 1
+	 */
+	page?: number;
+	/**
+	 * Number of items per page.
+	 *
+	 * @default 20
+	 */
+	limit?: number;
+}
+
+/**
+ * https://api.abacatepay.com/v2/payment-links/list
+ *
+ * @reference https://docs.abacatepay.com/pages/payment-links/list
+ */
+export type RESTGetListPaymentLinksData = APIResponseWithPagination<
+	APIPaymentLink[]
+>;
+
+/**
+ * https://api.abacatepay.com/v2/payment-links/one
+ *
+ * @reference https://docs.abacatepay.com/pages/payment-links/one
+ */
+export interface RESTGetPaymentLinkQueryParams {
+	/**
+	 * Unique payment link identifier.
+	 */
+	id: string;
+}
+
+/**
+ * https://api.abacatepay.com/v2/payment-links/one
+ *
+ * @reference https://docs.abacatepay.com/pages/payment-links/one
+ */
+export type RESTGetPaymentLinkData = APIResponse<APIPaymentLink>;
+
+/**
+ * https://api.abacatepay.com/v2/payment-links/refund
+ *
+ * @reference https://docs.abacatepay.com/pages/payment-links/refund
+ */
+export interface RESTPostRefundPaymentLinkBody {
+	/**
+	 * Public ID of the resource to refund.
+	 */
+	id: string;
+	/**
+	 * Refund reason, shown in the transaction history (Max 500 characters).
+	 */
+	reason?: string;
+}
+
+/**
+ * https://api.abacatepay.com/v2/payment-links/refund
+ *
+ * @reference https://docs.abacatepay.com/pages/payment-links/refund
+ */
+export type RESTPostRefundPaymentLinkData = APIResponse<{
+	/**
+	 * Public ID of the refund transaction that was created.
+	 */
+	refundPublicId: string;
+}>;
+
+/**
  * https://api.abacatepay.com/v2/customers/list
  *
  * @reference https://docs.abacatepay.com/pages/client/list
  */
-export type RESTGetListCustomersData = APICustomer[];
+export type RESTGetListCustomersData = APIResponseWithPagination<APICustomer[]>;
 
 /**
  * https://api.abacatepay.com/v2/customers/list
@@ -380,7 +651,9 @@ export interface RESTGetCustomerQueryParams {
  *
  * @reference https://docs.abacatepay.com/pages/client/get
  */
-export type RESTGetCustomerData = Omit<APICustomer, 'country' | 'zipCode'>;
+export type RESTGetCustomerData = APIResponse<
+	Omit<APICustomer, 'country' | 'zipCode'>
+>;
 
 /**
  * https://api.abacatepay.com/v2/customers/delete
@@ -399,7 +672,9 @@ export interface RESTDeleteCustomerBody {
  *
  * @reference https://docs.abacatepay.com/pages/client/delete
  */
-export type RESTDeleteCustomerData = Omit<APICustomer, 'country' | 'zipCode'>;
+export type RESTDeleteCustomerData = APIResponse<
+	Omit<APICustomer, 'country' | 'zipCode'>
+>;
 
 /**
  * https://api.abacatepay.com/v2/coupons/create
@@ -440,11 +715,11 @@ export interface RESTPostCreateCouponBody {
 }
 
 /**
- * https://api.abacatepay.com/v2/coupon/create
+ * https://api.abacatepay.com/v2/coupons/create
  *
- * @reference https://docs.abacatepay.com/pages/coupon/create
+ * @reference https://docs.abacatepay.com/pages/coupons/create
  */
-export type RESTPostCreateCouponData = APICoupon;
+export type RESTPostCreateCouponData = APIResponse<APICoupon>;
 
 /**
  * https://api.abacatepay.com/v2/payouts/create
@@ -471,7 +746,7 @@ export interface RESTPostCreateNewPayoutBody {
  *
  * @reference https://docs.abacatepay.com/pages/payouts/create
  */
-export type RESTPostCreateNewWPayoutData = APIPayout;
+export type RESTPostCreateNewWPayoutData = APIResponse<APIPayout>;
 
 /**
  * https://api.abacatepay.com/v2/payouts/get
@@ -490,7 +765,7 @@ export interface RESTGetSearchPayoutQueryParams {
  *
  * @reference https://docs.abacatepay.com/pages/payouts/get
  */
-export type RESTGetSearchPayoutData = APIPayout;
+export type RESTGetSearchPayoutData = APIResponse<APIPayout>;
 
 /**
  * https://api.abacatepay.com/v2/payouts/list
@@ -513,6 +788,121 @@ export interface RESTGetListPayoutsQueryParams {
 }
 
 /**
+ * https://api.abacatepay.com/v2/payouts/list
+ *
+ * @reference https://docs.abacatepay.com/pages/payouts/list
+ */
+export type RESTGetListPayoutsData = APIResponseWithPagination<APIPayout[]>;
+
+/**
+ * https://api.abacatepay.com/v2/pix/send
+ *
+ * @reference https://docs.abacatepay.com/pages/pix/create
+ */
+export interface RESTPostSendPixTransferBody {
+	/**
+	 * Transfer amount in cents (Min 100).
+	 */
+	amount: number;
+	/**
+	 * Unique identifier of the transfer in your system.
+	 */
+	externalId: string;
+	/**
+	 * Optional transfer description.
+	 */
+	description?: string;
+	/**
+	 * Destination PIX key.
+	 */
+	pix: {
+		/**
+		 * The PIX key itself.
+		 */
+		key: string;
+		/**
+		 * Type of the PIX key.
+		 *
+		 * @see {@link PixKeyType}
+		 */
+		type: PixKeyType;
+	};
+}
+
+/**
+ * https://api.abacatepay.com/v2/pix/send
+ *
+ * @reference https://docs.abacatepay.com/pages/pix/create
+ */
+export type RESTPostSendPixTransferData = APIResponse<APIPixTransfer>;
+
+/**
+ * https://api.abacatepay.com/v2/pix/get
+ *
+ * @reference https://docs.abacatepay.com/pages/pix/get
+ */
+export interface RESTGetPixTransferQueryParams {
+	/**
+	 * Unique transfer identifier in AbacatePay. At least one of `id`/`externalId` is required.
+	 */
+	id?: string;
+	/**
+	 * Unique transfer identifier in your system. At least one of `id`/`externalId` is required.
+	 */
+	externalId?: string;
+}
+
+/**
+ * https://api.abacatepay.com/v2/pix/get
+ *
+ * @reference https://docs.abacatepay.com/pages/pix/get
+ */
+export type RESTGetPixTransferData = APIResponse<APIPixTransfer>;
+
+/**
+ * https://api.abacatepay.com/v2/pix/list
+ *
+ * @reference https://docs.abacatepay.com/pages/pix/list
+ */
+export interface RESTGetListPixTransfersQueryParams {
+	/**
+	 * Number of items per page (1-100).
+	 *
+	 * @default 100
+	 */
+	limit?: number;
+	/**
+	 * Cursor for the next page.
+	 */
+	after?: string;
+	/**
+	 * Cursor for the previous page.
+	 */
+	before?: string;
+	/**
+	 * Filter by AbacatePay transaction ID.
+	 */
+	id?: string;
+	/**
+	 * Filter by external system ID.
+	 */
+	externalId?: string;
+	/**
+	 * Filter by transaction status.
+	 */
+	status?: string;
+}
+
+/**
+ * https://api.abacatepay.com/v2/pix/list
+ *
+ * @reference https://docs.abacatepay.com/pages/pix/list
+ */
+export type RESTGetListPixTransfersData = APIResponseWithCursorBasedPagination<
+	APIPixTransfer[]
+>;
+
+/**
  * https://api.abacatepay.com/v2/public-mrr/revenue
  *
  * @reference https://docs.abacatepay.com/pages/trustMRR/list
@@ -533,7 +923,7 @@ export interface RESTGetRevenueByPeriodQueryParams {
  *
  * @reference https://docs.abacatepay.com/pages/trustMRR/list
  */
-export interface RESTGetRevenueByPeriodData {
+export type RESTGetRevenueByPeriodData = APIResponse<{
 	/**
 	 * Total revenue for the period in cents.
 	 */
@@ -558,14 +948,14 @@ export interface RESTGetRevenueByPeriodData {
 			count: number;
 		}
 	>;
-}
+}>;
 
 /**
  * https://api.abacatepay.com/v2/public-mrr/merchant-info
  *
  * @reference https://docs.abacatepay.com/pages/trustMRR/get
  */
-export interface RESTGetMerchantData {
+export type RESTGetMerchantData = APIResponse<{
 	/**
 	 * Store name.
 	 */
@@ -578,14 +968,14 @@ export interface RESTGetMerchantData {
 	 * Store creation date.
 	 */
 	createdAt: string;
-}
+}>;
 
 /**
  * https://api.abacatepay.com/v2/public-mrr/mrr
  *
  * @reference https://docs.abacatepay.com/pages/trustMRR/mrr
  */
-export interface RESTGetMRRData {
+export type RESTGetMRRData = APIResponse<{
 	/**
 	 * Monthly recurring revenue in cents. Value 0 indicates that there is no recurring revenue at the moment.
 	 */
@@ -594,28 +984,21 @@ export interface RESTGetMRRData {
 	 * Total active subscriptions. Value 0 indicates that there are no currently active subscriptions.
 	 */
 	totalActiveSubscriptions: number;
-}
+}>;
 
 /**
  * https://api.abacatepay.com/v2/store/get
  *
  * @reference https://docs.abacatepay.com/pages/store/get
  */
-export type RESTGetStoreDetailsData = APIStore;
-
-/**
- * https://api.abacatepay.com/v2/payouts/list
- *
- * @reference https://docs.abacatepay.com/pages/payouts/list
- */
-export type RESTGetListPayoutsData = APIPayout[];
+export type RESTGetStoreDetailsData = APIResponse<APIStore>;
 
 /**
  * https://api.abacatepay.com/v2/coupons/list
  *
  * @reference https://docs.abacatepay.com/pages/coupons/list
  */
-export type RESTGetListCouponsData = APICoupon[];
+export type RESTGetListCouponsData = APIResponseWithPagination<APICoupon[]>;
 
 /**
  * https://api.abacatepay.com/v2/coupons/list
@@ -652,7 +1035,7 @@ export interface RESTGetCouponQueryParams {
  *
  * @reference https://docs.abacatepay.com/pages/coupons/get
  */
-export type RESTGetCouponData = APICoupon;
+export type RESTGetCouponData = APIResponse<APICoupon>;
 
 /**
  * https://api.abacatepay.com/v2/coupons/delete
@@ -671,14 +1054,14 @@ export interface RESTDeleteCouponBody {
  *
  * @reference https://docs.abacatepay.com/pages/coupons/delete
  */
-export type RESTDeleteCouponData = APICoupon;
+export type RESTDeleteCouponData = APIResponse<APICoupon>;
 
 /**
  * https://api.abacatepay.com/v2/coupons/toggle
  *
  * @reference https://docs.abacatepay.com/pages/coupons/toggle
  */
-export interface RESTPatchToggleCouponStatusBody {
+export interface RESTPostToggleCouponStatusBody {
 	/**
 	 * The ID of the coupon.
 	 */
@@ -690,7 +1073,7 @@ export interface RESTPatchToggleCouponStatusBody {
  *
  * @reference https://docs.abacatepay.com/pages/coupons/toggle
  */
-export type RESTPatchToggleCouponStatusData = APICoupon;
+export type RESTPostToggleCouponStatusData = APIResponse<APICoupon>;
 
 /**
  * https://api.abacatepay.com/v2/products/create
@@ -710,7 +1093,7 @@ export interface RESTPostCreateProductBody
  *
  * @reference https://docs.abacatepay.com/pages/products/create
  */
-export type RESTPostCreateProductData = APIProduct;
+export type RESTPostCreateProductData = APIResponse<APIProduct>;
 
 /**
  * https://api.abacatepay.com/v2/products/list
@@ -733,7 +1116,7 @@ export interface RESTGetListProductsQueryParams {
  *
  * @reference https://docs.abacatepay.com/pages/products/list
  */
-export type RESTGetListProductsData = APIProduct[];
+export type RESTGetListProductsData = APIResponseWithPagination<APIProduct[]>;
 
 /**
  * https://api.abacatepay.com/v2/products/get
@@ -756,7 +1139,26 @@ export interface RESTGetProductQueryParams {
  *
  * @reference https://docs.abacatepay.com/pages/products/get
  */
-export type RESTGetProductData = APIProduct;
+export type RESTGetProductData = APIResponse<APIProduct>;
+
+/**
+ * https://api.abacatepay.com/v2/products/delete
+ *
+ * @reference https://docs.abacatepay.com/pages/products/delete
+ */
+export interface RESTDeleteProductQueryParams {
+	/**
+	 * The product ID.
+	 */
+	id: string;
+}
+
+/**
+ * https://api.abacatepay.com/v2/products/delete
+ *
+ * @reference https://docs.abacatepay.com/pages/products/delete
+ */
+export type RESTDeleteProductData = APIResponse<APIProduct>;
 
 /**
  * https://api.abacatepay.com/v2/subscriptions/create
@@ -785,7 +1187,7 @@ export interface RESTPostCreateSubscriptionBody
  *
  * @reference https://docs.abacatepay.com/pages/subscriptions/create
  */
-export type RESTPostCreateSubscriptionData = APISubscription;
+export type RESTPostCreateSubscriptionData = APIResponse<APISubscription>;
 
 /**
  * https://api.abacatepay.com/v2/subscriptions/list
@@ -810,4 +1212,197 @@ export interface RESTGetListSubscriptionsQueryParams {
  *
  * @reference https://docs.abacatepay.com/pages/subscriptions/list
  */
-export type RESTGetListSubscriptionsData = APISubscription[];
+export type RESTGetListSubscriptionsData = APIResponseWithCursorBasedPagination<
+	APISubscription[]
+>;
+
+/**
+ * https://api.abacatepay.com/v2/subscriptions/cancel
+ *
+ * @reference https://docs.abacatepay.com/pages/subscriptions/cancel
+ */
+export interface RESTPostCancelSubscriptionBody {
+	/**
+	 * Unique subscription identifier.
+	 */
+	id: string;
+}
+
+/**
+ * Cancellation is immediate (`cancelPolicy: NOW`) — there is no grace period.
+ *
+ * @reference https://docs.abacatepay.com/pages/subscriptions/cancel
+ */
+export type RESTPostCancelSubscriptionData = APIResponse<APISubscription>;
+
+/**
+ * https://api.abacatepay.com/v2/subscriptions/change-plan
+ *
+ * @reference https://docs.abacatepay.com/pages/subscriptions/change-plan
+ */
+export interface RESTPostChangeSubscriptionPlanBody {
+	/**
+	 * Unique subscription identifier.
+	 */
+	id: string;
+	/**
+	 * ID of the new product. It must have a billing cycle configured.
+	 */
+	productId: string;
+	/**
+	 * New quantity for the product.
+	 */
+	quantity: number;
+}
+
+/**
+ * Only one `PENDING` change can exist per subscription — calling this again
+ * replaces the prior unapplied change. The change is applied at the next
+ * billing cycle.
+ *
+ * @reference https://docs.abacatepay.com/pages/subscriptions/change-plan
+ */
+export type RESTPostChangeSubscriptionPlanData =
+	APIResponse<APISubscriptionPlanChange>;
+
+/**
+ * https://api.abacatepay.com/v2/subscriptions/record-usage
+ *
+ * @reference https://docs.abacatepay.com/pages/subscriptions/record-usage
+ */
+export interface RESTPostRecordSubscriptionUsageBody {
+	/**
+	 * Unique subscription identifier.
+	 */
+	id: string;
+	/**
+	 * ID of the pay-as-you-go product (Must not have a billing cycle).
+	 */
+	productId: string;
+	/**
+	 * Number of units to record.
+	 */
+	units: number;
+	/**
+	 * Whether to add or subtract the units from the current cycle.
+	 */
+	action: 'add' | 'subtract';
+}
+
+/**
+ * https://api.abacatepay.com/v2/subscriptions/record-usage
+ *
+ * @reference https://docs.abacatepay.com/pages/subscriptions/record-usage
+ */
+export type RESTPostRecordSubscriptionUsageData =
+	APIResponse<APISubscriptionUsageRecord>;
+
+/**
+ * https://api.abacatepay.com/v2/webhooks/create
+ *
+ * @reference https://docs.abacatepay.com/pages/webhooks/create
+ */
+export interface RESTPostCreateWebhookBody {
+	/**
+	 * Webhook name, for your own identification.
+	 */
+	name: string;
+	/**
+	 * HTTPS endpoint that will receive the events.
+	 */
+	endpoint: string;
+	/**
+	 * Secret used to sign the payloads sent to `endpoint`.
+	 */
+	secret: string;
+	/**
+	 * Event types this webhook should be notified about.
+	 *
+	 * @see {@link WebhookEventType}
+	 */
+	events: WebhookEventType[];
+}
+
+/**
+ * https://api.abacatepay.com/v2/webhooks/create
+ *
+ * @reference https://docs.abacatepay.com/pages/webhooks/create
+ */
+export type RESTPostCreateWebhookData = APIResponse<APIWebhook>;
+
+/**
+ * https://api.abacatepay.com/v2/webhooks/list
+ *
+ * @reference https://docs.abacatepay.com/pages/webhooks/list
+ */
+export interface RESTGetListWebhooksQueryParams {
+	/**
+	 * Search by webhook name, ID, or endpoint.
+	 */
+	search?: string;
+	/**
+	 * Cursor for the next page.
+	 */
+	after?: string;
+	/**
+	 * Cursor for the previous page.
+	 */
+	before?: string;
+	/**
+	 * Number of items per page (1-100).
+	 *
+	 * @default 100
+	 */
+	limit?: number;
+	/**
+	 * Filter by a specific webhook ID.
+	 */
+	id?: string;
+}
+
+/**
+ * https://api.abacatepay.com/v2/webhooks/list
+ *
+ * @reference https://docs.abacatepay.com/pages/webhooks/list
+ */
+export type RESTGetListWebhooksData = APIResponseWithCursorBasedPagination<
+	APIWebhook[]
+>;
+
+/**
+ * https://api.abacatepay.com/v2/webhooks/get
+ *
+ * @reference https://docs.abacatepay.com/pages/webhooks/get
+ */
+export interface RESTGetWebhookQueryParams {
+	/**
+	 * Unique webhook identifier.
+	 */
+	id: string;
+}
+
+/**
+ * https://api.abacatepay.com/v2/webhooks/get
+ *
+ * @reference https://docs.abacatepay.com/pages/webhooks/get
+ */
+export type RESTGetWebhookData = APIResponse<APIWebhook>;
+
+/**
+ * https://api.abacatepay.com/v2/webhooks/delete
+ *
+ * @reference https://docs.abacatepay.com/pages/webhooks/delete
+ */
+export interface RESTPostDeleteWebhookBody {
+	/**
+	 * Unique webhook identifier.
+	 */
+	id: string;
+}
+
+/**
+ * https://api.abacatepay.com/v2/webhooks/delete
+ *
+ * @reference https://docs.abacatepay.com/pages/webhooks/delete
+ */
+export type RESTPostDeleteWebhookData = APIResponse<APIWebhook>;

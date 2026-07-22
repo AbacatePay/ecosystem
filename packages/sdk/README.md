@@ -45,13 +45,11 @@ Nunca utilize sua API key diretamente no código.
 </div>
 
 ```ts
-const TEN_REAIS_IN_CENTS = 1_000;
-
 const checkout = await abacate.checkouts.create({
     items: [
         {
-            id: 'item_123',
-            amount: TEN_REAIS_IN_CENTS,
+            id: 'prod_123',
+            quantity: 1,
         },
     ],
 });
@@ -73,47 +71,45 @@ const customers = await abacate.customers.list({
 
 ## Versionamento
 
-Você também pode usar facilmente a v1 da *AbacatePay* sem nenhum problema ou boilerplate, apenas passe `/v1` como sufixo da importação
+O pacote é focado 100% na **v2** da API (`import { AbacatePay } from '@abacatepay/sdk'`).
+
+A v1 continua disponível pelo sufixo `/v1`, mas está **descontinuada**: ela é mantida congelada (sem novos recursos) apenas para quem ainda não migrou, e emite um aviso no console ao ser usada.
 
 </div>
 
 ```ts
+/** @deprecated Migre para a v2 (`@abacatepay/sdk`) */
 import { AbacatePay } from '@abacatepay/sdk/v1'
 
 const client = AbacatePay({ secret });
 ```
 
-<div align="center">
-
-Você terá acesso a *todos os recursos* da v1, sem boilerplate, sem magia, apenas o SDK.
-</div>
-
 ```ts
-const data = await abacate.withdraw.create({
+const { data, error, success } = await client.withdraw.create({
     method: 'PIX',
     externalId: 'trx_abc123',
     ...
 });
-
-console.log(data.receiptUrl);
 ```
 
 <div align="center">
 
 ## Tratamento de erros
 
-Erros da API são normalizados e previsíveis com base no pacote [`@abacatepay/rest`](https://www.npmjs.com/package/@abacatepay/rest).
+Nenhuma chamada do SDK lança exceção. Toda chamada resolve com o mesmo formato `{ data, error, success }` que a própria API da AbacatePay retorna — inclusive falhas de rede/timeout são normalizadas para esse formato pelo [`@abacatepay/rest`](https://www.npmjs.com/package/@abacatepay/rest).
 
 </div>
 
 ```ts
-try {
-    await abacate.subscriptions.create({ ... });
-} catch (error) {
-    if (error instanceof HTTPError) {
-        console.error(`An HTTP ocurred in route ${error.route} (Status ${error.status})`);
-    }
+const { data, error, success } = await abacate.subscriptions.create({ ... });
+
+if (!success) {
+    console.error(error);
+
+    return;
 }
+
+console.log(data);
 ```
 
 <div align="center">

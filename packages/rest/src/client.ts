@@ -1,4 +1,3 @@
-import { AbacatePayError, HTTPError } from './errors';
 import type {
 	InternalHandleErrorOptions,
 	InternalHandleTimeoutErrorOptions,
@@ -11,148 +10,98 @@ import {
 	isTimeoutError,
 	RATE_LIMIT_STATUS_CODE,
 	RETRYABLE_STATUS,
-	SERVICE_UNAVAILABLE_STATUS_CODE,
 	sleep,
 } from './utils';
 
 const DEFAULT_TIMEOUT_IN_MS = 5_000;
+const NO_CONTENT_STATUS_CODE = 204;
 
 /**
- * Represents the class that manages handlers for endpoints.
+ * Builds an `APIResponse`-shaped failure so client-side issues (network
+ * errors, timeouts, missing credentials) are indistinguishable from a real
+ * API error to callers — nothing in this client ever throws.
  */
-export class REST {
-	public constructor(
-		/**
-		 * Options to use in all requests.
-		 */
-		public options: RESTOptions = {},
-	) {}
+const asFailure = <R>(error: string): R =>
+	({ data: null, error, success: false }) as R;
 
-	/**
-	 * Sets the authorization token that should be used for requests.
-	 * @param secret The secret to use.
-	 */
-	public setSecret(secret: string) {
-		this.options.secret = secret;
+/**
+ * Creates a REST client for the AbacatePay API.
+ *
+ * Every method resolves — it never rejects or throws. Client-side failures
+ * (network errors, timeouts, missing secret) are normalized into the same
+ * `{ data, error, success }` shape a real API response has.
+ */
+export const createREST = (options: RESTOptions = {}) => {
+	const makeURL = (route: string, query?: MakeRequestOptions['query']) => {
+		const base = `${options.base ?? 'https://api.abacatepay.com/v'}${options.version ?? 2}${route}`;
 
-		return this;
-	}
+		return query ? `${base}?${new URLSearchParams(query)}` : base;
+	};
 
-	/**
-	 * Runs a GET request from the API.
-	 */
-	public get<R>(route: string, options?: MakeRequestOptionsWithoutMethod) {
-		return this.makeRequest<R>(route, { ...options, method: 'GET' });
-	}
+	const makeHeaders = (custom?: Record<string, string>) => {
+		const {
+			secret = process.env.ABACATEPAY_SECRET ?? process.env.ABACATEPAY_API_KEY,
+		} = options;
 
-	/**
-	 * Runs a POST request from the API.
-	 */
-	public post<R>(route: string, options?: MakeRequestOptionsWithoutMethod) {
-		return this.makeRequest<R>(route, { ...options, method: 'POST' });
-	}
+		if (!secret) return null;
 
-	/**
-	 * Runs a DELETE request from the API.
-	 */
-	public delete<R>(route: string, options?: MakeRequestOptionsWithoutMethod) {
-		return this.makeRequest<R>(route, { ...options, method: 'DELETE' });
-	}
+		return {
+			'Content-Type': 'application/json',
+			Authorization: `Bearer ${secret}`,
+			...options.headers,
+			...custom,
+		};
+	};
 
-	/**
-	 * Runs a PUT request from the API.
-	 */
-	public put<R>(route: string, options?: MakeRequestOptionsWithoutMethod) {
-		return this.makeRequest<R>(route, { ...options, method: 'PUT' });
-	}
+	const parseResponse = async <R>(response: Response): Promise<R> => {
+		if (response.status === NO_CONTENT_STATUS_CODE)
+			return { data: null, error: null, success: true } as R;
 
-	/**
-	 * Runs a PATCH request from the API.
-	 */
-	public patch<R>(route: string, options?: MakeRequestOptionsWithoutMethod) {
-		return this.makeRequest<R>(route, { ...options, method: 'PATCH' });
-	}
+		return (await response.json()) as R;
+	};
 
-	private async makeRequest<R>(
-		route: string,
-		options: MakeRequestOptions,
-		attempt = 0,
-	): Promise<R> {
-		const url = this.makeURL(route, options.query);
-		const { timeout = DEFAULT_TIMEOUT_IN_MS } = this.options;
-
-		const retry = options.retry ?? this.options.retry ?? { max: 3 };
-
-		try {
-			const response = await fetch(url, {
-				method: options.method,
-				signal: AbortSignal.timeout(timeout),
-				headers: this.makeHeaders(options.headers),
-				body: 'body' in options ? JSON.stringify(options.body) : null,
-			});
-
-			if (!response.ok)
-				return this.handleError({ route, retry, attempt, options, response });
-
-			return this.process<R>(response);
-		} catch (err) {
-			if (isTimeoutError(err))
-				return this.handleTimeout<R>({ retry, route, attempt, options });
-
-			throw new HTTPError(`${err}`, route, 0, '');
-		}
-	}
-
-	private async handleTimeout<R>({
+	const handleTimeout = async <R>({
 		retry,
 		route,
 		attempt,
-		options,
-	}: InternalHandleTimeoutErrorOptions) {
+		requestOptions,
+	}: InternalHandleTimeoutErrorOptions): Promise<R> => {
 		if (attempt >= retry.max)
-			throw new HTTPError(
-				`${retry.max} attempts were performed, all failed`,
-				route,
-				SERVICE_UNAVAILABLE_STATUS_CODE,
-				options.method,
-			);
+			return asFailure<R>(`${retry.max} attempts were performed, all failed`);
 
 		if (retry.onRetry)
-			await retry.onRetry({
-				attempt,
-				options,
-			});
+			await retry.onRetry({ attempt, options: requestOptions });
 
 		const delay = (retry.backoff ?? backoff)(attempt);
 
 		await sleep(delay);
 
-		return this.makeRequest<R>(route, options, attempt + 1);
-	}
+		return makeRequest<R>(route, requestOptions, attempt + 1);
+	};
 
-	private async handleError<R>({
+	const handleError = async <R>({
 		route,
 		retry,
-		options,
+		requestOptions,
 		attempt,
 		response,
-	}: InternalHandleErrorOptions) {
+	}: InternalHandleErrorOptions): Promise<R> => {
 		if (!RETRYABLE_STATUS.includes(response.status)) {
-			const { error } = await response.json();
+			const body = await response.json().catch(() => null);
 
-			throw new AbacatePayError(error);
+			return asFailure<R>(
+				body?.error ??
+					`Request to ${route} failed with status ${response.status}`,
+			);
 		}
 
-		const { onRateLimit } = this.options;
+		const { onRateLimit } = options;
 
 		if (attempt >= retry.max)
-			throw new HTTPError(
-				`${retry.max} attempts were performed, all failed`,
-				route,
-				response.status,
-				options.method,
-			);
-		if (retry.onRetry) await retry.onRetry({ attempt, options, response });
+			return asFailure<R>(`${retry.max} attempts were performed, all failed`);
+
+		if (retry.onRetry)
+			await retry.onRetry({ attempt, options: requestOptions, response });
 		if (response.status === RATE_LIMIT_STATUS_CODE && onRateLimit)
 			await onRateLimit(response);
 
@@ -160,43 +109,109 @@ export class REST {
 
 		await sleep(delay);
 
-		return this.makeRequest<R>(route, options, attempt + 1);
-	}
+		return makeRequest<R>(route, requestOptions, attempt + 1);
+	};
 
-	private async process<R>(response: Response) {
-		const NO_CONTENT_STATUS_CODE = 204;
+	const makeRequest = async <R>(
+		route: string,
+		requestOptions: MakeRequestOptions,
+		attempt = 0,
+	): Promise<R> => {
+		const headers = makeHeaders(requestOptions.headers);
 
-		if (response.status === NO_CONTENT_STATUS_CODE) return void 0 as R;
-
-		const { data, error } = await response.json();
-
-		// This should never happen
-		if (error) throw new AbacatePayError(error);
-
-		return data as R;
-	}
-
-	private makeURL(route: string, query?: MakeRequestOptions['query']) {
-		const base = `${this.options.base ?? 'https://api.abacatepay.com/v'}${this.options.version ?? 1}${route}`;
-
-		return query ? `${base}?${new URLSearchParams(query)}` : base;
-	}
-
-	private makeHeaders(custom?: Record<string, string>) {
-		const {
-			secret = process.env.ABACATEPAY_SECRET ?? process.env.ABACATEPAY_API_KEY,
-		} = this.options;
-
-		if (!secret)
-			throw new AbacatePayError(
+		if (!headers)
+			return asFailure<R>(
 				'We could not find any AbacatePay secret, use REST({ secret })',
 			);
 
-		return {
-			'Content-Type': 'application/json',
-			Authorization: `Bearer ${secret}`,
-			...this.options.headers,
-			...custom,
-		};
-	}
-}
+		const url = makeURL(route, requestOptions.query);
+		const { timeout = DEFAULT_TIMEOUT_IN_MS } = options;
+		const retry = requestOptions.retry ?? options.retry ?? { max: 3 };
+
+		try {
+			const response = await fetch(url, {
+				method: requestOptions.method,
+				signal: AbortSignal.timeout(timeout),
+				headers,
+				body:
+					'body' in requestOptions ? JSON.stringify(requestOptions.body) : null,
+			});
+
+			if (!response.ok)
+				return handleError<R>({
+					route,
+					retry,
+					attempt,
+					requestOptions,
+					response,
+				});
+
+			return parseResponse<R>(response);
+		} catch (err) {
+			if (isTimeoutError(err))
+				return handleTimeout<R>({ retry, route, attempt, requestOptions });
+
+			return asFailure<R>(`${err}`);
+		}
+	};
+
+	const client = {
+		/**
+		 * Options used in all requests. Mutating this object (e.g. via
+		 * `setSecret`) affects every subsequent call made with this client.
+		 */
+		options,
+
+		/**
+		 * Sets the authorization token that should be used for requests.
+		 * @param secret The secret to use.
+		 */
+		setSecret(secret: string) {
+			options.secret = secret;
+
+			return client;
+		},
+
+		/**
+		 * Runs a GET request from the API.
+		 */
+		get<R>(route: string, requestOptions?: MakeRequestOptionsWithoutMethod) {
+			return makeRequest<R>(route, { ...requestOptions, method: 'GET' });
+		},
+
+		/**
+		 * Runs a POST request from the API.
+		 */
+		post<R>(route: string, requestOptions?: MakeRequestOptionsWithoutMethod) {
+			return makeRequest<R>(route, { ...requestOptions, method: 'POST' });
+		},
+
+		/**
+		 * Runs a DELETE request from the API.
+		 */
+		delete<R>(route: string, requestOptions?: MakeRequestOptionsWithoutMethod) {
+			return makeRequest<R>(route, { ...requestOptions, method: 'DELETE' });
+		},
+
+		/**
+		 * Runs a PUT request from the API.
+		 */
+		put<R>(route: string, requestOptions?: MakeRequestOptionsWithoutMethod) {
+			return makeRequest<R>(route, { ...requestOptions, method: 'PUT' });
+		},
+
+		/**
+		 * Runs a PATCH request from the API.
+		 */
+		patch<R>(route: string, requestOptions?: MakeRequestOptionsWithoutMethod) {
+			return makeRequest<R>(route, { ...requestOptions, method: 'PATCH' });
+		},
+	};
+
+	return client;
+};
+
+/**
+ * A REST client for the AbacatePay API, as returned by {@link createREST}.
+ */
+export type REST = ReturnType<typeof createREST>;

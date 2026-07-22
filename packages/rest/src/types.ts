@@ -122,7 +122,7 @@ export interface InternalHandleErrorOptions {
 	attempt: number;
 	response: Response;
 	retry: RetryOptions;
-	options: MakeRequestOptions;
+	requestOptions: MakeRequestOptions;
 }
 
 /**

@@ -1,4 +1,4 @@
-import { REST } from '@abacatepay/rest';
+import { createREST } from '@abacatepay/rest';
 import type {
 	APIWithdraw,
 	RESTGetCheckQRCodePixStatusData,
@@ -25,12 +25,26 @@ import type { AbacatePayOptions } from './types';
 
 export * from './types';
 
+let hasWarnedAboutV1 = false;
+
 /**
- * This is the main entry point for interacting with the AbacatePay API,
+ * This is the main entry point for interacting with the AbacatePay v1 API,
  * providing high-level, domain-oriented methods on top of the REST client.
+ *
+ * @deprecated The v1 API is frozen and no longer receives new features.
+ * Migrate to the default v2 export (`@abacatepay/sdk`) — see
+ * https://docs.abacatepay.com
  */
 export const AbacatePay = ({ secret, rest }: AbacatePayOptions) => {
-	const client = new REST({
+	if (!hasWarnedAboutV1) {
+		hasWarnedAboutV1 = true;
+
+		console.warn(
+			'[@abacatepay/sdk] v1 is deprecated, migrate to the default v2 export (`@abacatepay/sdk`) — see https://docs.abacatepay.com',
+		);
+	}
+
+	const client = createREST({
 		secret,
 		...rest,
 		version: 1,

@@ -1,4 +1,3 @@
-export { AbacatePayError, HTTPError } from '@abacatepay/rest';
 export { API_BASE_URL, API_VERSION } from '@abacatepay/types';
 export { version } from './version';
 
