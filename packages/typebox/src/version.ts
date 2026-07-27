@@ -3,7 +3,7 @@
 /**
  * Current version of [@abacatepay/typebox](https://www.npmjs.com/package/@abacatepay/typebox).
  */
-export const version = '2.0.0' as const;
+export const version = '2.0.1' as const;
 /**
  * Current version of the AbacatePay API.
  */
