@@ -3,4 +3,4 @@
 /**
  * Current version of [@abacatepay/eslint-plugin](https://www.npmjs.com/package/@abacatepay/eslint-plugin).
  */
-export const version = '0.1.3' as const;
+export const version = '0.1.4' as const;
