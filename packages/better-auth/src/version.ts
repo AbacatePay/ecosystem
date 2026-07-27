@@ -3,4 +3,4 @@
 /**
  * Current version of [@abacatepay/better-auth](https://www.npmjs.com/package/@abacatepay/better-auth).
  */
-export const version = '1.0.1' as const;
+export const version = '1.0.2' as const;
