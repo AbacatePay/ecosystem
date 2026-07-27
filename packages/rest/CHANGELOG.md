@@ -4,6 +4,12 @@ All notable changes to `@abacatepay/rest` are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [1.0.2] - 2026-07-27
+
+### Fixed
+
+- Declaration file (`.d.ts`) is now bundled into a single self-contained file (via `dts-bundle-generator`), same as the `.js` output already was. The `.js` bundling fix never touched declaration emission — `tsc --emitDeclarationOnly` still walked the original multi-file source tree (`client.ts`, `types.ts`, `utils.ts`, `version.ts`), so `dist/index.d.ts` still had extension-less relative exports. Any TypeScript consumer using `moduleResolution: "nodenext"`/`"node16"` would get `error TS2834: Relative import paths need explicit file extensions`.
+
 ## [1.0.1] - 2026-07-27
 
 ### Fixed

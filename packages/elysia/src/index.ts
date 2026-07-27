@@ -6,7 +6,7 @@ import {
 } from '@abacatepay/adapters/webhooks';
 import { type Context, status } from 'elysia';
 
-export { version } from './version';
+export { version } from './version.js';
 
 export type WebhooksHandler = (context: Context) => Promise<unknown>;
 

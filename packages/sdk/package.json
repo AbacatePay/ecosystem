@@ -1,6 +1,6 @@
 {
 	"name": "@abacatepay/sdk",
-	"version": "2.0.2",
+	"version": "2.0.3",
 	"type": "module",
 	"sideEffects": false,
 	"license": "Apache-2.0",
@@ -47,7 +47,7 @@
 	"scripts": {
 		"test": "bun test",
 		"build": "rm -rf dist && bun run scripts/version.ts && bun build src/index.ts src/v1/index.ts src/v2/index.ts --outdir dist --target node --external '@abacatepay/rest' --external '@abacatepay/rest/*' --external '@abacatepay/types' --external '@abacatepay/types/*' && bun run types",
-		"types": "bunx tsc --emitDeclarationOnly",
+		"types": "dts-bundle-generator -o dist/index.d.ts src/index.ts --disable-symlinks-following && dts-bundle-generator -o dist/v1/index.d.ts src/v1/index.ts --disable-symlinks-following && dts-bundle-generator -o dist/v2/index.d.ts src/v2/index.ts --disable-symlinks-following",
 		"prepublishOnly": "bun run build"
 	},
 	"engines": {
@@ -71,6 +71,7 @@
 	},
 	"devDependencies": {
 		"@biomejs/biome": "^2.3.11",
+		"dts-bundle-generator": "^9.5.1",
 		"typescript": "^5.0.0"
 	},
 	"description": "An ergonomic SDK for integration with AbacatePay",

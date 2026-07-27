@@ -4,6 +4,12 @@ All notable changes to `@abacatepay/elysia` are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.0.3] - 2026-07-27
+
+### Fixed
+
+- `dist/index.d.ts`'s one internal reference (`export { version } from './version'`) now has an explicit `.js` extension. Any TypeScript consumer using `moduleResolution: "nodenext"`/`"node16"` would get `error TS2834: Relative import paths need explicit file extensions`.
+
 ## [2.0.2] - 2026-07-27
 
 ### Changed

@@ -9,7 +9,7 @@ import type { Context } from 'hono';
 const BAD_REQUEST_STATUS_CODE = 400;
 const UNAUTHORIZED_STATUS_CODE = 401;
 
-export { version } from './version';
+export { version } from './version.js';
 
 export type WebhooksHandler = (ctx: Context) => Promise<Response | undefined>;
 
