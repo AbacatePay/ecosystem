@@ -1,6 +1,6 @@
 {
 	"name": "@abacatepay/fastify",
-	"version": "2.0.1",
+	"version": "2.0.2",
 	"repository": {
 		"type": "git",
 		"url": "git+https://github.com/AbacatePay/ecosystem.git"
@@ -37,7 +37,8 @@
 		"bun": ">=1.0.0"
 	},
 	"files": [
-		"dist"
+		"dist",
+		"CHANGELOG.md"
 	],
 	"keywords": [
 		"abacatepay",
@@ -52,7 +53,7 @@
 	},
 	"scripts": {
 		"test": "bun test",
-		"build": "rm -rf dist && bun run scripts/version.ts && bun build src/index.ts --outdir dist --target node && bun run types",
+		"build": "rm -rf dist && bun run scripts/version.ts && bun build src/index.ts --outdir dist --target node --external '@abacatepay/adapters' --external '@abacatepay/adapters/*' && bun run types",
 		"types": "bunx tsc --emitDeclarationOnly",
 		"prepublishOnly": "bun run build"
 	},

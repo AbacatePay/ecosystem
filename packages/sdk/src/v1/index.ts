@@ -1,26 +1,26 @@
 import { createREST } from '@abacatepay/rest';
-import type {
-	APIWithdraw,
-	RESTGetCheckQRCodePixStatusData,
-	RESTGetListBillingsData,
-	RESTGetListCouponsData,
-	RESTGetListCustomersData,
-	RESTGetListWithdrawsData,
-	RESTGetMerchantData,
-	RESTGetMRRData,
-	RESTGetStoreDetailsData,
-	RESTPostCreateCouponBody,
-	RESTPostCreateCouponData,
-	RESTPostCreateCustomerBody,
-	RESTPostCreateCustomerData,
-	RESTPostCreateNewChargeBody,
-	RESTPostCreateNewChargeData,
-	RESTPostCreateNewWithdrawBody,
-	RESTPostCreateNewWithdrawData,
-	RESTPostCreateQRCodePixBody,
-	RESTPostSimulatePaymentData,
+import {
+	type APIWithdraw,
+	type RESTGetCheckQRCodePixStatusData,
+	type RESTGetListBillingsData,
+	type RESTGetListCouponsData,
+	type RESTGetListCustomersData,
+	type RESTGetListWithdrawsData,
+	type RESTGetMerchantData,
+	type RESTGetMRRData,
+	type RESTGetStoreDetailsData,
+	type RESTPostCreateCouponBody,
+	type RESTPostCreateCouponData,
+	type RESTPostCreateCustomerBody,
+	type RESTPostCreateCustomerData,
+	type RESTPostCreateNewChargeBody,
+	type RESTPostCreateNewChargeData,
+	type RESTPostCreateNewWithdrawBody,
+	type RESTPostCreateNewWithdrawData,
+	type RESTPostCreateQRCodePixBody,
+	type RESTPostSimulatePaymentData,
+	Routes,
 } from '@abacatepay/types/v1';
-import { Routes } from '@abacatepay/types/v1/routes';
 import type { AbacatePayOptions } from './types';
 
 export * from './types';

@@ -1,0 +1,31 @@
+# Changelog
+
+All notable changes to `@abacatepay/supabase` are documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
+
+## [2.0.2] - 2026-07-27
+
+### Changed
+
+- The build no longer inlines `@abacatepay/adapters` (and transitively `@abacatepay/zod`) into `dist` — they're now real `import`s resolved via `node_modules` at install time. Bundle size dropped from ~480KB to ~1.6KB. No behavior change; `@abacatepay/adapters` was already listed as a real `dependency`.
+
+## [2.0.1] - 2026-07-27
+
+### Fixed
+
+- Package now bundles with `bun build` instead of emitting raw `tsc` output. Failed with `ERR_MODULE_NOT_FOUND` transitively, because it imports `@abacatepay/adapters` at runtime and that package had the same bug.
+
+## [2.0.0] - 2026-07-27
+
+### Changed
+
+- **Breaking:** `Webhooks(options)` no longer throws when called without a `secret`. It returns `{ ok: false, handler: null, error: string }` instead of `{ ok: true, handler }` — check `.ok` before using `.handler`. If your handler is exported directly (e.g. `export const POST = Webhooks({...})` in a Supabase Edge Function), you now need `export const POST = handler` after checking `.ok`.
+
+### Removed
+
+- **Breaking:** `AbacatePaySupabaseError` class removed — nothing throws it anymore.
+
+### Fixed
+
+- Event handler names updated to match the corrected v2 taxonomy (see `@abacatepay/adapters`'s changelog): `onBillingPaid`/`onPayoutDone` → `onCheckoutCompleted`/`onPayoutCompleted`.

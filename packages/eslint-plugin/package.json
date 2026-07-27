@@ -10,7 +10,8 @@
 		}
 	},
 	"files": [
-		"dist"
+		"dist",
+		"CHANGELOG.md"
 	],
 	"author": {
 		"name": "AbacatePay",
