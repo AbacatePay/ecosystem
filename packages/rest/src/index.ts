@@ -1,9 +1,4 @@
-export { REST } from './client';
-
-export {
-	AbacatePayError,
-	HTTPError,
-} from './errors';
+export { createREST, type REST } from './client';
 
 export * from './types';
 export { RETRYABLE_STATUS } from './utils';

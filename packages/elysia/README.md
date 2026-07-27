@@ -38,18 +38,21 @@ import { Webhooks } from '@abacatepay/elysia';
 
 const app = new Elysia();
 
-app.post(
-    '/webhooks/abacatepay',
-    Webhooks({
-        secret: '...',
-        onPayload(payload) {
-            console.log('Evento recebido:', payload.event);
-        },
-    }),
-);
+const { ok, handler, error } = Webhooks({
+    secret: '...',
+    onPayload(payload) {
+        console.log('Evento recebido:', payload.event);
+    },
+});
+
+if (!ok) throw new Error(error);
+
+app.post('/webhooks/abacatepay', handler);
 ```
 
 <div align="center">
+
+`Webhooks(...)` nunca lança exceção — se o `secret` estiver ausente, ela retorna `{ ok: false, error }` em vez de `{ ok: true, handler }`.
 
 ## Segurança por padrão
 </div>
@@ -71,11 +74,12 @@ Você pode lidar com eventos específicos sem boilerplate:
 </div>
 
 ```ts
-Webhooks({
-    onBillingPaid({ data }) {
+const { handler } = Webhooks({
+    secret,
+    onCheckoutCompleted({ data }) {
         console.log('Cobrança paga:', data.payment.amount);
     },
-    onPayoutDone({ data }) {
+    onPayoutCompleted({ data }) {
         console.log('Payout concluído:', data.transaction.id);
     },
     onPayoutFailed({ data }) {
@@ -88,7 +92,7 @@ Webhooks({
 <p align="center">Ou tratar tudo de forma genérica:</p>
 
 ```ts
-Webhooks({
+const { handler } = Webhooks({
     secret,
     onPayload({ data, event }) {
         console.log(event, data);

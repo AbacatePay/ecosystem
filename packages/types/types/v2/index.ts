@@ -1,6 +1,7 @@
 export * from './entities/checkout';
 export * from './entities/coupon';
 export * from './entities/customer';
+export * from './entities/paymentLink';
 export * from './entities/payout';
 export * from './entities/pix';
 export * from './entities/products';

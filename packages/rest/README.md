@@ -30,13 +30,13 @@ Simule um pagamento QRCodePix que tenha o ID `pix_char_123456`
 </div>
 
 ```ts
-import { REST } from '@abacatepay/rest';
+import { createREST } from '@abacatepay/rest';
 
-const client = new REST({
+const client = createREST({
 	secret: process.env.ABACATEPAY_API_KEY!,
 });
 
-const pix = await client.post('/pixQrCode/simulate-payment', {
+const pix = await client.post('/transparents/simulate-payment', {
     query: { id: 'pix_char_123456' },
 });
 
@@ -52,7 +52,7 @@ Por padrão, o REST faz **3 retries** automaticamente para erros **retryable** (
 </div>
 
 ```ts
-const client = new REST({
+const client = createREST({
     retry: {
         max: 5
     },
@@ -65,7 +65,7 @@ const client = new REST({
 </div>
 
 ```ts
-const client = new REST({
+const client = createREST({
 	retry: {
 		max: 7,
 		backoff(attempt) {
@@ -82,26 +82,20 @@ const client = new REST({
 
 ## Tratando erros
 
-O REST Client expõe erros tipados para facilitar o controle e o tratamento deles
+O REST Client **nunca lança exceções** — toda chamada resolve com o mesmo formato `{ data, error, success }` que a própria API da AbacatePay retorna. Falhas do lado do cliente (rede, timeout, secret ausente) são normalizadas para esse mesmo formato.
 
 </div>
 
 ```ts
-import { AbacatePayError, HTTPError } from '@abacatepay/rest';
+const { data, error, success } = await client.get('/customers/invalid');
 
-try {
-	await client.get('/customers/invalid');
-} catch (err) {
-	if (err instanceof AbacatePayError) {
-		console.error('Erro da API:', err.message);
+if (!success) {
+	console.error('Erro:', error);
 
-		return;
-	}
-
-	if (err instanceof HTTPError) {
-		console.error(`Erro de rede/HTTP em ${err.route}: ${err.message}`);
-	}
+	return;
 }
+
+console.log(data);
 ```
 
 <div align="center">

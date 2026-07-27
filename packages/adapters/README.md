@@ -74,11 +74,11 @@ if (!parsed.success) {
     throw parsed.error;
 };
 
-await dispatch(parsed, {
+await dispatch(parsed.data, {
 	onPayload({ event }) {
 		console.log('Evento recebido:', event);
 	},
-    onPayoutDone({ data }) {
+    onPayoutCompleted({ data }) {
         console.log(data.transaction.id);
     },
 });

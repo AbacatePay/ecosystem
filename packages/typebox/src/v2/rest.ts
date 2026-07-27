@@ -1,17 +1,28 @@
 import { type Static, type TAnySchema, Type as t } from '@sinclair/typebox';
+import { StringEnum } from '../utils';
 import {
+	APIBoleto,
 	APICheckout,
 	APICoupon,
 	APICustomer,
+	APIPaymentLink,
 	APIPayout,
+	APIPixTransfer,
 	APIProduct,
 	APIQRCodePIX,
 	APIStore,
 	APISubscription,
+	APISubscriptionPlanChange,
+	APISubscriptionUsageRecord,
 	CouponDiscountKind,
 	PaymentMethod,
 	PaymentStatus,
+	PixKeyType,
 } from '.';
+// Imported directly (not via the barrel) so module init order doesn't matter:
+// `rest.ts` is exported before `webhook.ts` in `./index`, and importing
+// these from '.' would hit a TDZ error at module-eval time.
+import { APIWebhook, WebhookEventType } from './webhook';
 
 /**
  * Any response returned by the AbacatePay API
@@ -119,7 +130,7 @@ export const APIResponseWithCursorBasedPagination = <Schema extends TAnySchema>(
 			error: t.Null({
 				description: 'Error message returned from the API',
 			}),
-			success: t.Literal(false, {
+			success: t.Literal(true, {
 				description: 'Whether the response was successfull or not.',
 			}),
 			pagination: t.Object({
@@ -162,10 +173,15 @@ export type APIResponseWithCursorBasedPagination<Schema extends TAnySchema> =
 /**
  * https://api.abacatepay.com/v2/checkouts/create
  *
- * @reference https://docs.abacatepay.com/pages/checkout/create
+ * @reference https://docs.abacatepay.com/pages/payment/create
  */
 export const RESTPostCreateNewCheckoutBody = t.Object({
-	methods: PaymentMethod,
+	methods: t.Optional(
+		t.Array(PaymentMethod, {
+			description:
+				'Payment methods that will be accepted (Defaults to `[PIX, CARD]`).',
+		}),
+	),
 	returnUrl: t.Optional(
 		t.String({
 			format: 'uri',
@@ -216,12 +232,44 @@ export const RESTPostCreateNewCheckoutBody = t.Object({
 		}),
 	),
 	items: APICheckout.properties.items,
+	frequency: t.Optional(
+		StringEnum(['ONE_TIME', 'MULTIPLE_PAYMENTS', 'SUBSCRIPTION'], {
+			examples: ['ONE_TIME'],
+			description: 'Billing frequency. Defaults to `ONE_TIME`.',
+		}),
+	),
+	upSellProductId: t.Optional(
+		t.String({
+			description: 'ID of an additional product offered as an upsell.',
+		}),
+	),
+	interest: t.Optional(
+		t.Object(
+			{
+				value: t.Integer({
+					description: 'Monthly interest rate, in hundredths of a percent.',
+				}),
+			},
+			{ description: 'Late interest configuration (Applies to BOLETO).' },
+		),
+	),
+	fine: t.Optional(
+		t.Object(
+			{
+				value: t.Integer({ description: 'Fine value.' }),
+				type: StringEnum(['PERCENTAGE', 'FIXED'], {
+					description: 'Type of fine applied.',
+				}),
+			},
+			{ description: 'Late fine configuration (Applies to BOLETO).' },
+		),
+	),
 });
 
 /**
  * https://api.abacatepay.com/v2/checkouts/create
  *
- * @reference https://docs.abacatepay.com/pages/checkout/create
+ * @reference https://docs.abacatepay.com/pages/payment/create
  */
 export type RESTPostCreateNewCheckoutBody = Static<
 	typeof RESTPostCreateNewCheckoutBody
@@ -230,51 +278,125 @@ export type RESTPostCreateNewCheckoutBody = Static<
 /**
  * https://api.abacatepay.com/v2/checkouts/create
  *
- * @reference https://docs.abacatepay.com/pages/checkouts/create
+ * @reference https://docs.abacatepay.com/pages/payment/create
  */
-export const RESTPostCreateNewCheckoutData = APICheckout;
+export const RESTPostCreateNewCheckoutData = APIResponse(APICheckout);
 
 /**
  * https://api.abacatepay.com/v2/checkouts/create
  *
- * @reference https://docs.abacatepay.com/pages/checkouts/create
+ * @reference https://docs.abacatepay.com/pages/payment/create
  */
 export type RESTPostCreateNewCheckoutData = Static<
 	typeof RESTPostCreateNewCheckoutData
 >;
 
 /**
- * https://api.abacatepay.com/v2/checkouts/list
+ * https://api.abacatepay.com/v2/checkouts/refund
  *
- * @reference https://docs.abacatepay.com/pages/checkouts/list
+ * @reference https://docs.abacatepay.com/pages/payment/refund
  */
-export const RESTGetListCheckoutsData = t.Array(APICheckout);
+export const RESTPostRefundCheckoutBody = t.Object({
+	id: t.String({
+		description:
+			'Public ID of the resource to refund (prefixes: `bill_`, `char_`, `pix_char_`, `card_`).',
+	}),
+	reason: t.Optional(
+		t.String({
+			maxLength: 500,
+			description: 'Refund reason, shown in the transaction history.',
+		}),
+	),
+});
+
+/**
+ * https://api.abacatepay.com/v2/checkouts/refund
+ *
+ * @reference https://docs.abacatepay.com/pages/payment/refund
+ */
+export type RESTPostRefundCheckoutBody = Static<
+	typeof RESTPostRefundCheckoutBody
+>;
+
+/**
+ * https://api.abacatepay.com/v2/checkouts/refund
+ *
+ * @reference https://docs.abacatepay.com/pages/payment/refund
+ */
+export const RESTPostRefundCheckoutData = APIResponse(
+	t.Object({
+		refundPublicId: t.String({
+			description: 'Public ID of the refund transaction that was created.',
+		}),
+	}),
+);
+
+/**
+ * https://api.abacatepay.com/v2/checkouts/refund
+ *
+ * @reference https://docs.abacatepay.com/pages/payment/refund
+ */
+export type RESTPostRefundCheckoutData = Static<
+	typeof RESTPostRefundCheckoutData
+>;
 
 /**
  * https://api.abacatepay.com/v2/checkouts/list
  *
- * @reference https://docs.abacatepay.com/pages/checkouts/list
+ * @reference https://docs.abacatepay.com/pages/payment/list
+ */
+export const RESTGetListCheckoutsQueryParams = t.Object({
+	page: t.Optional(
+		t.Integer({ minimum: 1, default: 1, description: 'Number of the page.' }),
+	),
+	limit: t.Optional(
+		t.Integer({ minimum: 1, description: 'Number of items per page.' }),
+	),
+});
+
+/**
+ * https://api.abacatepay.com/v2/checkouts/list
+ *
+ * @reference https://docs.abacatepay.com/pages/payment/list
+ */
+export type RESTGetListCheckoutsQueryParams = Static<
+	typeof RESTGetListCheckoutsQueryParams
+>;
+
+/**
+ * https://api.abacatepay.com/v2/checkouts/list
+ *
+ * @reference https://docs.abacatepay.com/pages/payment/list
+ */
+export const RESTGetListCheckoutsData = APIResponseWithPagination(
+	t.Array(APICheckout),
+);
+
+/**
+ * https://api.abacatepay.com/v2/checkouts/list
+ *
+ * @reference https://docs.abacatepay.com/pages/payment/list
  */
 export type RESTGetListCheckoutsData = Static<typeof RESTGetListCheckoutsData>;
 
 /**
  * https://api.abacatepay.com/v2/checkouts/get
  *
- * @reference https://docs.abacatepay.com/pages/checkouts/get
+ * @reference https://docs.abacatepay.com/pages/payment/one
  */
-export const RESTGetCheckoutData = APICheckout;
+export const RESTGetCheckoutData = APIResponse(APICheckout);
 
 /**
  * https://api.abacatepay.com/v2/checkouts/get
  *
- * @reference https://docs.abacatepay.com/pages/checkouts/get
+ * @reference https://docs.abacatepay.com/pages/payment/one
  */
 export type RESTGetCheckoutData = Static<typeof RESTGetCheckoutData>;
 
 /**
  * https://api.abacatepay.com/v2/checkouts/get
  *
- * @reference https://docs.abacatepay.com/pages/checkouts/get
+ * @reference https://docs.abacatepay.com/pages/payment/one
  */
 export const RESTGetCheckoutQueryParams = t.Object({
 	id: t.String({
@@ -286,10 +408,164 @@ export const RESTGetCheckoutQueryParams = t.Object({
 /**
  * https://api.abacatepay.com/v2/checkouts/get
  *
- * @reference https://docs.abacatepay.com/pages/checkouts/get
+ * @reference https://docs.abacatepay.com/pages/payment/one
  */
 export type RESTGetCheckoutQueryParams = Static<
 	typeof RESTGetCheckoutQueryParams
+>;
+
+/**
+ * https://api.abacatepay.com/v2/payment-links/create
+ *
+ * @reference https://docs.abacatepay.com/pages/payment-links/create
+ */
+export const RESTPostCreatePaymentLinkBody = t.Omit(
+	RESTPostCreateNewCheckoutBody,
+	['customerId', 'customer', 'frequency', 'upSellProductId'],
+);
+
+/**
+ * https://api.abacatepay.com/v2/payment-links/create
+ *
+ * @reference https://docs.abacatepay.com/pages/payment-links/create
+ */
+export type RESTPostCreatePaymentLinkBody = Static<
+	typeof RESTPostCreatePaymentLinkBody
+>;
+
+/**
+ * https://api.abacatepay.com/v2/payment-links/create
+ *
+ * @reference https://docs.abacatepay.com/pages/payment-links/create
+ */
+export const RESTPostCreatePaymentLinkData = APIResponse(APIPaymentLink);
+
+/**
+ * https://api.abacatepay.com/v2/payment-links/create
+ *
+ * @reference https://docs.abacatepay.com/pages/payment-links/create
+ */
+export type RESTPostCreatePaymentLinkData = Static<
+	typeof RESTPostCreatePaymentLinkData
+>;
+
+/**
+ * https://api.abacatepay.com/v2/payment-links/list
+ *
+ * @reference https://docs.abacatepay.com/pages/payment-links/list
+ */
+export const RESTGetListPaymentLinksQueryParams = t.Object({
+	page: t.Optional(
+		t.Integer({ minimum: 1, default: 1, description: 'Number of the page.' }),
+	),
+	limit: t.Optional(
+		t.Integer({ minimum: 1, description: 'Number of items per page.' }),
+	),
+});
+
+/**
+ * https://api.abacatepay.com/v2/payment-links/list
+ *
+ * @reference https://docs.abacatepay.com/pages/payment-links/list
+ */
+export type RESTGetListPaymentLinksQueryParams = Static<
+	typeof RESTGetListPaymentLinksQueryParams
+>;
+
+/**
+ * https://api.abacatepay.com/v2/payment-links/list
+ *
+ * @reference https://docs.abacatepay.com/pages/payment-links/list
+ */
+export const RESTGetListPaymentLinksData = APIResponseWithPagination(
+	t.Array(APIPaymentLink),
+);
+
+/**
+ * https://api.abacatepay.com/v2/payment-links/list
+ *
+ * @reference https://docs.abacatepay.com/pages/payment-links/list
+ */
+export type RESTGetListPaymentLinksData = Static<
+	typeof RESTGetListPaymentLinksData
+>;
+
+/**
+ * https://api.abacatepay.com/v2/payment-links/one
+ *
+ * @reference https://docs.abacatepay.com/pages/payment-links/one
+ */
+export const RESTGetPaymentLinkQueryParams = t.Object({
+	id: t.String({ description: 'Unique payment link identifier.' }),
+});
+
+/**
+ * https://api.abacatepay.com/v2/payment-links/one
+ *
+ * @reference https://docs.abacatepay.com/pages/payment-links/one
+ */
+export type RESTGetPaymentLinkQueryParams = Static<
+	typeof RESTGetPaymentLinkQueryParams
+>;
+
+/**
+ * https://api.abacatepay.com/v2/payment-links/one
+ *
+ * @reference https://docs.abacatepay.com/pages/payment-links/one
+ */
+export const RESTGetPaymentLinkData = APIResponse(APIPaymentLink);
+
+/**
+ * https://api.abacatepay.com/v2/payment-links/one
+ *
+ * @reference https://docs.abacatepay.com/pages/payment-links/one
+ */
+export type RESTGetPaymentLinkData = Static<typeof RESTGetPaymentLinkData>;
+
+/**
+ * https://api.abacatepay.com/v2/payment-links/refund
+ *
+ * @reference https://docs.abacatepay.com/pages/payment-links/refund
+ */
+export const RESTPostRefundPaymentLinkBody = t.Object({
+	id: t.String({ description: 'Public ID of the resource to refund.' }),
+	reason: t.Optional(
+		t.String({
+			maxLength: 500,
+			description: 'Refund reason, shown in the transaction history.',
+		}),
+	),
+});
+
+/**
+ * https://api.abacatepay.com/v2/payment-links/refund
+ *
+ * @reference https://docs.abacatepay.com/pages/payment-links/refund
+ */
+export type RESTPostRefundPaymentLinkBody = Static<
+	typeof RESTPostRefundPaymentLinkBody
+>;
+
+/**
+ * https://api.abacatepay.com/v2/payment-links/refund
+ *
+ * @reference https://docs.abacatepay.com/pages/payment-links/refund
+ */
+export const RESTPostRefundPaymentLinkData = APIResponse(
+	t.Object({
+		refundPublicId: t.String({
+			description: 'Public ID of the refund transaction that was created.',
+		}),
+	}),
+);
+
+/**
+ * https://api.abacatepay.com/v2/payment-links/refund
+ *
+ * @reference https://docs.abacatepay.com/pages/payment-links/refund
+ */
+export type RESTPostRefundPaymentLinkData = Static<
+	typeof RESTPostRefundPaymentLinkData
 >;
 
 /**
@@ -335,16 +611,16 @@ export const RESTPostCreateCouponBody = t.Object({
 export type RESTPostCreateCouponBody = Static<typeof RESTPostCreateCouponBody>;
 
 /**
- * https://api.abacatepay.com/v2/coupon/create
+ * https://api.abacatepay.com/v2/coupons/create
  *
- * @reference https://docs.abacatepay.com/pages/coupon/create
+ * @reference https://docs.abacatepay.com/pages/coupons/create
  */
-export const RESTPostCreateCouponData = APICoupon;
+export const RESTPostCreateCouponData = APIResponse(APICoupon);
 
 /**
- * https://api.abacatepay.com/v2/coupon/create
+ * https://api.abacatepay.com/v2/coupons/create
  *
- * @reference https://docs.abacatepay.com/pages/coupon/create
+ * @reference https://docs.abacatepay.com/pages/coupons/create
  */
 export type RESTPostCreateCouponData = Static<typeof RESTPostCreateCouponData>;
 
@@ -353,7 +629,9 @@ export type RESTPostCreateCouponData = Static<typeof RESTPostCreateCouponData>;
  *
  * @reference https://docs.abacatepay.com/pages/coupons/list
  */
-export const RESTGetListCouponsData = t.Array(APICoupon);
+export const RESTGetListCouponsData = APIResponseWithPagination(
+	t.Array(APICoupon),
+);
 
 /**
  * https://api.abacatepay.com/v2/coupons/list
@@ -418,7 +696,7 @@ export type RESTGetCouponQueryParams = Static<typeof RESTGetCouponQueryParams>;
  *
  * @reference https://docs.abacatepay.com/pages/coupons/get
  */
-export const RESTGetCouponData = APICoupon;
+export const RESTGetCouponData = APIResponse(APICoupon);
 
 /**
  * https://api.abacatepay.com/v2/coupons/get
@@ -451,7 +729,7 @@ export type RESTDeleteCouponBody = Static<typeof RESTDeleteCouponBody>;
  *
  * @reference https://docs.abacatepay.com/pages/coupons/delete
  */
-export const RESTDeleteCouponData = APICoupon;
+export const RESTDeleteCouponData = APIResponse(APICoupon);
 
 /**
  * https://api.abacatepay.com/v2/coupons/delete
@@ -465,7 +743,7 @@ export type RESTDeleteCouponData = Static<typeof RESTDeleteCouponData>;
  *
  * @reference https://docs.abacatepay.com/pages/coupons/toggle
  */
-export const RESTPatchToggleCouponStatusBody = t.Object({
+export const RESTPostToggleCouponStatusBody = t.Object({
 	id: t.String({
 		examples: ['SUMMER_26'],
 		description: 'The ID of the coupon.',
@@ -477,8 +755,8 @@ export const RESTPatchToggleCouponStatusBody = t.Object({
  *
  * @reference https://docs.abacatepay.com/pages/coupons/toggle
  */
-export type RESTPatchToggleCouponStatusBody = Static<
-	typeof RESTPatchToggleCouponStatusBody
+export type RESTPostToggleCouponStatusBody = Static<
+	typeof RESTPostToggleCouponStatusBody
 >;
 
 /**
@@ -486,15 +764,15 @@ export type RESTPatchToggleCouponStatusBody = Static<
  *
  * @reference https://docs.abacatepay.com/pages/coupons/toggle
  */
-export const RESTPatchToggleCouponStatusData = APICoupon;
+export const RESTPostToggleCouponStatusData = APIResponse(APICoupon);
 
 /**
  * https://api.abacatepay.com/v2/coupons/toggle
  *
  * @reference https://docs.abacatepay.com/pages/coupons/toggle
  */
-export type RESTPatchToggleCouponStatusData = Static<
-	typeof RESTPatchToggleCouponStatusData
+export type RESTPostToggleCouponStatusData = Static<
+	typeof RESTPostToggleCouponStatusData
 >;
 
 /**
@@ -534,7 +812,7 @@ export type RESTPostCreateNewPayoutBody = Static<
  *
  * @reference https://docs.abacatepay.com/pages/payouts/create
  */
-export const RESTPostCreateNewPayoutData = APIPayout;
+export const RESTPostCreateNewPayoutData = APIResponse(APIPayout);
 
 /**
  * https://api.abacatepay.com/v2/payouts/create
@@ -565,6 +843,20 @@ export const RESTGetSearchPayoutQueryParams = t.Object({
 export type RESTGetSearchPayoutQueryParams = Static<
 	typeof RESTGetSearchPayoutQueryParams
 >;
+
+/**
+ * https://api.abacatepay.com/v2/payouts/get
+ *
+ * @reference https://docs.abacatepay.com/pages/payouts/get
+ */
+export const RESTGetSearchPayoutData = APIResponse(APIPayout);
+
+/**
+ * https://api.abacatepay.com/v2/payouts/get
+ *
+ * @reference https://docs.abacatepay.com/pages/payouts/get
+ */
+export type RESTGetSearchPayoutData = Static<typeof RESTGetSearchPayoutData>;
 
 /**
  * https://api.abacatepay.com/v2/payouts/list
@@ -603,7 +895,9 @@ export type RESTGetListPayoutsQueryParams = Static<
  *
  * @reference https://docs.abacatepay.com/pages/payouts/list
  */
-export const RESTGetListPayoutsData = t.Array(APIPayout);
+export const RESTGetListPayoutsData = APIResponseWithPagination(
+	t.Array(APIPayout),
+);
 
 /**
  * https://api.abacatepay.com/v2/payouts/list
@@ -613,7 +907,152 @@ export const RESTGetListPayoutsData = t.Array(APIPayout);
 export type RESTGetListPayoutsData = Static<typeof RESTGetListPayoutsData>;
 
 /**
- * https://api.abacatepay.com/v2/transparents/create
+ * https://api.abacatepay.com/v2/pix/send
+ *
+ * @reference https://docs.abacatepay.com/pages/pix/create
+ */
+export const RESTPostSendPixTransferBody = t.Object({
+	amount: t.Integer({
+		minimum: 1,
+		description: 'Transfer amount in cents (Min 100).',
+	}),
+	externalId: t.String({
+		description: 'Unique identifier of the transfer in your system.',
+	}),
+	description: t.Optional(
+		t.String({ description: 'Optional transfer description.' }),
+	),
+	pix: t.Object({
+		key: t.String({ description: 'The PIX key itself.' }),
+		type: PixKeyType,
+	}),
+});
+
+/**
+ * https://api.abacatepay.com/v2/pix/send
+ *
+ * @reference https://docs.abacatepay.com/pages/pix/create
+ */
+export type RESTPostSendPixTransferBody = Static<
+	typeof RESTPostSendPixTransferBody
+>;
+
+/**
+ * https://api.abacatepay.com/v2/pix/send
+ *
+ * @reference https://docs.abacatepay.com/pages/pix/create
+ */
+export const RESTPostSendPixTransferData = APIResponse(APIPixTransfer);
+
+/**
+ * https://api.abacatepay.com/v2/pix/send
+ *
+ * @reference https://docs.abacatepay.com/pages/pix/create
+ */
+export type RESTPostSendPixTransferData = Static<
+	typeof RESTPostSendPixTransferData
+>;
+
+/**
+ * https://api.abacatepay.com/v2/pix/get
+ *
+ * @reference https://docs.abacatepay.com/pages/pix/get
+ */
+export const RESTGetPixTransferQueryParams = t.Object({
+	id: t.Optional(
+		t.String({
+			description:
+				'Unique transfer identifier in AbacatePay. At least one of `id`/`externalId` is required.',
+		}),
+	),
+	externalId: t.Optional(
+		t.String({
+			description:
+				'Unique transfer identifier in your system. At least one of `id`/`externalId` is required.',
+		}),
+	),
+});
+
+/**
+ * https://api.abacatepay.com/v2/pix/get
+ *
+ * @reference https://docs.abacatepay.com/pages/pix/get
+ */
+export type RESTGetPixTransferQueryParams = Static<
+	typeof RESTGetPixTransferQueryParams
+>;
+
+/**
+ * https://api.abacatepay.com/v2/pix/get
+ *
+ * @reference https://docs.abacatepay.com/pages/pix/get
+ */
+export const RESTGetPixTransferData = APIResponse(APIPixTransfer);
+
+/**
+ * https://api.abacatepay.com/v2/pix/get
+ *
+ * @reference https://docs.abacatepay.com/pages/pix/get
+ */
+export type RESTGetPixTransferData = Static<typeof RESTGetPixTransferData>;
+
+/**
+ * https://api.abacatepay.com/v2/pix/list
+ *
+ * @reference https://docs.abacatepay.com/pages/pix/list
+ */
+export const RESTGetListPixTransfersQueryParams = t.Object({
+	limit: t.Optional(
+		t.Integer({
+			minimum: 1,
+			maximum: 100,
+			description: 'Number of items per page (1-100).',
+		}),
+	),
+	after: t.Optional(t.String({ description: 'Cursor for the next page.' })),
+	before: t.Optional(
+		t.String({ description: 'Cursor for the previous page.' }),
+	),
+	id: t.Optional(
+		t.String({ description: 'Filter by AbacatePay transaction ID.' }),
+	),
+	externalId: t.Optional(
+		t.String({ description: 'Filter by external system ID.' }),
+	),
+	status: t.Optional(
+		t.String({ description: 'Filter by transaction status.' }),
+	),
+});
+
+/**
+ * https://api.abacatepay.com/v2/pix/list
+ *
+ * @reference https://docs.abacatepay.com/pages/pix/list
+ */
+export type RESTGetListPixTransfersQueryParams = Static<
+	typeof RESTGetListPixTransfersQueryParams
+>;
+
+/**
+ * https://api.abacatepay.com/v2/pix/list
+ *
+ * @reference https://docs.abacatepay.com/pages/pix/list
+ */
+export const RESTGetListPixTransfersData = APIResponseWithCursorBasedPagination(
+	t.Array(APIPixTransfer),
+);
+
+/**
+ * https://api.abacatepay.com/v2/pix/list
+ *
+ * @reference https://docs.abacatepay.com/pages/pix/list
+ */
+export type RESTGetListPixTransfersData = Static<
+	typeof RESTGetListPixTransfersData
+>;
+
+/**
+ * Inner `data` payload sent to `POST /transparents/create` when `method` is `PIX`.
  *
  * @reference https://docs.abacatepay.com/pages/transparents/create
  */
@@ -651,7 +1090,7 @@ export type RESTPostCreateQRCodePixBody = Static<
  *
  * @reference https://docs.abacatepay.com/pages/transparents/create
  */
-export const RESTPostCreateQRCodePixData = APIQRCodePIX;
+export const RESTPostCreateQRCodePixData = APIResponse(APIQRCodePIX);
 
 /**
  * https://api.abacatepay.com/v2/transparents/create
@@ -660,6 +1099,170 @@ export const RESTPostCreateQRCodePixData = APIQRCodePIX;
  */
 export type RESTPostCreateQRCodePixData = Static<
 	typeof RESTPostCreateQRCodePixData
+>;
+
+/**
+ * Inner `data` payload sent to `POST /transparents/create` when `method` is `BOLETO`.
+ *
+ * @reference https://docs.abacatepay.com/pages/transparents/boleto
+ */
+export const RESTPostCreateBoletoBody = t.Object({
+	amount: t.Integer({ description: 'Charge amount in cents.' }),
+	description: t.Optional(
+		t.String({ description: 'Message that will appear on the Boleto.' }),
+	),
+	customer: t.Intersect(
+		[
+			t.Pick(APICustomer, ['name', 'taxId']),
+			t.Partial(t.Pick(APICustomer, ['email', 'cellphone'])),
+		],
+		{
+			description:
+				'Customer data. `name` and `taxId` are mandatory for Boleto.',
+		},
+	),
+	metadata: t.Optional(
+		t.Record(t.String(), t.Any(), { description: 'Optional charge metadata.' }),
+	),
+});
+
+/**
+ * https://api.abacatepay.com/v2/transparents/create
+ *
+ * @reference https://docs.abacatepay.com/pages/transparents/boleto
+ */
+export type RESTPostCreateBoletoBody = Static<typeof RESTPostCreateBoletoBody>;
+
+/**
+ * https://api.abacatepay.com/v2/transparents/create
+ *
+ * @reference https://docs.abacatepay.com/pages/transparents/boleto
+ */
+export const RESTPostCreateBoletoData = APIResponse(APIBoleto);
+
+/**
+ * https://api.abacatepay.com/v2/transparents/create
+ *
+ * @reference https://docs.abacatepay.com/pages/transparents/boleto
+ */
+export type RESTPostCreateBoletoData = Static<typeof RESTPostCreateBoletoData>;
+
+/**
+ * Wire-level request body for `POST /transparents/create` — the SDK builds this
+ * from {@link RESTPostCreateQRCodePixBody} / {@link RESTPostCreateBoletoBody}, callers
+ * never construct it directly.
+ *
+ * @reference https://docs.abacatepay.com/pages/transparents/reference
+ */
+export const RESTPostCreateTransparentBody = t.Union([
+	t.Object({ method: t.Literal('PIX'), data: RESTPostCreateQRCodePixBody }),
+	t.Object({ method: t.Literal('BOLETO'), data: RESTPostCreateBoletoBody }),
+]);
+
+/**
+ * @reference https://docs.abacatepay.com/pages/transparents/reference
+ */
+export type RESTPostCreateTransparentBody = Static<
+	typeof RESTPostCreateTransparentBody
+>;
+
+/**
+ * https://api.abacatepay.com/v2/transparents/list
+ *
+ * @reference https://docs.abacatepay.com/pages/transparents/list
+ */
+export const RESTGetListTransparentsQueryParams = t.Object({
+	after: t.Optional(t.String({ description: 'Cursor for the next page.' })),
+	before: t.Optional(
+		t.String({ description: 'Cursor for the previous page.' }),
+	),
+	limit: t.Optional(
+		t.Integer({
+			minimum: 1,
+			maximum: 100,
+			description: 'Number of items per page (1-100).',
+		}),
+	),
+	id: t.Optional(
+		t.String({ description: 'Filter by QRCode/Boleto identifier.' }),
+	),
+	status: t.Optional(PaymentStatus),
+});
+
+/**
+ * https://api.abacatepay.com/v2/transparents/list
+ *
+ * @reference https://docs.abacatepay.com/pages/transparents/list
+ */
+export type RESTGetListTransparentsQueryParams = Static<
+	typeof RESTGetListTransparentsQueryParams
+>;
+
+/**
+ * https://api.abacatepay.com/v2/transparents/list
+ *
+ * @reference https://docs.abacatepay.com/pages/transparents/list
+ */
+export const RESTGetListTransparentsData = APIResponseWithCursorBasedPagination(
+	t.Array(t.Union([APIQRCodePIX, APIBoleto])),
+);
+
+/**
+ * https://api.abacatepay.com/v2/transparents/list
+ *
+ * @reference https://docs.abacatepay.com/pages/transparents/list
+ */
+export type RESTGetListTransparentsData = Static<
+	typeof RESTGetListTransparentsData
+>;
+
+/**
+ * https://api.abacatepay.com/v2/transparents/refund
+ *
+ * @reference https://docs.abacatepay.com/pages/transparents/refund
+ */
+export const RESTPostRefundTransparentBody = t.Object({
+	id: t.String({
+		description:
+			'Public ID of the resource to refund (prefixes: `char_`, `pix_char_`, `card_`, `bill_`).',
+	}),
+	reason: t.Optional(
+		t.String({
+			maxLength: 500,
+			description: 'Refund reason, shown in the transaction history.',
+		}),
+	),
+});
+
+/**
+ * https://api.abacatepay.com/v2/transparents/refund
+ *
+ * @reference https://docs.abacatepay.com/pages/transparents/refund
+ */
+export type RESTPostRefundTransparentBody = Static<
+	typeof RESTPostRefundTransparentBody
+>;
+
+/**
+ * https://api.abacatepay.com/v2/transparents/refund
+ *
+ * @reference https://docs.abacatepay.com/pages/transparents/refund
+ */
+export const RESTPostRefundTransparentData = APIResponse(
+	t.Object({
+		refundPublicId: t.String({
+			description: 'Public ID of the refund transaction that was created.',
+		}),
+	}),
+);
+
+/**
+ * https://api.abacatepay.com/v2/transparents/refund
+ *
+ * @reference https://docs.abacatepay.com/pages/transparents/refund
+ */
+export type RESTPostRefundTransparentData = Static<
+	typeof RESTPostRefundTransparentData
 >;
 
 /**
@@ -709,7 +1312,7 @@ export type RESTPostSimulateQRCodePixPaymentBody = Static<
  *
  * @reference https://docs.abacatepay.com/pages/transparents/simulate-payment
  */
-export const RESTPostSimulateQRCodePixPaymentData = APIQRCodePIX;
+export const RESTPostSimulateQRCodePixPaymentData = APIResponse(APIQRCodePIX);
 
 /**
  * https://api.abacatepay.com/v2/transparents/simulate-payment
@@ -721,9 +1324,9 @@ export type RESTPostSimulateQRCodePixPaymentData = Static<
 >;
 
 /**
- * https://api.abacatepay.com/v2/pixQrCode/check
+ * https://api.abacatepay.com/v2/transparents/check
  *
- * @reference https://docs.abacatepay.com/pages/pix-qrcode/check
+ * @reference https://docs.abacatepay.com/pages/transparents/check
  */
 export const RESTGetCheckQRCodePixStatusQueryParams = t.Object({
 	id: t.String({
@@ -733,9 +1336,9 @@ export const RESTGetCheckQRCodePixStatusQueryParams = t.Object({
 });
 
 /**
- * https://api.abacatepay.com/v2/pixQrCode/check
+ * https://api.abacatepay.com/v2/transparents/check
  *
- * @reference https://docs.abacatepay.com/pages/pix-qrcode/check
+ * @reference https://docs.abacatepay.com/pages/transparents/check
  */
 export type RESTGetCheckQRCodePixStatusQueryParams = Static<
 	typeof RESTGetCheckQRCodePixStatusQueryParams
@@ -746,13 +1349,15 @@ export type RESTGetCheckQRCodePixStatusQueryParams = Static<
  *
  * @reference https://docs.abacatepay.com/pages/transparents/check
  */
-export const RESTGetCheckQRCodePixStatusData = t.Object({
-	expiresAt: t.Date({
-		examples: [new Date()],
-		description: 'QRCode Pix expiration date.',
+export const RESTGetCheckQRCodePixStatusData = APIResponse(
+	t.Object({
+		expiresAt: t.Date({
+			examples: [new Date()],
+			description: 'QRCode Pix expiration date.',
+		}),
+		status: PaymentStatus,
 	}),
-	status: PaymentStatus,
-});
+);
 
 /**
  * https://api.abacatepay.com/v2/transparents/check
@@ -793,7 +1398,7 @@ export type RESTPostCreateProductBody = Static<
  *
  * @reference https://docs.abacatepay.com/pages/products/create
  */
-export const RESTPostCreateProductData = APIProduct;
+export const RESTPostCreateProductData = APIResponse(APIProduct);
 
 /**
  * https://api.abacatepay.com/v2/products/create
@@ -841,7 +1446,9 @@ export type RESTGetListProductsQueryParams = Static<
  *
  * @reference https://docs.abacatepay.com/pages/products/list
  */
-export const RESTGetListProductsData = t.Array(APIProduct);
+export const RESTGetListProductsData = APIResponseWithPagination(
+	t.Array(APIProduct),
+);
 
 /**
  * https://api.abacatepay.com/v2/products/list
@@ -882,7 +1489,7 @@ export type RESTGetProductQueryParams = Static<
  *
  * @reference https://docs.abacatepay.com/pages/products/get
  */
-export const RESTGetProductData = APIProduct;
+export const RESTGetProductData = APIResponse(APIProduct);
 
 /**
  * https://api.abacatepay.com/v2/products/get
@@ -892,11 +1499,43 @@ export const RESTGetProductData = APIProduct;
 export type RESTGetProductData = Static<typeof RESTGetProductData>;
 
 /**
+ * https://api.abacatepay.com/v2/products/delete
+ *
+ * @reference https://docs.abacatepay.com/pages/products/delete
+ */
+export const RESTDeleteProductQueryParams = t.Object({
+	id: t.String({ description: 'The product ID.' }),
+});
+
+/**
+ * https://api.abacatepay.com/v2/products/delete
+ *
+ * @reference https://docs.abacatepay.com/pages/products/delete
+ */
+export type RESTDeleteProductQueryParams = Static<
+	typeof RESTDeleteProductQueryParams
+>;
+
+/**
+ * https://api.abacatepay.com/v2/products/delete
+ *
+ * @reference https://docs.abacatepay.com/pages/products/delete
+ */
+export const RESTDeleteProductData = APIResponse(APIProduct);
+
+/**
+ * https://api.abacatepay.com/v2/products/delete
+ *
+ * @reference https://docs.abacatepay.com/pages/products/delete
+ */
+export type RESTDeleteProductData = Static<typeof RESTDeleteProductData>;
+
+/**
  * https://api.abacatepay.com/v2/store/get
  *
  * @reference https://docs.abacatepay.com/pages/store/get
  */
-export const RESTGetStoreDetailsData = APIStore;
+export const RESTGetStoreDetailsData = APIResponse(APIStore);
 
 /**
  * https://api.abacatepay.com/v2/store/get
@@ -910,20 +1549,22 @@ export type RESTGetStoreDetailsData = Static<typeof RESTGetStoreDetailsData>;
  *
  * @reference https://docs.abacatepay.com/pages/trustMRR/mrr
  */
-export const RESTGetMRRData = t.Object({
-	mrr: t.Integer({
-		minimum: 0,
-		examples: [100],
-		description:
-			'Monthly recurring revenue in cents. Value 0 indicates that there is no recurring revenue at the moment.',
+export const RESTGetMRRData = APIResponse(
+	t.Object({
+		mrr: t.Integer({
+			minimum: 0,
+			examples: [100],
+			description:
+				'Monthly recurring revenue in cents. Value 0 indicates that there is no recurring revenue at the moment.',
+		}),
+		totalActiveSubscriptions: t.Integer({
+			minimum: 0,
+			examples: [1],
+			description:
+				'Total active subscriptions. Value 0 indicates that there are no currently active subscriptions.',
+		}),
 	}),
-	totalActiveSubscriptions: t.Integer({
-		minimum: 0,
-		examples: [1],
-		description:
-			'Total active subscriptions. Value 0 indicates that there are no currently active subscriptions.',
-	}),
-});
+);
 
 /**
  * https://api.abacatepay.com/v2/public-mrr/mrr
@@ -970,7 +1611,7 @@ export type RESTPostCreateSubscriptionBody = Static<
  *
  * @reference https://docs.abacatepay.com/pages/subscriptions/create
  */
-export const RESTPostCreateSubscriptionData = APISubscription;
+export const RESTPostCreateSubscriptionData = APIResponse(APISubscription);
 
 /**
  * https://api.abacatepay.com/v2/subscriptions/create
@@ -1015,7 +1656,8 @@ export type RESTGetListSubscriptionsQueryParams = Static<
  *
  * @reference https://docs.abacatepay.com/pages/subscriptions/list
  */
-export const RESTGetListSubscriptionsData = t.Array(APISubscription);
+export const RESTGetListSubscriptionsData =
+	APIResponseWithCursorBasedPagination(t.Array(APISubscription));
 
 /**
  * https://api.abacatepay.com/v2/subscriptions/list
@@ -1024,6 +1666,281 @@ export const RESTGetListSubscriptionsData = t.Array(APISubscription);
  */
 export type RESTGetListSubscriptionsData = Static<
 	typeof RESTGetListSubscriptionsData
+>;
+
+/**
+ * https://api.abacatepay.com/v2/subscriptions/cancel
+ *
+ * @reference https://docs.abacatepay.com/pages/subscriptions/cancel
+ */
+export const RESTPostCancelSubscriptionBody = t.Object({
+	id: t.String({ description: 'Unique subscription identifier.' }),
+});
+
+/**
+ * https://api.abacatepay.com/v2/subscriptions/cancel
+ *
+ * @reference https://docs.abacatepay.com/pages/subscriptions/cancel
+ */
+export type RESTPostCancelSubscriptionBody = Static<
+	typeof RESTPostCancelSubscriptionBody
+>;
+
+/**
+ * Cancellation is immediate (`cancelPolicy: NOW`) — there is no grace period.
+ *
+ * @reference https://docs.abacatepay.com/pages/subscriptions/cancel
+ */
+export const RESTPostCancelSubscriptionData = APIResponse(APISubscription);
+
+/**
+ * @reference https://docs.abacatepay.com/pages/subscriptions/cancel
+ */
+export type RESTPostCancelSubscriptionData = Static<
+	typeof RESTPostCancelSubscriptionData
+>;
+
+/**
+ * https://api.abacatepay.com/v2/subscriptions/change-plan
+ *
+ * @reference https://docs.abacatepay.com/pages/subscriptions/change-plan
+ */
+export const RESTPostChangeSubscriptionPlanBody = t.Object({
+	id: t.String({ description: 'Unique subscription identifier.' }),
+	productId: t.String({
+		description:
+			'ID of the new product. It must have a billing cycle configured.',
+	}),
+	quantity: t.Integer({ description: 'New quantity for the product.' }),
+});
+
+/**
+ * https://api.abacatepay.com/v2/subscriptions/change-plan
+ *
+ * @reference https://docs.abacatepay.com/pages/subscriptions/change-plan
+ */
+export type RESTPostChangeSubscriptionPlanBody = Static<
+	typeof RESTPostChangeSubscriptionPlanBody
+>;
+
+/**
+ * Only one `PENDING` change can exist per subscription — calling this again
+ * replaces the prior unapplied change. The change is applied at the next
+ * billing cycle.
+ *
+ * @reference https://docs.abacatepay.com/pages/subscriptions/change-plan
+ */
+export const RESTPostChangeSubscriptionPlanData = APIResponse(
+	APISubscriptionPlanChange,
+);
+
+/**
+ * @reference https://docs.abacatepay.com/pages/subscriptions/change-plan
+ */
+export type RESTPostChangeSubscriptionPlanData = Static<
+	typeof RESTPostChangeSubscriptionPlanData
+>;
+
+/**
+ * https://api.abacatepay.com/v2/subscriptions/record-usage
+ *
+ * @reference https://docs.abacatepay.com/pages/subscriptions/record-usage
+ */
+export const RESTPostRecordSubscriptionUsageBody = t.Object({
+	id: t.String({ description: 'Unique subscription identifier.' }),
+	productId: t.String({
+		description:
+			'ID of the pay-as-you-go product (Must not have a billing cycle).',
+	}),
+	units: t.Integer({ description: 'Number of units to record.' }),
+	action: StringEnum(['add', 'subtract'], {
+		description: 'Whether to add or subtract the units from the current cycle.',
+	}),
+});
+
+/**
+ * https://api.abacatepay.com/v2/subscriptions/record-usage
+ *
+ * @reference https://docs.abacatepay.com/pages/subscriptions/record-usage
+ */
+export type RESTPostRecordSubscriptionUsageBody = Static<
+	typeof RESTPostRecordSubscriptionUsageBody
+>;
+
+/**
+ * https://api.abacatepay.com/v2/subscriptions/record-usage
+ *
+ * @reference https://docs.abacatepay.com/pages/subscriptions/record-usage
+ */
+export const RESTPostRecordSubscriptionUsageData = APIResponse(
+	APISubscriptionUsageRecord,
+);
+
+/**
+ * https://api.abacatepay.com/v2/subscriptions/record-usage
+ *
+ * @reference https://docs.abacatepay.com/pages/subscriptions/record-usage
+ */
+export type RESTPostRecordSubscriptionUsageData = Static<
+	typeof RESTPostRecordSubscriptionUsageData
+>;
+
+/**
+ * https://api.abacatepay.com/v2/webhooks/create
+ *
+ * @reference https://docs.abacatepay.com/pages/webhooks/create
+ */
+export const RESTPostCreateWebhookBody = t.Object({
+	name: t.String({ description: 'Webhook name, for your own identification.' }),
+	endpoint: t.String({
+		format: 'uri',
+		description: 'HTTPS endpoint that will receive the events.',
+	}),
+	secret: t.String({
+		description: 'Secret used to sign the payloads sent to `endpoint`.',
+	}),
+	events: t.Array(WebhookEventType, {
+		description: 'Event types this webhook should be notified about.',
+	}),
+});
+
+/**
+ * https://api.abacatepay.com/v2/webhooks/create
+ *
+ * @reference https://docs.abacatepay.com/pages/webhooks/create
+ */
+export type RESTPostCreateWebhookBody = Static<
+	typeof RESTPostCreateWebhookBody
+>;
+
+/**
+ * https://api.abacatepay.com/v2/webhooks/create
+ *
+ * @reference https://docs.abacatepay.com/pages/webhooks/create
+ */
+export const RESTPostCreateWebhookData = APIResponse(APIWebhook);
+
+/**
+ * https://api.abacatepay.com/v2/webhooks/create
+ *
+ * @reference https://docs.abacatepay.com/pages/webhooks/create
+ */
+export type RESTPostCreateWebhookData = Static<
+	typeof RESTPostCreateWebhookData
+>;
+
+/**
+ * https://api.abacatepay.com/v2/webhooks/list
+ *
+ * @reference https://docs.abacatepay.com/pages/webhooks/list
+ */
+export const RESTGetListWebhooksQueryParams = t.Object({
+	search: t.Optional(
+		t.String({ description: 'Search by webhook name, ID, or endpoint.' }),
+	),
+	after: t.Optional(t.String({ description: 'Cursor for the next page.' })),
+	before: t.Optional(
+		t.String({ description: 'Cursor for the previous page.' }),
+	),
+	limit: t.Optional(
+		t.Integer({
+			minimum: 1,
+			maximum: 100,
+			description: 'Number of items per page (1-100).',
+		}),
+	),
+	id: t.Optional(t.String({ description: 'Filter by a specific webhook ID.' })),
+});
+
+/**
+ * https://api.abacatepay.com/v2/webhooks/list
+ *
+ * @reference https://docs.abacatepay.com/pages/webhooks/list
+ */
+export type RESTGetListWebhooksQueryParams = Static<
+	typeof RESTGetListWebhooksQueryParams
+>;
+
+/**
+ * https://api.abacatepay.com/v2/webhooks/list
+ *
+ * @reference https://docs.abacatepay.com/pages/webhooks/list
+ */
+export const RESTGetListWebhooksData = APIResponseWithCursorBasedPagination(
+	t.Array(APIWebhook),
+);
+
+/**
+ * https://api.abacatepay.com/v2/webhooks/list
+ *
+ * @reference https://docs.abacatepay.com/pages/webhooks/list
+ */
+export type RESTGetListWebhooksData = Static<typeof RESTGetListWebhooksData>;
+
+/**
+ * https://api.abacatepay.com/v2/webhooks/get
+ *
+ * @reference https://docs.abacatepay.com/pages/webhooks/get
+ */
+export const RESTGetWebhookQueryParams = t.Object({
+	id: t.String({ description: 'Unique webhook identifier.' }),
+});
+
+/**
+ * https://api.abacatepay.com/v2/webhooks/get
+ *
+ * @reference https://docs.abacatepay.com/pages/webhooks/get
+ */
+export type RESTGetWebhookQueryParams = Static<
+	typeof RESTGetWebhookQueryParams
+>;
+
+/**
+ * https://api.abacatepay.com/v2/webhooks/get
+ *
+ * @reference https://docs.abacatepay.com/pages/webhooks/get
+ */
+export const RESTGetWebhookData = APIResponse(APIWebhook);
+
+/**
+ * https://api.abacatepay.com/v2/webhooks/get
+ *
+ * @reference https://docs.abacatepay.com/pages/webhooks/get
+ */
+export type RESTGetWebhookData = Static<typeof RESTGetWebhookData>;
+
+/**
+ * https://api.abacatepay.com/v2/webhooks/delete
+ *
+ * @reference https://docs.abacatepay.com/pages/webhooks/delete
+ */
+export const RESTPostDeleteWebhookBody = t.Object({
+	id: t.String({ description: 'Unique webhook identifier.' }),
+});
+
+/**
+ * https://api.abacatepay.com/v2/webhooks/delete
+ *
+ * @reference https://docs.abacatepay.com/pages/webhooks/delete
+ */
+export type RESTPostDeleteWebhookBody = Static<
+	typeof RESTPostDeleteWebhookBody
+>;
+
+/**
+ * https://api.abacatepay.com/v2/webhooks/delete
+ *
+ * @reference https://docs.abacatepay.com/pages/webhooks/delete
+ */
+export const RESTPostDeleteWebhookData = APIResponse(APIWebhook);
+
+/**
+ * https://api.abacatepay.com/v2/webhooks/delete
+ *
+ * @reference https://docs.abacatepay.com/pages/webhooks/delete
+ */
+export type RESTPostDeleteWebhookData = Static<
+	typeof RESTPostDeleteWebhookData
 >;
 
 /**
@@ -1052,7 +1969,7 @@ export type RESTPostCreateCustomerBody = Static<
  *
  * @reference https://docs.abacatepay.com/pages/client/create
  */
-export const RESTPostCreateCustomerData = APICustomer;
+export const RESTPostCreateCustomerData = APIResponse(APICustomer);
 
 /**
  * https://api.abacatepay.com/v2/customers/create
@@ -1068,7 +1985,9 @@ export type RESTPostCreateCustomerData = Static<
  *
  * @reference https://docs.abacatepay.com/pages/client/list
  */
-export const RESTGetListCustomersData = t.Array(APICustomer);
+export const RESTGetListCustomersData = APIResponseWithPagination(
+	t.Array(APICustomer),
+);
 
 /**
  * https://api.abacatepay.com/v2/customers/list
@@ -1135,7 +2054,9 @@ export type RESTGetCustomerQueryParams = Static<
  *
  * @reference https://docs.abacatepay.com/pages/client/get
  */
-export const RESTGetCustomerData = t.Omit(APICustomer, ['country', 'zipCode']);
+export const RESTGetCustomerData = APIResponse(
+	t.Omit(APICustomer, ['country', 'zipCode']),
+);
 
 /**
  * https://api.abacatepay.com/v2/customers/get
@@ -1168,10 +2089,9 @@ export type RESTDeleteCustomerBody = Static<typeof RESTDeleteCustomerBody>;
  *
  * @reference https://docs.abacatepay.com/pages/client/delete
  */
-export const RESTDeleteCustomerData = t.Omit(APICustomer, [
-	'country',
-	'zipCode',
-]);
+export const RESTDeleteCustomerData = APIResponse(
+	t.Omit(APICustomer, ['country', 'zipCode']),
+);
 
 /**
  * https://api.abacatepay.com/v2/customers/delete
@@ -1210,33 +2130,35 @@ export type RESTGetRevenueByPeriodQueryParams = Static<
  *
  * @reference https://docs.abacatepay.com/pages/trustMRR/list
  */
-export const RESTGetRevenueByPeriodData = t.Object({
-	totalRevenue: t.Integer({
-		examples: [10000],
-		description: 'Total revenue for the period in cents.',
-	}),
-	totalTransactions: t.Integer({
-		examples: [39],
-		description: 'Total transactions in the period.',
-	}),
-	transactionsPerDay: t.Record(
-		t.String(),
-		t.Object({
-			amount: t.Integer({
-				examples: [3200],
-				description: "Total value of the day's transactions in cents.",
-			}),
-			count: t.Integer({
-				examples: [12],
-				description: 'Number of transactions for the day.',
-			}),
+export const RESTGetRevenueByPeriodData = APIResponse(
+	t.Object({
+		totalRevenue: t.Integer({
+			examples: [10000],
+			description: 'Total revenue for the period in cents.',
 		}),
-		{
-			description:
-				'Object with transactions grouped by day (key is the date in YYYY-MM-DD format).',
-		},
-	),
-});
+		totalTransactions: t.Integer({
+			examples: [39],
+			description: 'Total transactions in the period.',
+		}),
+		transactionsPerDay: t.Record(
+			t.String(),
+			t.Object({
+				amount: t.Integer({
+					examples: [3200],
+					description: "Total value of the day's transactions in cents.",
+				}),
+				count: t.Integer({
+					examples: [12],
+					description: 'Number of transactions for the day.',
+				}),
+			}),
+			{
+				description:
+					'Object with transactions grouped by day (key is the date in YYYY-MM-DD format).',
+			},
+		),
+	}),
+);
 
 /**
  * https://api.abacatepay.com/v2/public-mrr/revenue
@@ -1252,21 +2174,23 @@ export type RESTGetRevenueByPeriodData = Static<
  *
  * @reference https://docs.abacatepay.com/pages/trustMRR/get
  */
-export const RESTGetMerchantData = t.Object({
-	name: t.String({
-		examples: ['Summer Store'],
-		description: 'Store name.',
+export const RESTGetMerchantData = APIResponse(
+	t.Object({
+		name: t.String({
+			examples: ['Summer Store'],
+			description: 'Store name.',
+		}),
+		website: t.String({
+			format: 'uri',
+			examples: ['https://summer-store.com/'],
+			description: 'Store website.',
+		}),
+		createdAt: t.Date({
+			examples: [new Date()],
+			description: 'Store creation date.',
+		}),
 	}),
-	website: t.String({
-		format: 'uri',
-		examples: ['https://summer-store.com/'],
-		description: 'Store website.',
-	}),
-	createdAt: t.Date({
-		examples: [new Date()],
-		description: 'Store creation date.',
-	}),
-});
+);
 
 /**
  * https://api.abacatepay.com/v2/public-mrr/merchant-info

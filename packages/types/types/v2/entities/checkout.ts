@@ -77,6 +77,38 @@ export interface APICheckout {
 	 * Charge last updated date and time.
 	 */
 	updatedAt: string;
+	/**
+	 * Billing frequency. Defaults to `ONE_TIME`.
+	 *
+	 * @see {@link PaymentFrequency}
+	 */
+	frequency?: PaymentFrequency | 'SUBSCRIPTION';
+	/**
+	 * ID of an additional product offered as an upsell.
+	 */
+	upSellProductId?: string | null;
+	/**
+	 * Late interest configuration (Applies to BOLETO).
+	 */
+	interest?: {
+		/**
+		 * Monthly interest rate, in hundredths of a percent.
+		 */
+		value: number;
+	} | null;
+	/**
+	 * Late fine configuration (Applies to BOLETO).
+	 */
+	fine?: {
+		/**
+		 * Fine value.
+		 */
+		value: number;
+		/**
+		 * Type of fine applied.
+		 */
+		type: 'PERCENTAGE' | 'FIXED';
+	} | null;
 }
 
 /**
@@ -96,14 +128,14 @@ export enum PaymentStatus {
 export enum PaymentMethod {
 	Pix = 'PIX',
 	Card = 'CARD',
+	Boleto = 'BOLETO',
 }
 
 /**
  * https://docs.abacatepay.com/pages/payment/create#body-frequency
- *
- * @deprecated
  */
 export enum PaymentFrequency {
 	OneTime = 'ONE_TIME',
 	Multiple = 'MULTIPLE_PAYMENTS',
+	Subscription = 'SUBSCRIPTION',
 }

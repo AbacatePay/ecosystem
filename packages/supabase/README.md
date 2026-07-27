@@ -35,15 +35,21 @@ Nenhuma dependência extra é necessária. O pacote já vem pronto para uso com 
 ```ts
 import { Webhooks } from '@abacatepay/supabase';
 
-export const POST = Webhooks({
+const { ok, handler, error } = Webhooks({
     secret: '...',
     onPayload({ event, data }) {
         ...
     },
 });
+
+if (!ok) throw new Error(error);
+
+export const POST = handler;
 ```
 
 <div align="center">
+
+`Webhooks(...)` nunca lança exceção — se o `secret` estiver ausente, ela retorna `{ ok: false, error }` em vez de `{ ok: true, handler }`.
 
 ## Segurança por padrão
 </div>
@@ -65,11 +71,12 @@ Você pode lidar com eventos específicos sem boilerplate:
 </div>
 
 ```ts
-Webhooks({
-    onBillingPaid({ data }) {
+const { handler } = Webhooks({
+    secret,
+    onCheckoutCompleted({ data }) {
         console.log('Cobrança paga:', data.payment.amount);
     },
-    onPayoutDone({ data }) {
+    onPayoutCompleted({ data }) {
         console.log('Payout concluído:', data.transaction.id);
     },
     onPayoutFailed({ data }) {
@@ -82,7 +89,7 @@ Webhooks({
 <p align="center">Ou tratar tudo de forma genérica:</p>
 
 ```ts
-Webhooks({
+const { handler } = Webhooks({
     secret,
     onPayload({ data, event }) {
         console.log(event, data);

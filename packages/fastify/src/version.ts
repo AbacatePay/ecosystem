@@ -3,4 +3,4 @@
 /**
  * Current version of [@abacatepay/fastify](https://www.npmjs.com/package/@abacatepay/fastify).
  */
-export const version = '1.0.3' as const;
+export const version = '2.0.0' as const;

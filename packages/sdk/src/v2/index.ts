@@ -1,7 +1,8 @@
-import { REST } from '@abacatepay/rest';
+import { createREST } from '@abacatepay/rest';
 import type {
 	RESTDeleteCouponData,
 	RESTDeleteCustomerData,
+	RESTDeleteProductData,
 	RESTGetCheckoutData,
 	RESTGetCheckQRCodePixStatusData,
 	RESTGetCouponData,
@@ -12,21 +13,37 @@ import type {
 	RESTGetListCouponsQueryParams,
 	RESTGetListCustomersData,
 	RESTGetListCustomersQueryParams,
+	RESTGetListPaymentLinksData,
+	RESTGetListPaymentLinksQueryParams,
 	RESTGetListPayoutsData,
 	RESTGetListPayoutsQueryParams,
+	RESTGetListPixTransfersData,
+	RESTGetListPixTransfersQueryParams,
 	RESTGetListProductsData,
 	RESTGetListProductsQueryParams,
 	RESTGetListSubscriptionsData,
 	RESTGetListSubscriptionsQueryParams,
+	RESTGetListTransparentsData,
+	RESTGetListTransparentsQueryParams,
+	RESTGetListWebhooksData,
+	RESTGetListWebhooksQueryParams,
 	RESTGetMerchantData,
 	RESTGetMRRData,
+	RESTGetPaymentLinkData,
+	RESTGetPixTransferData,
+	RESTGetPixTransferQueryParams,
 	RESTGetProductData,
 	RESTGetProductQueryParams,
 	RESTGetRevenueByPeriodData,
 	RESTGetRevenueByPeriodQueryParams,
 	RESTGetSearchPayoutData,
 	RESTGetStoreDetailsData,
-	RESTPatchToggleCouponStatusData,
+	RESTGetWebhookData,
+	RESTPostCancelSubscriptionData,
+	RESTPostChangeSubscriptionPlanBody,
+	RESTPostChangeSubscriptionPlanData,
+	RESTPostCreateBoletoBody,
+	RESTPostCreateBoletoData,
 	RESTPostCreateCouponBody,
 	RESTPostCreateCouponData,
 	RESTPostCreateCustomerBody,
@@ -35,13 +52,27 @@ import type {
 	RESTPostCreateNewCheckoutData,
 	RESTPostCreateNewPayoutBody,
 	RESTPostCreateNewWPayoutData,
+	RESTPostCreatePaymentLinkBody,
+	RESTPostCreatePaymentLinkData,
 	RESTPostCreateProductBody,
 	RESTPostCreateProductData,
 	RESTPostCreateQRCodePixBody,
 	RESTPostCreateQRCodePixData,
 	RESTPostCreateSubscriptionBody,
 	RESTPostCreateSubscriptionData,
+	RESTPostCreateTransparentBody,
+	RESTPostCreateWebhookBody,
+	RESTPostCreateWebhookData,
+	RESTPostDeleteWebhookData,
+	RESTPostRecordSubscriptionUsageBody,
+	RESTPostRecordSubscriptionUsageData,
+	RESTPostRefundCheckoutData,
+	RESTPostRefundPaymentLinkData,
+	RESTPostRefundTransparentData,
+	RESTPostSendPixTransferBody,
+	RESTPostSendPixTransferData,
 	RESTPostSimulateQRCodePixPaymentData,
+	RESTPostToggleCouponStatusData,
 } from '@abacatepay/types/v2';
 import { Routes } from '@abacatepay/types/v2';
 import type { AbacatePayOptions } from './types';
@@ -51,9 +82,12 @@ export * from './types';
 /**
  * This is the main entry point for interacting with the AbacatePay API,
  * providing high-level, domain-oriented methods on top of the REST client.
+ *
+ * No method here ever throws — every call resolves to the exact
+ * `{ data, error, success }` shape the AbacatePay API itself returns.
  */
 export const AbacatePay = ({ secret, rest }: AbacatePayOptions) => {
-	const client = new REST({
+	const client = createREST({
 		secret,
 		...rest,
 		version: 2,
@@ -89,7 +123,7 @@ export const AbacatePay = ({ secret, rest }: AbacatePayOptions) => {
 			 * @returns Deletion result.
 			 */
 			delete(id: string) {
-				return client.delete<RESTDeleteCustomerData>(Routes.customers.delete, {
+				return client.post<RESTDeleteCustomerData>(Routes.customers.delete, {
 					body: { id },
 				});
 			},
@@ -158,22 +192,108 @@ export const AbacatePay = ({ secret, rest }: AbacatePayOptions) => {
 			get(id: string) {
 				return client.get<RESTGetCheckoutData>(Routes.checkouts.get(id));
 			},
+
+			/**
+			 * Refund a completed checkout.
+			 *
+			 * @param id Public ID of the resource to refund (e.g. `bill_`, `char_`, `pix_char_`, `card_`).
+			 * @param reason Optional refund reason, shown in the transaction history.
+			 * @returns The public ID of the created refund transaction.
+			 */
+			refund(id: string, reason?: string) {
+				return client.post<RESTPostRefundCheckoutData>(
+					Routes.checkouts.refund,
+					{ body: { id, reason } },
+				);
+			},
 		},
 
 		/**
-		 * PIX payment operations.
+		 * Reusable payment link operations — unlike a checkout, the same link
+		 * can be paid by multiple customers.
+		 */
+		paymentLinks: {
+			/**
+			 * Create a new payment link.
+			 *
+			 * @param body Payment link creation payload.
+			 * @returns The created payment link.
+			 */
+			create(body: RESTPostCreatePaymentLinkBody) {
+				return client.post<RESTPostCreatePaymentLinkData>(
+					Routes.paymentLinks.create,
+					{ body },
+				);
+			},
+
+			/**
+			 * List payment links with optional pagination.
+			 *
+			 * @param query Optional query parameters.
+			 * @returns A paginated list of payment links.
+			 */
+			list(query?: RESTGetListPaymentLinksQueryParams) {
+				return client.get<RESTGetListPaymentLinksData>(
+					Routes.paymentLinks.list(query),
+				);
+			},
+
+			/**
+			 * Retrieve a payment link by ID.
+			 *
+			 * @param id Payment link ID.
+			 * @returns The payment link data.
+			 */
+			get(id: string) {
+				return client.get<RESTGetPaymentLinkData>(Routes.paymentLinks.get(id));
+			},
+
+			/**
+			 * Refund a payment made through a payment link.
+			 *
+			 * @param id Public ID of the resource to refund.
+			 * @param reason Optional refund reason, shown in the transaction history.
+			 * @returns The public ID of the created refund transaction.
+			 */
+			refund(id: string, reason?: string) {
+				return client.post<RESTPostRefundPaymentLinkData>(
+					Routes.paymentLinks.refund,
+					{ body: { id, reason } },
+				);
+			},
+		},
+
+		/**
+		 * Embedded PIX QR-code charge operations (Receiving a payment).
 		 */
 		pix: {
 			/**
-			 * Create a new PIX QR Code payment.
+			 * Create a new PIX QR Code charge.
 			 *
 			 * @param body PIX creation payload.
 			 * @returns The created PIX QR Code.
 			 */
 			create(body: RESTPostCreateQRCodePixBody) {
+				const wireBody: RESTPostCreateTransparentBody = {
+					method: 'PIX',
+					data: body,
+				};
+
 				return client.post<RESTPostCreateQRCodePixData>(
-					Routes.transparents.createQRCode,
-					{ body },
+					Routes.transparents.create,
+					{ body: wireBody },
+				);
+			},
+
+			/**
+			 * List embedded PIX QR-code (and Boleto) charges.
+			 *
+			 * @param query Optional query parameters.
+			 * @returns A paginated list of transparent charges.
+			 */
+			list(query?: RESTGetListTransparentsQueryParams) {
+				return client.get<RESTGetListTransparentsData>(
+					Routes.transparents.list(query),
 				);
 			},
 
@@ -202,6 +322,82 @@ export const AbacatePay = ({ secret, rest }: AbacatePayOptions) => {
 					Routes.transparents.checkStatus(id),
 				);
 			},
+
+			/**
+			 * Refund an embedded PIX charge.
+			 *
+			 * @param id Public ID of the resource to refund.
+			 * @param reason Optional refund reason, shown in the transaction history.
+			 * @returns The public ID of the created refund transaction.
+			 */
+			refund(id: string, reason?: string) {
+				return client.post<RESTPostRefundTransparentData>(
+					Routes.transparents.refund,
+					{ body: { id, reason } },
+				);
+			},
+		},
+
+		/**
+		 * Embedded Boleto charge operations.
+		 */
+		boleto: {
+			/**
+			 * Create a new Boleto charge.
+			 *
+			 * @param body Boleto creation payload.
+			 * @returns The created Boleto.
+			 */
+			create(body: RESTPostCreateBoletoBody) {
+				const wireBody: RESTPostCreateTransparentBody = {
+					method: 'BOLETO',
+					data: body,
+				};
+
+				return client.post<RESTPostCreateBoletoData>(
+					Routes.transparents.create,
+					{ body: wireBody },
+				);
+			},
+		},
+
+		/**
+		 * Outbound PIX transfer operations (Sending money to a third-party PIX key).
+		 */
+		transfers: {
+			/**
+			 * Send a PIX transfer to a third-party PIX key.
+			 *
+			 * @param body Transfer payload.
+			 * @returns The created transfer.
+			 */
+			send(body: RESTPostSendPixTransferBody) {
+				return client.post<RESTPostSendPixTransferData>(Routes.transfers.send, {
+					body,
+				});
+			},
+
+			/**
+			 * Retrieve a PIX transfer by ID or external ID.
+			 *
+			 * @param query Query parameters, at least one of `id`/`externalId` is required.
+			 * @returns The transfer data.
+			 */
+			get(query: RESTGetPixTransferQueryParams) {
+				return client.get<RESTGetPixTransferData>(Routes.transfers.get(query));
+			},
+
+			/**
+			 * List PIX transfers with optional pagination.
+			 *
+			 * @param query Optional query parameters.
+			 * @returns A paginated list of transfers.
+			 */
+			list(query?: RESTGetListPixTransfersQueryParams) {
+				return client.get<RESTGetListPixTransfersData>(
+					Routes.transfers.list(query),
+				);
+			},
 		},
 
 		/**
@@ -227,7 +423,7 @@ export const AbacatePay = ({ secret, rest }: AbacatePayOptions) => {
 			 * @returns Deletion result.
 			 */
 			delete(id: string) {
-				return client.delete<RESTDeleteCouponData>(Routes.coupons.delete, {
+				return client.post<RESTDeleteCouponData>(Routes.coupons.delete, {
 					body: { id },
 				});
 			},
@@ -259,7 +455,7 @@ export const AbacatePay = ({ secret, rest }: AbacatePayOptions) => {
 			 * @returns Updated coupon status.
 			 */
 			toggleStatus(id: string) {
-				return client.patch<RESTPatchToggleCouponStatusData>(
+				return client.post<RESTPostToggleCouponStatusData>(
 					Routes.coupons.toggleStatus,
 					{ body: { id } },
 				);
@@ -316,7 +512,7 @@ export const AbacatePay = ({ secret, rest }: AbacatePayOptions) => {
 		},
 
 		/**
-		 * Payout management operations.
+		 * Payout management operations (Withdrawing to your own account).
 		 */
 		payouts: {
 			/**
@@ -374,11 +570,60 @@ export const AbacatePay = ({ secret, rest }: AbacatePayOptions) => {
 			 * List subscriptions with optional pagination.
 			 *
 			 * @param query Optional query parameters.
-			 * @returns A list of subscriptions.
+			 * @returns A paginated list of subscriptions.
 			 */
 			list(query?: RESTGetListSubscriptionsQueryParams) {
 				return client.get<RESTGetListSubscriptionsData>(
 					Routes.subscriptions.list(query),
+				);
+			},
+
+			/**
+			 * Cancel a subscription immediately (No grace period).
+			 *
+			 * @param id Subscription ID.
+			 * @returns The cancelled subscription.
+			 */
+			cancel(id: string) {
+				return client.post<RESTPostCancelSubscriptionData>(
+					Routes.subscriptions.cancel,
+					{ body: { id } },
+				);
+			},
+
+			/**
+			 * Change the product of a subscription. The change is applied at
+			 * the next billing cycle; only one pending change can exist at a
+			 * time.
+			 *
+			 * @param id Subscription ID.
+			 * @param body The new product and quantity.
+			 * @returns The requested plan change.
+			 */
+			changePlan(
+				id: string,
+				body: Omit<RESTPostChangeSubscriptionPlanBody, 'id'>,
+			) {
+				return client.post<RESTPostChangeSubscriptionPlanData>(
+					Routes.subscriptions.changePlan,
+					{ body: { id, ...body } },
+				);
+			},
+
+			/**
+			 * Record usage for a pay-as-you-go (no-cycle) product.
+			 *
+			 * @param id Subscription ID.
+			 * @param body The product, unit count, and action.
+			 * @returns The recorded usage.
+			 */
+			recordUsage(
+				id: string,
+				body: Omit<RESTPostRecordSubscriptionUsageBody, 'id'>,
+			) {
+				return client.post<RESTPostRecordSubscriptionUsageData>(
+					Routes.subscriptions.recordUsage,
+					{ body: { id, ...body } },
 				);
 			},
 		},
@@ -417,6 +662,65 @@ export const AbacatePay = ({ secret, rest }: AbacatePayOptions) => {
 			 */
 			list(query?: RESTGetListProductsQueryParams) {
 				return client.get<RESTGetListProductsData>(Routes.products.list(query));
+			},
+
+			/**
+			 * Permanently delete a product.
+			 *
+			 * @param id Product ID.
+			 * @returns Deletion result.
+			 */
+			delete(id: string) {
+				return client.post<RESTDeleteProductData>(Routes.products.delete(id));
+			},
+		},
+
+		/**
+		 * Webhook management operations.
+		 */
+		webhooks: {
+			/**
+			 * Create a new webhook.
+			 *
+			 * @param body Webhook creation payload.
+			 * @returns The created webhook.
+			 */
+			create(body: RESTPostCreateWebhookBody) {
+				return client.post<RESTPostCreateWebhookData>(Routes.webhooks.create, {
+					body,
+				});
+			},
+
+			/**
+			 * List webhooks with optional filters.
+			 *
+			 * @param query Optional query parameters.
+			 * @returns A paginated list of webhooks.
+			 */
+			list(query?: RESTGetListWebhooksQueryParams) {
+				return client.get<RESTGetListWebhooksData>(Routes.webhooks.list(query));
+			},
+
+			/**
+			 * Retrieve a webhook by ID.
+			 *
+			 * @param id Webhook ID.
+			 * @returns The webhook data.
+			 */
+			get(id: string) {
+				return client.get<RESTGetWebhookData>(Routes.webhooks.get(id));
+			},
+
+			/**
+			 * Permanently delete a webhook.
+			 *
+			 * @param id Webhook ID.
+			 * @returns Deletion result.
+			 */
+			delete(id: string) {
+				return client.post<RESTPostDeleteWebhookData>(Routes.webhooks.delete, {
+					body: { id },
+				});
 			},
 		},
 	};

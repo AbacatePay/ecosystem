@@ -85,14 +85,14 @@ export const APISubscription = z.object({
 				['MONTHLY', 'YEARLY', 'WEEKLY', 'DAILY'],
 				'Subscription billing cycle.',
 			).meta({ example: 'MONTHLY' }),
+			dayOfProcessing: z
+				.int()
+				.min(1)
+				.max(31)
+				.meta({ example: 3 })
+				.describe('Day of the month the charge will be processed (1-31).'),
 		})
 		.describe('Billing frequency configuration.'),
-	dayOfProcessing: z
-		.int()
-		.min(1)
-		.max(31)
-		.meta({ example: 3 })
-		.describe('Day of the month the charge will be processed (1-31).'),
 	customerId: z
 		.string()
 		.meta({ example: 'cust_123' })
@@ -127,3 +127,92 @@ export const APISubscription = z.object({
  * https://docs.abacatepay.com/pages/subscriptions/reference#estrutura
  */
 export type APISubscription = z.infer<typeof APISubscription>;
+
+/**
+ * Result of `POST /subscriptions/change-plan`.
+ *
+ * https://docs.abacatepay.com/pages/subscriptions/change-plan
+ */
+export const APISubscriptionPlanChange = z.object({
+	id: z
+		.string()
+		.describe('Unique identifier of this plan-change request.')
+		.meta({ example: 'sub_change_123' }),
+	subscriptionId: z
+		.string()
+		.describe('ID of the subscription being changed.')
+		.meta({ example: 'subs_abc123xyz' }),
+	status: StringEnum(
+		['PENDING', 'APPLIED', 'CANCELLED'],
+		'Status of the plan-change request.',
+	).meta({ example: 'PENDING' }),
+	productId: z
+		.string()
+		.describe('ID of the new product.')
+		.meta({ example: 'prod_123' }),
+	quantity: z
+		.int()
+		.describe('New quantity for the product.')
+		.meta({ example: 1 }),
+	newAmount: z
+		.int()
+		.describe(
+			'Amount that will be charged once the change is applied, in cents.',
+		)
+		.meta({ example: 4000 }),
+	requestedAt: z.coerce
+		.date()
+		.describe('When the change was requested.')
+		.meta({ example: new Date() }),
+});
+
+/**
+ * https://docs.abacatepay.com/pages/subscriptions/change-plan
+ */
+export type APISubscriptionPlanChange = z.infer<
+	typeof APISubscriptionPlanChange
+>;
+
+/**
+ * Result of `POST /subscriptions/record-usage`.
+ *
+ * https://docs.abacatepay.com/pages/subscriptions/record-usage
+ */
+export const APISubscriptionUsageRecord = z.object({
+	id: z
+		.string()
+		.describe('Unique identifier of this usage record.')
+		.meta({ example: 'usage_123' }),
+	subscriptionId: z
+		.string()
+		.describe('ID of the subscription the usage was recorded against.')
+		.meta({ example: 'subs_abc123xyz' }),
+	productId: z
+		.string()
+		.describe('ID of the pay-as-you-go product the usage applies to.')
+		.meta({ example: 'prod_123' }),
+	units: z.int().describe('Number of units recorded.').meta({ example: 5 }),
+	unitPrice: z
+		.int()
+		.describe('Price per unit, in cents.')
+		.meta({ example: 100 }),
+	action: StringEnum(
+		['add', 'subtract'],
+		'Whether the units were added to or subtracted from the current cycle.',
+	).meta({ example: 'add' }),
+	installmentNumber: z
+		.int()
+		.describe('The pending installment this usage record was attached to.')
+		.meta({ example: 1 }),
+	recordedAt: z.coerce
+		.date()
+		.describe('When the usage was recorded.')
+		.meta({ example: new Date() }),
+});
+
+/**
+ * https://docs.abacatepay.com/pages/subscriptions/record-usage
+ */
+export type APISubscriptionUsageRecord = z.infer<
+	typeof APISubscriptionUsageRecord
+>;
