@@ -40,7 +40,8 @@
 		}
 	},
 	"files": [
-		"dist"
+		"dist",
+		"CHANGELOG.md"
 	],
 	"scripts": {
 		"build": "rm -rf dist && bun run gen:version && bun build types/index.ts types/v1/index.ts types/v2/index.ts --outdir dist --target node && bun run types",

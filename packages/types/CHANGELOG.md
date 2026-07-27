@@ -1,0 +1,23 @@
+# Changelog
+
+All notable changes to `@abacatepay/types` are documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
+
+## [3.0.1] - 2026-07-27
+
+### Fixed
+
+- Package now bundles with `bun build` instead of emitting raw `tsc` output. The root export and the `/v1`/`/v2` subpaths were failing with `ERR_MODULE_NOT_FOUND` under real Node.js ESM resolution (the previous build relied on `moduleResolution: "bundler"`, which emits extension-less relative imports that require an actual bundling step afterward — one never ran).
+
+## [3.0.0] - 2026-07-27
+
+### Added
+
+- v2: types for payment links, the webhooks resource (`APIWebhook`), outbound PIX transfers (`APIPixTransfer`), Boleto (`APIBoleto`), and the subscription lifecycle (cancel, change-plan, record-usage).
+
+### Changed
+
+- **Breaking:** every `RESTxxxData` type is now the full API response envelope (`APIResponse<T>` / `APIResponseWithPagination<T>` / `APIResponseWithCursorBasedPagination<T>`) instead of an unwrapped entity. This is what lets `@abacatepay/rest` stop unwrapping responses and throwing on API errors.
+- **Breaking:** the webhook event taxonomy now matches what's actually documented: `payout.done` → `payout.completed`, `billing.paid` split into `checkout.completed` and `transparent.completed`, plus the full set of other v2 events (`checkout.refunded`/`disputed`/`lost`, `transparent.refunded`/`disputed`/`lost`, `subscription.*`, `transfer.*`).
+- `PaymentMethod` gained `BOLETO`; `APICheckout` gained `frequency`, `upSellProductId`, `interest`, `fine`.
