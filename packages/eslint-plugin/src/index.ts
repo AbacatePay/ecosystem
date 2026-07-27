@@ -1,4 +1,4 @@
-import noSecretKey from './rules/no-secret-key';
+import noSecretKey from './rules/no-secret-key.js';
 
 const plugin = {
 	rules: {

@@ -1,6 +1,6 @@
 {
 	"name": "@abacatepay/adapters",
-	"version": "2.0.2",
+	"version": "2.0.3",
 	"repository": {
 		"type": "git",
 		"url": "git+https://github.com/AbacatePay/ecosystem.git"
@@ -19,6 +19,7 @@
 	"main": "./dist/index.js",
 	"devDependencies": {
 		"@biomejs/biome": "^2.3.11",
+		"dts-bundle-generator": "^9.5.1",
 		"typescript": "^5.0.0"
 	},
 	"exports": {
@@ -54,7 +55,7 @@
 	"scripts": {
 		"test": "bun test",
 		"build": "rm -rf dist && bun run scripts/version.ts && bun build src/index.ts src/webhooks/index.ts --outdir dist --target node --external '@abacatepay/zod' --external '@abacatepay/zod/*' && bun run types",
-		"types": "bunx tsc --emitDeclarationOnly",
+		"types": "dts-bundle-generator -o dist/index.d.ts src/index.ts --disable-symlinks-following && dts-bundle-generator -o dist/webhooks/index.d.ts src/webhooks/index.ts --disable-symlinks-following",
 		"prepublishOnly": "bun run build"
 	},
 	"sideEffects": false,

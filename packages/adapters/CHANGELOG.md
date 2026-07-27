@@ -4,6 +4,12 @@ All notable changes to `@abacatepay/adapters` are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.0.3] - 2026-07-27
+
+### Fixed
+
+- Declaration files (`.d.ts`) are now bundled into a single self-contained file per entrypoint (via `dts-bundle-generator`), same as the `.js` output already was. Any TypeScript consumer using `moduleResolution: "nodenext"`/`"node16"` would get `error TS2834: Relative import paths need explicit file extensions` from the unbundled `.d.ts` output the earlier `.js`-bundling fix never touched. `@abacatepay/zod` stays as a real `import` in the bundled declaration, not inlined.
+
 ## [2.0.2] - 2026-07-27
 
 ### Changed

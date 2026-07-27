@@ -14,18 +14,19 @@
     },
     "packages/adapters": {
       "name": "@abacatepay/adapters",
-      "version": "1.0.2",
+      "version": "2.0.2",
       "dependencies": {
-        "@abacatepay/zod": "^1.0.0",
+        "@abacatepay/zod": "^2.0.0",
       },
       "devDependencies": {
         "@biomejs/biome": "^2.3.11",
+        "dts-bundle-generator": "^9.5.1",
         "typescript": "^5.0.0",
       },
     },
     "packages/better-auth": {
       "name": "@abacatepay/better-auth",
-      "version": "1.0.0",
+      "version": "1.0.2",
       "devDependencies": {
         "@biomejs/biome": "^2.3.11",
         "typescript": "^5.0.0",
@@ -36,9 +37,9 @@
     },
     "packages/elysia": {
       "name": "@abacatepay/elysia",
-      "version": "1.0.2",
+      "version": "2.0.2",
       "dependencies": {
-        "@abacatepay/adapters": "^1.0.1",
+        "@abacatepay/adapters": "^2.0.0",
       },
       "devDependencies": {
         "@biomejs/biome": "^2.3.11",
@@ -50,7 +51,7 @@
     },
     "packages/eslint-plugin": {
       "name": "@abacatepay/eslint-plugin",
-      "version": "0.1.2",
+      "version": "0.1.4",
       "devDependencies": {
         "@types/eslint": "^9.6.1",
         "typescript": "^5",
@@ -61,9 +62,9 @@
     },
     "packages/express": {
       "name": "@abacatepay/express",
-      "version": "1.0.2",
+      "version": "2.0.2",
       "dependencies": {
-        "@abacatepay/adapters": "^1.0.1",
+        "@abacatepay/adapters": "^2.0.0",
       },
       "devDependencies": {
         "@biomejs/biome": "^2.3.11",
@@ -76,9 +77,9 @@
     },
     "packages/fastify": {
       "name": "@abacatepay/fastify",
-      "version": "1.0.3",
+      "version": "2.0.2",
       "dependencies": {
-        "@abacatepay/adapters": "^1.0.1",
+        "@abacatepay/adapters": "^2.0.0",
       },
       "devDependencies": {
         "@biomejs/biome": "^2.3.11",
@@ -90,9 +91,9 @@
     },
     "packages/hono": {
       "name": "@abacatepay/hono",
-      "version": "1.0.1",
+      "version": "2.0.2",
       "dependencies": {
-        "@abacatepay/adapters": "^1.0.1",
+        "@abacatepay/adapters": "^2.0.0",
       },
       "devDependencies": {
         "@biomejs/biome": "^2.3.11",
@@ -104,29 +105,31 @@
     },
     "packages/rest": {
       "name": "@abacatepay/rest",
-      "version": "0.0.3",
+      "version": "1.0.1",
       "devDependencies": {
         "@biomejs/biome": "^2.3.11",
+        "dts-bundle-generator": "^9.5.1",
         "typescript": "^5.0.0",
       },
     },
     "packages/sdk": {
       "name": "@abacatepay/sdk",
-      "version": "1.2.0",
+      "version": "2.0.2",
       "dependencies": {
-        "@abacatepay/rest": "^0.0.3",
-        "@abacatepay/types": "^2.0.3",
+        "@abacatepay/rest": "^1.0.0",
+        "@abacatepay/types": "^3.0.0",
       },
       "devDependencies": {
         "@biomejs/biome": "^2.3.11",
+        "dts-bundle-generator": "^9.5.1",
         "typescript": "^5.0.0",
       },
     },
     "packages/supabase": {
       "name": "@abacatepay/supabase",
-      "version": "1.0.3",
+      "version": "2.0.2",
       "dependencies": {
-        "@abacatepay/adapters": "^1.0.1",
+        "@abacatepay/adapters": "^2.0.0",
       },
       "devDependencies": {
         "@biomejs/biome": "^2.3.11",
@@ -135,9 +138,10 @@
     },
     "packages/typebox": {
       "name": "@abacatepay/typebox",
-      "version": "1.0.1",
+      "version": "2.0.2",
       "devDependencies": {
         "@biomejs/biome": "^2.3.11",
+        "dts-bundle-generator": "^9.5.1",
         "typescript": "^5.0.0",
       },
       "peerDependencies": {
@@ -147,17 +151,19 @@
     },
     "packages/types": {
       "name": "@abacatepay/types",
-      "version": "2.0.3",
+      "version": "3.0.2",
       "devDependencies": {
         "@biomejs/biome": "^2.3.8",
+        "dts-bundle-generator": "^9.5.1",
         "typescript": "^5.9.3",
       },
     },
     "packages/zod": {
       "name": "@abacatepay/zod",
-      "version": "1.0.1",
+      "version": "2.0.2",
       "devDependencies": {
         "@biomejs/biome": "^2.3.11",
+        "dts-bundle-generator": "^9.5.1",
         "typescript": "^5.0.0",
       },
       "peerDependencies": {
@@ -432,6 +438,8 @@
     "dequal": ["dequal@2.0.3", "", {}, "sha512-0je+qPKHEMohvfRTCEo3CrPG6cAzAYgmzKyxRiYSSDkS6eGJdyVJm7WaYA5ECaAD9wLB2T4EEeymA5aFVcYXCA=="],
 
     "dot-prop": ["dot-prop@5.3.0", "", { "dependencies": { "is-obj": "^2.0.0" } }, "sha512-QM8q3zDe58hqUqjraQOmzZ1LIH9SWQJTlEKCH4kJ2oQvLZk7RbQXvtDM2XEq3fwkV9CCvvH4LA0AV+ogFsBM2Q=="],
+
+    "dts-bundle-generator": ["dts-bundle-generator@9.5.1", "", { "dependencies": { "typescript": ">=5.0.2", "yargs": "^17.6.0" }, "bin": { "dts-bundle-generator": "dist/bin/dts-bundle-generator.js" } }, "sha512-DxpJOb2FNnEyOzMkG11sxO2dmxPjthoVWxfKqWYJ/bI/rT1rvTMktF5EKjAYrRZu6Z6t3NhOUZ0sZ5ZXevOfbA=="],
 
     "dunder-proto": ["dunder-proto@1.0.1", "", { "dependencies": { "call-bind-apply-helpers": "^1.0.1", "es-errors": "^1.3.0", "gopd": "^1.2.0" } }, "sha512-KIN/nDJBQRcXw0MLVhZE9iQHmG68qAVIBg9CqmUYjmQIhgij9U5MFvrqkUL5FbtyyzZuOeOt0zdeRe4UY7ct+A=="],
 
@@ -839,6 +847,8 @@
 
     "@abacatepay/supabase/@biomejs/biome": ["@biomejs/biome@2.3.12", "", { "optionalDependencies": { "@biomejs/cli-darwin-arm64": "2.3.12", "@biomejs/cli-darwin-x64": "2.3.12", "@biomejs/cli-linux-arm64": "2.3.12", "@biomejs/cli-linux-arm64-musl": "2.3.12", "@biomejs/cli-linux-x64": "2.3.12", "@biomejs/cli-linux-x64-musl": "2.3.12", "@biomejs/cli-win32-arm64": "2.3.12", "@biomejs/cli-win32-x64": "2.3.12" }, "bin": { "biome": "bin/biome" } }, "sha512-AR7h4aSlAvXj7TAajW/V12BOw2EiS0AqZWV5dGozf4nlLoUF/ifvD0+YgKSskT0ylA6dY1A8AwgP8kZ6yaCQnA=="],
 
+    "@abacatepay/typebox/@biomejs/biome": ["@biomejs/biome@2.3.12", "", { "optionalDependencies": { "@biomejs/cli-darwin-arm64": "2.3.12", "@biomejs/cli-darwin-x64": "2.3.12", "@biomejs/cli-linux-arm64": "2.3.12", "@biomejs/cli-linux-arm64-musl": "2.3.12", "@biomejs/cli-linux-x64": "2.3.12", "@biomejs/cli-linux-x64-musl": "2.3.12", "@biomejs/cli-win32-arm64": "2.3.12", "@biomejs/cli-win32-x64": "2.3.12" }, "bin": { "biome": "bin/biome" } }, "sha512-AR7h4aSlAvXj7TAajW/V12BOw2EiS0AqZWV5dGozf4nlLoUF/ifvD0+YgKSskT0ylA6dY1A8AwgP8kZ6yaCQnA=="],
+
     "@abacatepay/types/@biomejs/biome": ["@biomejs/biome@2.3.12", "", { "optionalDependencies": { "@biomejs/cli-darwin-arm64": "2.3.12", "@biomejs/cli-darwin-x64": "2.3.12", "@biomejs/cli-linux-arm64": "2.3.12", "@biomejs/cli-linux-arm64-musl": "2.3.12", "@biomejs/cli-linux-x64": "2.3.12", "@biomejs/cli-linux-x64-musl": "2.3.12", "@biomejs/cli-win32-arm64": "2.3.12", "@biomejs/cli-win32-x64": "2.3.12" }, "bin": { "biome": "bin/biome" } }, "sha512-AR7h4aSlAvXj7TAajW/V12BOw2EiS0AqZWV5dGozf4nlLoUF/ifvD0+YgKSskT0ylA6dY1A8AwgP8kZ6yaCQnA=="],
 
     "@abacatepay/zod/@biomejs/biome": ["@biomejs/biome@2.3.12", "", { "optionalDependencies": { "@biomejs/cli-darwin-arm64": "2.3.12", "@biomejs/cli-darwin-x64": "2.3.12", "@biomejs/cli-linux-arm64": "2.3.12", "@biomejs/cli-linux-arm64-musl": "2.3.12", "@biomejs/cli-linux-x64": "2.3.12", "@biomejs/cli-linux-x64-musl": "2.3.12", "@biomejs/cli-win32-arm64": "2.3.12", "@biomejs/cli-win32-x64": "2.3.12" }, "bin": { "biome": "bin/biome" } }, "sha512-AR7h4aSlAvXj7TAajW/V12BOw2EiS0AqZWV5dGozf4nlLoUF/ifvD0+YgKSskT0ylA6dY1A8AwgP8kZ6yaCQnA=="],
@@ -1012,6 +1022,22 @@
     "@abacatepay/supabase/@biomejs/biome/@biomejs/cli-win32-arm64": ["@biomejs/cli-win32-arm64@2.3.12", "", { "os": "win32", "cpu": "arm64" }, "sha512-Re4I7UnOoyE4kHMqpgtG6UvSBGBbbtvsOvBROgCCoH7EgANN6plSQhvo2W7OCITvTp7gD6oZOyZy72lUdXjqZg=="],
 
     "@abacatepay/supabase/@biomejs/biome/@biomejs/cli-win32-x64": ["@biomejs/cli-win32-x64@2.3.12", "", { "os": "win32", "cpu": "x64" }, "sha512-qqGVWqNNek0KikwPZlOIoxtXgsNGsX+rgdEzgw82Re8nF02W+E2WokaQhpF5TdBh/D/RQ3TLppH+otp6ztN0lw=="],
+
+    "@abacatepay/typebox/@biomejs/biome/@biomejs/cli-darwin-arm64": ["@biomejs/cli-darwin-arm64@2.3.12", "", { "os": "darwin", "cpu": "arm64" }, "sha512-cO6fn+KiMBemva6EARDLQBxeyvLzgidaFRJi8G7OeRqz54kWK0E+uSjgFaiHlc3DZYoa0+1UFE8mDxozpc9ieg=="],
+
+    "@abacatepay/typebox/@biomejs/biome/@biomejs/cli-darwin-x64": ["@biomejs/cli-darwin-x64@2.3.12", "", { "os": "darwin", "cpu": "x64" }, "sha512-/fiF/qmudKwSdvmSrSe/gOTkW77mHHkH8Iy7YC2rmpLuk27kbaUOPa7kPiH5l+3lJzTUfU/t6x1OuIq/7SGtxg=="],
+
+    "@abacatepay/typebox/@biomejs/biome/@biomejs/cli-linux-arm64": ["@biomejs/cli-linux-arm64@2.3.12", "", { "os": "linux", "cpu": "arm64" }, "sha512-nbOsuQROa3DLla5vvsTZg+T5WVPGi9/vYxETm9BOuLHBJN3oWQIg3MIkE2OfL18df1ZtNkqXkH6Yg9mdTPem7A=="],
+
+    "@abacatepay/typebox/@biomejs/biome/@biomejs/cli-linux-arm64-musl": ["@biomejs/cli-linux-arm64-musl@2.3.12", "", { "os": "linux", "cpu": "arm64" }, "sha512-aqkeSf7IH+wkzFpKeDVPSXy9uDjxtLpYA6yzkYsY+tVjwFFirSuajHDI3ul8en90XNs1NA0n8kgBrjwRi5JeyA=="],
+
+    "@abacatepay/typebox/@biomejs/biome/@biomejs/cli-linux-x64": ["@biomejs/cli-linux-x64@2.3.12", "", { "os": "linux", "cpu": "x64" }, "sha512-CQtqrJ+qEEI8tgRSTjjzk6wJAwfH3wQlkIGsM5dlecfRZaoT+XCms/mf7G4kWNexrke6mnkRzNy6w8ebV177ow=="],
+
+    "@abacatepay/typebox/@biomejs/biome/@biomejs/cli-linux-x64-musl": ["@biomejs/cli-linux-x64-musl@2.3.12", "", { "os": "linux", "cpu": "x64" }, "sha512-kVGWtupRRsOjvw47YFkk5mLiAdpCPMWBo1jOwAzh+juDpUb2sWarIp+iq+CPL1Wt0LLZnYtP7hH5kD6fskcxmg=="],
+
+    "@abacatepay/typebox/@biomejs/biome/@biomejs/cli-win32-arm64": ["@biomejs/cli-win32-arm64@2.3.12", "", { "os": "win32", "cpu": "arm64" }, "sha512-Re4I7UnOoyE4kHMqpgtG6UvSBGBbbtvsOvBROgCCoH7EgANN6plSQhvo2W7OCITvTp7gD6oZOyZy72lUdXjqZg=="],
+
+    "@abacatepay/typebox/@biomejs/biome/@biomejs/cli-win32-x64": ["@biomejs/cli-win32-x64@2.3.12", "", { "os": "win32", "cpu": "x64" }, "sha512-qqGVWqNNek0KikwPZlOIoxtXgsNGsX+rgdEzgw82Re8nF02W+E2WokaQhpF5TdBh/D/RQ3TLppH+otp6ztN0lw=="],
 
     "@abacatepay/types/@biomejs/biome/@biomejs/cli-darwin-arm64": ["@biomejs/cli-darwin-arm64@2.3.12", "", { "os": "darwin", "cpu": "arm64" }, "sha512-cO6fn+KiMBemva6EARDLQBxeyvLzgidaFRJi8G7OeRqz54kWK0E+uSjgFaiHlc3DZYoa0+1UFE8mDxozpc9ieg=="],
 

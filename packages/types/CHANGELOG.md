@@ -4,6 +4,12 @@ All notable changes to `@abacatepay/types` are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [3.0.3] - 2026-07-27
+
+### Fixed
+
+- Declaration files (`.d.ts`) are now bundled into a single self-contained file per entrypoint (via `dts-bundle-generator`), same as the `.js` output already was. Fixing the `.js` bundling earlier didn't touch declaration emission at all — `tsc --emitDeclarationOnly` still walked the original unbundled source tree, so `dist/v2/index.d.ts` still had extension-less relative exports like `export * from './entities/checkout'`. Any TypeScript consumer using `moduleResolution: "nodenext"`/`"node16"` (a common, often-recommended setting) would get `error TS2834: Relative import paths need explicit file extensions`. Cross-package types (nothing to bundle against here, but see `@abacatepay/sdk`'s changelog) stay as real `import`s, not inlined — inlining would have silently duplicated the `enum` declarations (`PaymentStatus`, `PaymentMethod`, etc.) into a nominally incompatible copy for anyone using both packages together.
+
 ## [3.0.2] - 2026-07-27
 
 ### Fixed

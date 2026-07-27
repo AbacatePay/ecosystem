@@ -4,6 +4,12 @@ All notable changes to `@abacatepay/sdk` are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.0.3] - 2026-07-27
+
+### Fixed
+
+- Declaration files (`.d.ts`) are now bundled into a single self-contained file per entrypoint (via `dts-bundle-generator`), same as the `.js` output already was. Found by testing a real, strict TypeScript consumer (`moduleResolution: "nodenext"`): `dist/index.d.ts` still said `export * from './v2'` after the earlier `.js`-bundling fix, since declaration emission is a separate step that walks the original unbundled source. `@abacatepay/rest`/`@abacatepay/types` stay as real `import`s in the bundled declaration (not inlined) — inlining would have silently duplicated `@abacatepay/types`'s `enum` declarations into a nominally incompatible copy, breaking any consumer code that mixes a value returned by this SDK with a type imported directly from `@abacatepay/types`.
+
 ## [2.0.2] - 2026-07-27
 
 ### Changed
