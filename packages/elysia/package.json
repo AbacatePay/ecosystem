@@ -1,6 +1,6 @@
 {
 	"name": "@abacatepay/elysia",
-	"version": "2.0.0",
+	"version": "2.0.1",
 	"repository": {
 		"type": "git",
 		"url": "git+https://github.com/AbacatePay/ecosystem.git"
@@ -52,7 +52,7 @@
 	},
 	"scripts": {
 		"test": "bun test",
-		"build": "rm -rf dist && bun run scripts/version.ts && tsc",
+		"build": "rm -rf dist && bun run scripts/version.ts && bun build src/index.ts --outdir dist --target node && bun run types",
 		"types": "bunx tsc --emitDeclarationOnly",
 		"prepublishOnly": "bun run build"
 	},

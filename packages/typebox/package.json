@@ -1,6 +1,6 @@
 {
 	"name": "@abacatepay/typebox",
-	"version": "2.0.0",
+	"version": "2.0.1",
 	"description": "Official TypeBox schemas for the AbacatePay API, including requests, responses, and webhooks.",
 	"type": "module",
 	"sideEffects": false,
@@ -57,7 +57,7 @@
 	],
 	"scripts": {
 		"test": "bun test",
-		"build": "rm -rf dist && bun run gen:version && tsc",
+		"build": "rm -rf dist && bun run gen:version && bun build src/index.ts src/v1/index.ts src/v2/index.ts --outdir dist --target node && bun run types",
 		"types": "bunx tsc --emitDeclarationOnly",
 		"prepublishOnly": "bun run build",
 		"gen:version": "bun run scripts/version.ts"

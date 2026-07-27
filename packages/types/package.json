@@ -1,5 +1,5 @@
 {
-	"version": "3.0.0",
+	"version": "3.0.1",
 	"name": "@abacatepay/types",
 	"description": "Abacate Pay API typings that are always up to date.",
 	"type": "module",
@@ -43,7 +43,8 @@
 		"dist"
 	],
 	"scripts": {
-		"build": "bun run gen:version && tsc",
+		"build": "rm -rf dist && bun run gen:version && bun build types/index.ts types/v1/index.ts types/v2/index.ts --outdir dist --target node && bun run types",
+		"types": "bunx tsc --emitDeclarationOnly",
 		"prepublishOnly": "bun run build",
 		"gen:version": "bun run scripts/version.ts",
 		"test": "bun test",
