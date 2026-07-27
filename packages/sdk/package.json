@@ -1,6 +1,6 @@
 {
 	"name": "@abacatepay/sdk",
-	"version": "2.0.1",
+	"version": "2.0.2",
 	"type": "module",
 	"sideEffects": false,
 	"license": "Apache-2.0",
@@ -46,7 +46,7 @@
 	],
 	"scripts": {
 		"test": "bun test",
-		"build": "rm -rf dist && bun run scripts/version.ts && bun build src/index.ts src/v1/index.ts src/v2/index.ts --outdir dist --target node && bun run types",
+		"build": "rm -rf dist && bun run scripts/version.ts && bun build src/index.ts src/v1/index.ts src/v2/index.ts --outdir dist --target node --external '@abacatepay/rest' --external '@abacatepay/rest/*' --external '@abacatepay/types' --external '@abacatepay/types/*' && bun run types",
 		"types": "bunx tsc --emitDeclarationOnly",
 		"prepublishOnly": "bun run build"
 	},

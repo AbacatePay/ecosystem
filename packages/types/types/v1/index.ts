@@ -5,4 +5,5 @@ export * from './entities/pix';
 export * from './entities/store';
 export * from './entities/withdraw';
 export * from './rest';
+export { Routes } from './routes';
 export * from './webhook';

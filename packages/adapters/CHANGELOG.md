@@ -4,6 +4,12 @@ All notable changes to `@abacatepay/adapters` are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.0.2] - 2026-07-27
+
+### Changed
+
+- The build no longer inlines `@abacatepay/zod`'s full runtime into `dist` — it's now a real `import` resolved via `node_modules` at install time. `webhooks/index.js` dropped from ~500KB to ~2.6KB. No behavior change; `@abacatepay/zod` was already listed as a real `dependency`.
+
 ## [2.0.1] - 2026-07-27
 
 ### Fixed

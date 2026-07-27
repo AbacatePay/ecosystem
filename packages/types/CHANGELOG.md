@@ -4,6 +4,12 @@ All notable changes to `@abacatepay/types` are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [3.0.2] - 2026-07-27
+
+### Fixed
+
+- `types/v1` didn't re-export `Routes` the way `types/v2` already did, forcing consumers to import the deep subpath `@abacatepay/types/v1/routes` directly. That subpath was never actually produced by the bundled build (only `index`, `v1/index`, `v2/index` are built as complete bundles), so it broke under real Node.js resolution as soon as anything stopped inlining `@abacatepay/types` wholesale. `types/v1` now re-exports `Routes`, matching `v2`.
+
 ## [3.0.1] - 2026-07-27
 
 ### Fixed

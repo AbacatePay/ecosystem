@@ -4,6 +4,16 @@ All notable changes to `@abacatepay/sdk` are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.0.2] - 2026-07-27
+
+### Changed
+
+- The build no longer inlines `@abacatepay/rest` and `@abacatepay/types` into `dist` — they're now real `import`s resolved via `node_modules` at install time, like any other npm dependency. Bundle size dropped from ~14KB to ~5KB. No behavior change; both were already listed as real `dependencies`.
+
+### Fixed
+
+- Fixed a bug this change surfaced: `sdk/v1` imported `Routes` from the deep subpath `@abacatepay/types/v1/routes`, which was never actually produced by `types`' bundled build. Now imports it from the `@abacatepay/types/v1` barrel instead (see `@abacatepay/types`'s changelog).
+
 ## [2.0.1] - 2026-07-27
 
 ### Fixed

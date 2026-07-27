@@ -4,6 +4,12 @@ All notable changes to `@abacatepay/elysia` are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.0.2] - 2026-07-27
+
+### Changed
+
+- The build no longer inlines `@abacatepay/adapters` (and transitively `@abacatepay/zod`) or the `elysia` framework itself into `dist` — all are now real `import`s resolved via `node_modules` at install time. Bundle size dropped from ~1MB to ~1.1KB. No behavior change; both were already listed as real dependencies (`@abacatepay/adapters` as a `dependency`, `elysia` as a `peerDependency` — bundling a peer dependency was never correct to begin with).
+
 ## [2.0.1] - 2026-07-27
 
 ### Fixed
