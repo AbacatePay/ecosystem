@@ -54,7 +54,7 @@
 	"devDependencies": {
 		"@biomejs/biome": "^2.3.8",
 		"dts-bundle-generator": "^9.5.1",
-		"typescript": "^5.9.3"
+		"typescript": "^7.0.2"
 	},
 	"author": {
 		"name": "AbacatePay",
