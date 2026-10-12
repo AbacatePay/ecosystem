@@ -47,7 +47,10 @@ console.log(pix);
 
 ## Retry & Backoff
 
-Por padrão, o REST faz **3 retries** automaticamente para erros **retryable** (rate limit, 5xx, erro de rede).
+Por padrão, o REST faz até **3 retries** automaticamente:
+
+- Requisições `GET` e `HEAD` são repetidas em timeout e nos status 408, 425, 429 e 5xx.
+- Os outros métodos (`POST`, `PUT`, `PATCH`, `DELETE`) **só são repetidos em 429**, que a API responde antes de executar a requisição. Depois de um timeout ou de um 5xx a requisição pode já ter sido processada, e repetir uma cobrança de cartão, um saque ou um PIX poderia cobrar ou enviar dinheiro duas vezes.
 
 </div>
 
@@ -57,6 +60,24 @@ const client = createREST({
         max: 5
     },
 })
+```
+
+<div align="center">
+
+## Timeout
+
+O timeout padrão é de **30 segundos** e pode ser alterado no cliente ou em uma requisição específica.
+Quando um `POST` dá timeout, o erro avisa que ele pode ter sido processado: consulte o recurso antes de tentar de novo.
+
+</div>
+
+```ts
+const client = createREST({ timeout: 60_000 });
+
+const { success, error } = await client.post('/pix/send', {
+    body,
+    timeout: 90_000,
+});
 ```
 
 <div align="center">

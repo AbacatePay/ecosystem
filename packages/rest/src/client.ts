@@ -7,13 +7,14 @@ import type {
 } from './types';
 import {
 	backoff,
+	isRetrySafeMethod,
 	isTimeoutError,
 	RATE_LIMIT_STATUS_CODE,
 	RETRYABLE_STATUS,
 	sleep,
 } from './utils';
 
-const DEFAULT_TIMEOUT_IN_MS = 5_000;
+const DEFAULT_TIMEOUT_IN_MS = 30_000;
 const NO_CONTENT_STATUS_CODE = 204;
 
 /**
@@ -30,12 +31,21 @@ const asFailure = <R>(error: string): R =>
  * Every method resolves — it never rejects or throws. Client-side failures
  * (network errors, timeouts, missing secret) are normalized into the same
  * `{ data, error, success }` shape a real API response has.
+ *
+ * Retries: GET and HEAD requests are retried on timeouts and on retryable
+ * statuses (408, 425, 429, 5xx). Any other method (POST, PUT, PATCH, DELETE)
+ * is only retried on 429, which the API returns before running the request:
+ * retrying a request that may already have been processed could charge or
+ * send money twice.
  */
 export const createREST = (options: RESTOptions = {}) => {
 	const makeURL = (route: string, query?: MakeRequestOptions['query']) => {
 		const base = `${options.base ?? 'https://api.abacatepay.com/v'}${options.version ?? 2}${route}`;
+		const search = query ? `${new URLSearchParams(query)}` : '';
 
-		return query ? `${base}?${new URLSearchParams(query)}` : base;
+		if (!search) return base;
+
+		return `${base}${base.includes('?') ? '&' : '?'}${search}`;
 	};
 
 	const makeHeaders = (custom?: Record<string, string>) => {
@@ -64,8 +74,16 @@ export const createREST = (options: RESTOptions = {}) => {
 		retry,
 		route,
 		attempt,
+		timeout,
 		requestOptions,
 	}: InternalHandleTimeoutErrorOptions): Promise<R> => {
+		const { method } = requestOptions;
+
+		if (!isRetrySafeMethod(method))
+			return asFailure<R>(
+				`${method} ${route} timed out after ${timeout}ms and was not retried: it may still have been processed by AbacatePay, so check its status before trying again`,
+			);
+
 		if (attempt >= retry.max)
 			return asFailure<R>(`${retry.max} attempts were performed, all failed`);
 
@@ -86,7 +104,12 @@ export const createREST = (options: RESTOptions = {}) => {
 		attempt,
 		response,
 	}: InternalHandleErrorOptions): Promise<R> => {
-		if (!RETRYABLE_STATUS.includes(response.status)) {
+		const isRetryable =
+			RETRYABLE_STATUS.includes(response.status) &&
+			(isRetrySafeMethod(requestOptions.method) ||
+				response.status === RATE_LIMIT_STATUS_CODE);
+
+		if (!isRetryable) {
 			const body = await response.json().catch(() => null);
 
 			return asFailure<R>(
@@ -125,7 +148,8 @@ export const createREST = (options: RESTOptions = {}) => {
 			);
 
 		const url = makeURL(route, requestOptions.query);
-		const { timeout = DEFAULT_TIMEOUT_IN_MS } = options;
+		const timeout =
+			requestOptions.timeout ?? options.timeout ?? DEFAULT_TIMEOUT_IN_MS;
 		const retry = requestOptions.retry ?? options.retry ?? { max: 3 };
 
 		try {
@@ -149,7 +173,13 @@ export const createREST = (options: RESTOptions = {}) => {
 			return parseResponse<R>(response);
 		} catch (err) {
 			if (isTimeoutError(err))
-				return handleTimeout<R>({ retry, route, attempt, requestOptions });
+				return handleTimeout<R>({
+					retry,
+					route,
+					attempt,
+					timeout,
+					requestOptions,
+				});
 
 			return asFailure<R>(`${err}`);
 		}
@@ -173,35 +203,35 @@ export const createREST = (options: RESTOptions = {}) => {
 		},
 
 		/**
-		 * Runs a GET request from the API.
+		 * Runs a GET request from the API. Retried on timeouts and retryable statuses.
 		 */
 		get<R>(route: string, requestOptions?: MakeRequestOptionsWithoutMethod) {
 			return makeRequest<R>(route, { ...requestOptions, method: 'GET' });
 		},
 
 		/**
-		 * Runs a POST request from the API.
+		 * Runs a POST request from the API. Only retried on 429 (Never on timeouts or 5xx).
 		 */
 		post<R>(route: string, requestOptions?: MakeRequestOptionsWithoutMethod) {
 			return makeRequest<R>(route, { ...requestOptions, method: 'POST' });
 		},
 
 		/**
-		 * Runs a DELETE request from the API.
+		 * Runs a DELETE request from the API. Only retried on 429 (Never on timeouts or 5xx).
 		 */
 		delete<R>(route: string, requestOptions?: MakeRequestOptionsWithoutMethod) {
 			return makeRequest<R>(route, { ...requestOptions, method: 'DELETE' });
 		},
 
 		/**
-		 * Runs a PUT request from the API.
+		 * Runs a PUT request from the API. Only retried on 429 (Never on timeouts or 5xx).
 		 */
 		put<R>(route: string, requestOptions?: MakeRequestOptionsWithoutMethod) {
 			return makeRequest<R>(route, { ...requestOptions, method: 'PUT' });
 		},
 
 		/**
-		 * Runs a PATCH request from the API.
+		 * Runs a PATCH request from the API. Only retried on 429 (Never on timeouts or 5xx).
 		 */
 		patch<R>(route: string, requestOptions?: MakeRequestOptionsWithoutMethod) {
 			return makeRequest<R>(route, { ...requestOptions, method: 'PATCH' });

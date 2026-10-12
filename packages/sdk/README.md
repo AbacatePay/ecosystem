@@ -64,7 +64,99 @@ const checkout = await abacate.checkouts.create({
 ```ts
 const customers = await abacate.customers.list({
     limit: 25,
+    email: 'maria',
 });
+```
+
+<div align="center">
+
+## Paginação
+
+Toda listagem da v2 usa **cursor**: os itens vêm do mais novo para o mais antigo e a resposta traz `pagination: { hasMore, next, before }`.
+Para ler a próxima página, envie `pagination.next` como `after` até ele ser `null`. Não dependa só de `hasMore`.
+
+</div>
+
+```ts
+let after: string | undefined;
+
+do {
+    const page = await abacate.checkouts.list({ limit: 100, after });
+
+    if (!page.success) break;
+
+    for (const checkout of page.data) console.log(checkout.id, checkout.status);
+
+    after = page.pagination.next ?? undefined;
+} while (after);
+```
+
+<p align="center">Todas as listagens também aceitam <code>before</code>, <code>startDate</code> e <code>endDate</code> (<code>YYYY-MM-DD</code>), além dos filtros de cada rota.</p>
+
+<div align="center">
+
+## Checkout transparente de cartão
+
+O cartão é tokenizado no navegador pelo AbacatePay.js, que gera um `token` (`ctok_...`) de uso único, válido por 60 segundos e criado para um valor (`amount`).
+No seu backend, cobre com `card.create`. A resposta traz um `cardToken` permanente, que você pode guardar para cobrar o mesmo cartão de novo.
+
+</div>
+
+```ts
+import { TransparentMethod } from '@abacatepay/types/v2';
+
+const charge = await abacate.card.create({
+    amount: 15000,
+    token: 'ctok_...', // ou o cardToken de uma cobrança anterior, nunca os dois
+    installmentCount: 3, // opcional, de 1 a 12 (mínimo de R$10 por parcela)
+    customer: {
+        name: 'Maria Silva',
+        email: 'maria@exemplo.com',
+        taxId: '529.982.247-25',
+        cellphone: '11999999999',
+    },
+    metadata: { orderId: 'pedido_123' }, // os valores precisam ser strings
+});
+
+if (charge.success) {
+    console.log(charge.data.id, charge.data.status, charge.data.cardToken);
+}
+
+// Consulte ou liste qualquer cobrança transparente (PIX, Boleto ou cartão); reembolse PIX ou cartão
+await abacate.transparents.get(charge.data!.id);
+await abacate.transparents.list({ method: TransparentMethod.Card });
+await abacate.transparents.refund(charge.data!.id, 'Pedido cancelado');
+```
+
+<div align="center">
+
+## Retries e timeout
+
+Requisições `GET` são repetidas automaticamente em timeout e em erros temporários (408, 425, 429 e 5xx).
+Requisições que criam, enviam ou reembolsam dinheiro (`POST`) **só são repetidas em 429**: se uma cobrança de cartão, saque ou PIX der timeout, ela pode ter sido processada, então consulte antes de tentar de novo.
+O timeout padrão é de 30 segundos.
+
+</div>
+
+```ts
+const abacate = AbacatePay({
+    secret,
+    rest: { timeout: 60_000, retry: { max: 5 } },
+});
+```
+
+<div align="center">
+
+## MRR público (Trust MRR)
+
+As rotas `mrr.*` só aceitam um token `mrr_` (da instalação do app Trust MRR), e esse token não funciona nas outras rotas. Use um cliente separado:
+
+</div>
+
+```ts
+const mrr = AbacatePay({ secret: process.env.ABACATEPAY_MRR_TOKEN });
+
+const { data } = await mrr.mrr.byDay({ startDate: '2026-01-01', endDate: '2026-01-31' });
 ```
 
 <div align="center">

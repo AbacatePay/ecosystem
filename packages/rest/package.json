@@ -1,6 +1,6 @@
 {
 	"name": "@abacatepay/rest",
-	"version": "1.0.2",
+	"version": "1.1.0",
 	"type": "module",
 	"sideEffects": false,
 	"license": "Apache-2.0",

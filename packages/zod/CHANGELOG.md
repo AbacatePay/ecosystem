@@ -4,6 +4,27 @@ All notable changes to `@abacatepay/zod` are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.1.0] - 2026-10-12
+
+### Fixed
+
+- The v2 webhook schemas match the payloads AbacatePay sends. `WebhookEvent.parse` rejected every real `checkout.completed`, `transparent.completed`, `payout.*`, `subscription.plan_changed` and `subscription.payment_failed` body, so `@abacatepay/adapters` answered 400 and the events were lost. The envelope has `apiVersion: 2`; `checkout.*` data is `{ checkout, customer, payerInformation? }`; `transparent.*` is `{ transparent, customer, payerInformation }`, including the card installment fields; `subscription.*` is `{ subscription, customer, checkout?, payment?, payerInformation? }`; `payout.*` is `{ withdraw }`, with `FAILED` for failed payouts; `transfer.*` is `{ transfer }`; refund and dispute events add `reason`.
+- Webhook objects are loose: fields AbacatePay adds to the payload later are kept instead of failing the whole event. Webhook dates stay ISO strings.
+- `APIWebhook.events` accepts the v1 event names the API also stores.
+
+### Added
+
+- `subscription.plan_changed` and `subscription.payment_failed` in `WebhookEventType`, with their schemas.
+- Schemas for the data of every event (`WebhookCheckout`, `WebhookTransparent`, `WebhookSubscription`, `WebhookSubscriptionCheckout`, `WebhookSubscriptionPayment`, `WebhookPayout`, `WebhookTransfer`, `WebhookCustomer`, `WebhookPayerInformation`, `WebhookUtms` and the status/method enums), `StandardWebhookEvent` and `BaseStandardWebhookEvent` for Standard Webhooks deliveries (`type`/`timestamp`, no `id`), and `WebhookV1EventName`.
+
+### Changed
+
+- The inferred webhook types follow the new schemas: code that read `data.transaction`, `data.payment`, `data.billing` or `data.pixQrCode` stops compiling (those fields never existed in a real payload).
+
+### Deprecated
+
+- `WebhookUndocumentedEvent`, which now only covers `checkout.lost` and `transparent.lost`: AbacatePay never sends them; a lost dispute arrives as `*.disputed` with `status: 'REFUNDED'`.
+
 ## [2.0.3] - 2026-07-27
 
 ### Fixed

@@ -11,8 +11,17 @@ import {
 	RESTPostCreateTransparentBody,
 	RESTPostCreateWebhookBody,
 	RESTPostSendPixTransferBody,
+	StandardWebhookEvent,
 	WebhookEvent,
 } from '../src/v2';
+import {
+	checkoutCompleted,
+	legacyBodies,
+	outdatedPayoutBody,
+	payoutFailed,
+	standardTransparentCompleted,
+	transparentCardInstallments,
+} from './webhook-fixtures';
 
 // The package doesn't register a `uri` format validator itself (pre-existing
 // gap, not specific to these tests), so `Value.Check` would otherwise reject
@@ -138,27 +147,66 @@ describe('v2 schemas', () => {
 
 		expect(Value.Check(RESTPostChangeSubscriptionPlanData, result)).toBe(true);
 	});
+});
 
-	test('WebhookEvent discriminates payout.completed from payout.failed', () => {
-		const completed = {
-			id: 'log_1',
-			event: 'payout.completed',
-			devMode: false,
-			data: {
-				transaction: {
-					id: 'payout_1',
-					devMode: false,
-					receiptUrl: null,
-					amount: 1000,
-					platformFee: 80,
-					externalId: 'trx_1',
-					createdAt: new Date(),
-					updatedAt: new Date(),
-					status: 'COMPLETE',
+describe('v2 webhook schemas', () => {
+	const errorsOf = (value: unknown) =>
+		[...Value.Errors(WebhookEvent, value)].map(
+			(error) => `${error.path}: ${error.message}`,
+		);
+
+	for (const [name, body] of Object.entries(legacyBodies))
+		test(`WebhookEvent accepts a real ${name} body`, () => {
+			expect(Value.Check(WebhookEvent, body) ? [] : errorsOf(body)).toEqual([]);
+		});
+
+	test('accepts the card installment fields of transparent.completed', () => {
+		expect(Value.Check(WebhookEvent, transparentCardInstallments)).toBe(true);
+		expect(
+			Value.Check(WebhookEvent, {
+				...transparentCardInstallments,
+				data: {
+					...transparentCardInstallments.data,
+					transparent: {
+						...transparentCardInstallments.data.transparent,
+						installmentCount: '2',
+					},
 				},
+			}),
+		).toBe(false);
+	});
+
+	test('accepts fields AbacatePay adds in the future instead of rejecting the event', () => {
+		const body = {
+			...checkoutCompleted,
+			newEnvelopeField: true,
+			data: {
+				...checkoutCompleted.data,
+				checkout: { ...checkoutCompleted.data.checkout, newField: 'kept' },
 			},
 		};
 
-		expect(Value.Check(WebhookEvent, completed)).toBe(true);
+		expect(Value.Check(WebhookEvent, body)).toBe(true);
+	});
+
+	test('accepts payout.failed with the FAILED status', () => {
+		expect(Value.Check(WebhookEvent, payoutFailed)).toBe(true);
+	});
+
+	test('rejects the payout shape that AbacatePay never sends', () => {
+		expect(Value.Check(WebhookEvent, outdatedPayoutBody)).toBe(false);
+	});
+
+	test('rejects a body without apiVersion', () => {
+		const { apiVersion: _, ...body } = checkoutCompleted;
+
+		expect(Value.Check(WebhookEvent, body)).toBe(false);
+	});
+
+	test('StandardWebhookEvent accepts a Standard Webhooks body', () => {
+		expect(
+			Value.Check(StandardWebhookEvent, standardTransparentCompleted),
+		).toBe(true);
+		expect(Value.Check(WebhookEvent, standardTransparentCompleted)).toBe(false);
 	});
 });

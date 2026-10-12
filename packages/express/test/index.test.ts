@@ -63,18 +63,20 @@ describe('Webhooks', () => {
 		const body = JSON.stringify({
 			id: 'log_1',
 			event: 'payout.completed',
+			apiVersion: 2,
 			devMode: false,
 			data: {
-				transaction: {
-					id: 'payout_1',
-					devMode: false,
-					receiptUrl: null,
+				withdraw: {
+					id: 'tran_1',
 					amount: 1000,
+					status: 'COMPLETE',
+					method: 'PIX',
 					platformFee: 80,
-					externalId: 'trx_1',
+					receiptUrl: null,
+					externalId: null,
 					createdAt: new Date().toISOString(),
 					updatedAt: new Date().toISOString(),
-					status: 'COMPLETE',
+					endToEndIdentifier: null,
 				},
 			},
 		});

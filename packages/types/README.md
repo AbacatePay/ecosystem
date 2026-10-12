@@ -60,9 +60,9 @@ Tipos usados em requisições diretas à API.
   - Sufixo `Data` → dados retornados pela API
   Ex.: `RESTGetListCouponsData`
 
-- O pacote **NÃO adiciona tipos além do que existe na documentação oficial**.
-Cada tipo reflete exatamente o que está documentado aqui:
-https://docs.abacatepay.com/pages/introduction
+- O pacote **NÃO adiciona tipos além do que a API realmente envia e recebe**.
+Cada tipo reflete o comportamento da API v2, documentada aqui:
+https://docs.abacatepay.com/pages/start/introduction
 
 - Campos marcados com `@unstable`
 São campos que não têm definição formal na documentação, mas cujo tipo foi inferido com base nos exemplos oficiais.
@@ -75,18 +75,41 @@ São campos que não têm definição formal na documentação, mas cujo tipo fo
 ```ts
 import {
     Routes,
-    type APICoupon,
     type RESTPostCreateCouponBody,
+    type RESTPostCreateCouponData,
 } from '@abacatepay/types/v2';
-import { REST } from '@abacatepay/rest';
+import { createREST } from '@abacatepay/rest';
 
-const client = new REST({ secret });
+const client = createREST({ secret });
 
 async function createCoupon(body: RESTPostCreateCouponBody) {
-    const data = await client.post<APICoupon>(Routes.coupons.create, { body });
+    const { data, error, success } = await client.post<RESTPostCreateCouponData>(
+        Routes.coupons.create,
+        { body },
+    );
 
-    return data;
+    return success ? data : error;
 }
+```
+
+<p align="center"><strong>Percorra uma listagem com cursor</strong></p>
+
+<p align="center">Os builders de <code>Routes</code> só enviam os parâmetros informados, já codificados. Envie <code>pagination.next</code> como <code>after</code> até ele ser <code>null</code> (não dependa só de <code>hasMore</code>).</p>
+
+```ts
+import { Routes, type RESTGetListCustomersData } from '@abacatepay/types/v2';
+
+let after: string | undefined;
+
+do {
+    const page = await client.get<RESTGetListCustomersData>(
+        Routes.customers.list({ limit: 100, after }),
+    );
+
+    if (!page.success) break;
+
+    after = page.pagination.next ?? undefined;
+} while (after);
 ```
 
 <p align="center"><strong>Crie um servidor com Elysia e escute eventos de Webhooks do Aabacate</strong></p>
@@ -98,15 +121,40 @@ import { WebhookEventType } from '@abacatepay/types/v2';
 const app = new Elysia()
 	.post('/webhooks/abacatepay', ({ body: { event, data } }) => {
 			switch (event) {
-				case WebhookEventType.BillingPaid:
+				case WebhookEventType.CheckoutCompleted:
 					...
-				case WebhookEventType.PayoutDone:
+				case WebhookEventType.TransparentCompleted:
 					...
 				case WebhookEventType.PayoutFailed:
 					...
 			}
 	}, {
 		body: WebhookEvent,
+);
+```
+
+<p align="center"><strong>Verifique a assinatura dos webhooks</strong></p>
+
+<p align="center">Endpoints no formato antigo recebem o header <code>X-Webhook-Signature</code> e o seu secret em <code>?webhookSecret=</code>. Endpoints no formato Standard Webhooks recebem os headers <code>webhook-id</code>, <code>webhook-timestamp</code> e <code>webhook-signature</code>, assinados com o secret do endpoint.</p>
+
+```ts
+import {
+    verifyStandardWebhookSignature,
+    verifyWebhookSignature,
+} from '@abacatepay/types';
+
+// Formato antigo
+const valid = verifyWebhookSignature(rawBody, headers['x-webhook-signature']);
+
+// Standard Webhooks
+const validStandard = verifyStandardWebhookSignature(
+    rawBody,
+    {
+        id: headers['webhook-id'],
+        timestamp: headers['webhook-timestamp'],
+        signature: headers['webhook-signature'],
+    },
+    process.env.ABACATEPAY_WEBHOOK_SECRET,
 );
 ```
 

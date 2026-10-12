@@ -33,6 +33,10 @@ export const dispatch = (data: WebhookEvent, options: WebhookOptions) => {
 			return (options.onSubscriptionRenewed ?? onPayload)?.(data);
 		case 'subscription.trial_started':
 			return (options.onSubscriptionTrialStarted ?? onPayload)?.(data);
+		case 'subscription.plan_changed':
+			return (options.onSubscriptionPlanChanged ?? onPayload)?.(data);
+		case 'subscription.payment_failed':
+			return (options.onSubscriptionPaymentFailed ?? onPayload)?.(data);
 		case 'transfer.completed':
 			return (options.onTransferCompleted ?? onPayload)?.(data);
 		case 'transfer.failed':

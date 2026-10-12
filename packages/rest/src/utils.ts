@@ -12,7 +12,21 @@ export const RATE_LIMIT_STATUS_CODE = 429;
 export const SERVICE_UNAVAILABLE_STATUS_CODE = 503;
 
 /**
- * Array of any retryable status code.
+ * Methods that are retried on timeouts and on every retryable status. Any
+ * other method is only retried on 429, because the request may already have
+ * been processed by the API.
+ */
+export const RETRY_SAFE_METHODS = ['GET', 'HEAD'];
+
+/**
+ * Whether a request with this method can be retried after it may have reached the API.
+ */
+export const isRetrySafeMethod = (method: string) =>
+	RETRY_SAFE_METHODS.includes(method.toUpperCase());
+
+/**
+ * Array of any retryable status code. Only `GET`/`HEAD` requests are retried
+ * on all of them; other methods are only retried on 429.
  */
 export const RETRYABLE_STATUS = [
 	408,

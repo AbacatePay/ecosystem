@@ -1,35 +1,44 @@
 import type { PaymentMethod } from './checkout';
 
 /**
+ * A subscription (`subs_...`). It is created when a customer pays a subscription checkout.
+ *
  * https://docs.abacatepay.com/pages/subscriptions/reference#estrutura
  */
 export interface APISubscription {
 	/**
-	 * The ID of the subscription.
+	 * Unique subscription identifier (`subs_...`).
 	 */
 	id: string;
 	/**
-	 * The subscription value in cents.
+	 * ID of the subscription checkout (`bill_...`) that originated this subscription.
+	 * One checkout can originate several subscriptions, one per paying customer.
+	 */
+	checkoutId: string | null;
+	/**
+	 * ID of the subscribed customer (`cust_...`).
+	 */
+	customerId: string;
+	/**
+	 * Amount charged every cycle, in cents.
 	 */
 	amount: number;
 	/**
-	 * Subscription currency.
+	 * Status of the subscription.
+	 *
+	 * @see {@link SubscriptionStatus}
 	 */
-	currency: string;
+	status: SubscriptionStatus;
 	/**
-	 * Subscription name.
+	 * Payment method of the subscription.
 	 */
-	name: string;
+	method: PaymentMethod.Card | PaymentMethod.Pix;
 	/**
-	 * Subscription description.
+	 * Coupons applied to the subscription (Currently always empty).
 	 */
-	description: string;
+	coupons: string[];
 	/**
-	 * Unique identifier of the subscription on your system.
-	 */
-	externalId: string;
-	/**
-	 * Indicates whether the signature was created in a testing environment.
+	 * Indicates whether the subscription was created in a testing environment.
 	 */
 	devMode: boolean;
 	/**
@@ -41,30 +50,13 @@ export interface APISubscription {
 	 */
 	updatedAt: string;
 	/**
-	 * Payment method for the subscription.
+	 * Trial length in days. `null` when the subscription has no trial.
 	 */
-	method: PaymentMethod;
+	trialDays: number | null;
 	/**
-	 * Status of the subscription.
+	 * End of the trial. `null` when the subscription has no trial.
 	 */
-	status: SubscriptionStatus;
-	/**
-	 * Billing frequency configuration.
-	 */
-	frequency: {
-		/**
-		 * Subscription billing cycle.
-		 */
-		cycle: 'MONTHLY' | 'YEARLY' | 'WEEKLY' | 'DAILY';
-		/**
-		 * Day of the month the charge will be processed (1-31).
-		 */
-		dayOfProcessing: number;
-	};
-	/**
-	 * Identifier of the customer who will have the signature.
-	 */
-	customerId: string;
+	trialEndsAt: string | null;
 	/**
 	 * Retry policy in case of payment failure.
 	 */
@@ -78,18 +70,15 @@ export interface APISubscription {
 		 */
 		retryEvery: number;
 	};
-	/**
-	 * Array of events related to the subscription.
-	 */
-	events: APISubscriptionEvent[];
 }
 
+/**
+ * https://docs.abacatepay.com/pages/subscriptions/reference#atributos
+ */
 export enum SubscriptionStatus {
 	Pending = 'PENDING',
 	Active = 'ACTIVE',
 	Cancelled = 'CANCELLED',
-	Expired = 'EXPIRED',
-	Failed = 'FAILED',
 }
 
 /**
@@ -99,7 +88,7 @@ export enum SubscriptionStatus {
  */
 export interface APISubscriptionPlanChange {
 	/**
-	 * Unique identifier of this plan-change request.
+	 * Unique identifier of this plan-change request (`subu_...`). A new ID is generated on every call.
 	 */
 	id: string;
 	/**
@@ -107,15 +96,32 @@ export interface APISubscriptionPlanChange {
 	 */
 	subscriptionId: string;
 	/**
-	 * Status of the plan-change request.
+	 * Status of the plan-change request (`PENDING` in this response).
 	 */
 	status: 'PENDING' | 'APPLIED' | 'CANCELLED';
 	/**
-	 * ID of the new product.
+	 * New products of the subscription.
+	 */
+	items: {
+		/**
+		 * Product ID.
+		 */
+		productId: string;
+		/**
+		 * Quantity.
+		 */
+		quantity: number;
+		/**
+		 * `price * quantity` of this product, in cents.
+		 */
+		newAmount: number;
+	}[];
+	/**
+	 * Same as `items[0].productId`.
 	 */
 	productId: string;
 	/**
-	 * New quantity for the product.
+	 * Same as `items[0].quantity`.
 	 */
 	quantity: number;
 	/**
@@ -135,7 +141,7 @@ export interface APISubscriptionPlanChange {
  */
 export interface APISubscriptionUsageRecord {
 	/**
-	 * Unique identifier of this usage record.
+	 * Unique identifier of this usage record (`usgr_...`).
 	 */
 	id: string;
 	/**
@@ -166,24 +172,4 @@ export interface APISubscriptionUsageRecord {
 	 * When the usage was recorded.
 	 */
 	recordedAt: string;
-}
-
-/**
- * https://docs.abacatepay.com/pages/subscriptions/reference#estrutura
- */
-export interface APISubscriptionEvent {
-	/**
-	 * Event type.
-	 *
-	 * @remarks We need to use `(string & {})` because we don't know exactly all possible values.
-	 */
-	event: 'CREATED' | (string & {});
-	/**
-	 * Event description.
-	 */
-	description: string;
-	/**
-	 * Event creation date.
-	 */
-	createdAt: string;
 }

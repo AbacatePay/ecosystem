@@ -4,6 +4,40 @@ All notable changes to `@abacatepay/sdk` are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [3.0.0] - 2026-10-12
+
+### Fixed
+
+- **Breaking:** list methods use the API's cursor pagination. They take `after`, `before`, `limit` (1-100), `startDate`, `endDate` and the filters each route accepts, and resolve with `pagination: { hasMore, next, before }`. `page` and `cursor` were removed: the API ignored them, so only the first page was ever returned. To read every page, send `pagination.next` as `after` until it is `null` (do not rely on `hasMore` alone). Lists no longer send `limit=20` implicitly, so they return up to 100 items (the API default) unless you pass `limit`.
+- `customers.delete`, `coupons.delete` and `webhooks.delete` send the ID in the query string, where the API reads it; every call used to fail with 422.
+- `paymentLinks.get` calls `/payment-links/get` and `store.get()` calls `/stores/get`; both called paths that do not exist and always answered `Not found`.
+- `payouts.get(id)` looks the payout up by its ID (it sent the ID as `externalId`, so it never found it). It also accepts `{ id }` or `{ externalId }`, URL-encoded.
+- **Breaking:** `payouts.create` requires the `pix: { type, key }` destination the API requires (every call failed with 422); `externalId` is optional.
+- **Breaking:** `subscriptions.create` takes the real body (`items`, `methods`, `customerId`, `externalId`, `returnUrl`, `completionUrl`, `coupons`, `upSellProductId`, `card`, `retryPolicy`, `metadata`) and resolves with the subscription checkout it creates; the old body was missing the required `items` and every call failed with 422.
+- **Breaking:** `coupons.create` requires `maxRedeems` (422 when omitted). `discount` is in basis points for `PERCENTAGE` coupons (1000 = 10%).
+- **Breaking:** `transfers.list` requires `{ id }`, as the API does (calls without it failed with 422), and `transfers.get({ externalId })` works (the API needs the `id` key, so an empty one is sent).
+- `checkouts.refund`, `paymentLinks.refund` and `pix.refund` resolve with the real refund (`{ id, status, amount, reason, originalId, createdAt }`) instead of a `refundPublicId` that never existed.
+- `pix.simulate` no longer sends a body (the API ignores it).
+- Requests that create, send or refund money are no longer retried after they may have reached the API, through `@abacatepay/rest` 1.1.0: only `GET` requests are retried on timeouts and 5xx, other methods only on 429. A retried card charge, payout or PIX transfer could charge or send money twice.
+- Every request and response type follows `@abacatepay/types` 4.0.0, which matches the API (see its changelog).
+
+### Added
+
+- `card.create`: transparent card charges (`POST /transparents/create` with `method: 'CARD'`), with a single-use `token` from AbacatePay.js or a saved `cardToken` (exactly one, enforced by the type) and up to 12 installments.
+- `transparents.get`, `transparents.list` (with the `method` filter) and `transparents.refund`, for PIX, Boleto and card charges.
+- `checkouts.delete`, `paymentLinks.delete`, `subscriptions.get`, `subscriptions.checkouts.get`, `subscriptions.checkouts.list`, `subscriptions.checkouts.delete`, `stores.get`, `stores.list`, `bankStatement.list`, `mrr.byDay`, `reports.list` and `reports.run`.
+- Lookups by filters: `customers.get` (`email`, `taxId`), `checkouts.get` and `paymentLinks.get` (`externalId`, `customerId`, `method`), `coupons.get(id, status)`; `subscriptions.changePlan` accepts `items` for multi-product plans.
+
+### Changed
+
+- **Breaking:** depends on `@abacatepay/types` `^4.0.0` and `@abacatepay/rest` `^1.1.0`. Fields the API silently dropped are no longer accepted: `customer` and `frequency` in `checkouts.create`, `metadata` in `customers.create` and `coupons.create`, and `description` in `boleto.create`.
+- **Breaking:** response types follow the API: checkouts and payment links use `CheckoutStatus`, transparent charges use `TransparentStatus`, `APIBoleto` has `brCode`/`brCodeBase64` at the top level, and `APISubscription` lost the fields the API never returns.
+- The default request timeout is 30 seconds (was 5); set `rest.timeout` to change it.
+
+### Deprecated
+
+- `store.get()` (use `stores.get()`), `pix.list()` (use `transparents.list()`) and the `metadata` argument of `pix.simulate`, which the API ignores.
+
 ## [2.0.3] - 2026-07-27
 
 ### Fixed

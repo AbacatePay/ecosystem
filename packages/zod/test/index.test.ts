@@ -9,8 +9,17 @@ import {
 	RESTPostCreateTransparentBody,
 	RESTPostCreateWebhookBody,
 	RESTPostSendPixTransferBody,
+	StandardWebhookEvent,
 	WebhookEvent,
 } from '../src/v2';
+import {
+	checkoutCompleted,
+	legacyBodies,
+	outdatedPayoutBody,
+	payoutFailed,
+	standardTransparentCompleted,
+	transparentCardInstallments,
+} from './webhook-fixtures';
 
 describe('v2 schemas', () => {
 	test('checkout create body accepts an array of methods and the new fields', () => {
@@ -134,27 +143,71 @@ describe('v2 schemas', () => {
 
 		expect(result.success).toBe(true);
 	});
+});
 
-	test('WebhookEvent discriminates payout.completed from payout.failed', () => {
-		const completed = WebhookEvent.parse({
-			id: 'log_1',
-			event: 'payout.completed',
-			devMode: false,
+describe('v2 webhook schemas', () => {
+	for (const [name, body] of Object.entries(legacyBodies))
+		test(`WebhookEvent parses a real ${name} body`, () => {
+			const result = WebhookEvent.safeParse(body);
+
+			expect(result.error?.issues).toBeUndefined();
+			expect(result.data?.event).toBe(body.event);
+		});
+
+	test('keeps the card installment fields of transparent.completed', () => {
+		const result = WebhookEvent.parse(transparentCardInstallments);
+
+		if (result.event !== 'transparent.completed')
+			throw new Error('expected transparent.completed');
+
+		expect(result.data.transparent.amount).toBe(3000);
+		expect(result.data.transparent.installmentCount).toBe(2);
+		expect(result.data.transparent.installmentAmount).toBe(1500);
+		expect(result.data.transparent.installmentGroupId).toBe('cinst_1');
+		expect(result.data.payerInformation.method).toBe('CARD');
+	});
+
+	test('keeps fields AbacatePay adds in the future instead of rejecting the event', () => {
+		const result = WebhookEvent.parse({
+			...checkoutCompleted,
+			newEnvelopeField: true,
 			data: {
-				transaction: {
-					id: 'payout_1',
-					devMode: false,
-					receiptUrl: null,
-					amount: 1000,
-					platformFee: 80,
-					externalId: 'trx_1',
-					createdAt: new Date(),
-					updatedAt: new Date(),
-					status: 'COMPLETE',
-				},
+				...checkoutCompleted.data,
+				checkout: { ...checkoutCompleted.data.checkout, newField: 'kept' },
 			},
 		});
 
-		expect(completed.event).toBe('payout.completed');
+		expect(result).toMatchObject({
+			newEnvelopeField: true,
+			data: { checkout: { newField: 'kept' } },
+		});
+	});
+
+	test('discriminates payout.completed from payout.failed', () => {
+		const result = WebhookEvent.parse(payoutFailed);
+
+		expect(result.event).toBe('payout.failed');
+		if (result.event === 'payout.failed')
+			expect(result.data.withdraw.status).toBe('FAILED');
+	});
+
+	test('rejects the payout shape that AbacatePay never sends', () => {
+		expect(WebhookEvent.safeParse(outdatedPayoutBody).success).toBe(false);
+	});
+
+	test('rejects a body without apiVersion', () => {
+		const { apiVersion: _, ...body } = checkoutCompleted;
+
+		expect(WebhookEvent.safeParse(body).success).toBe(false);
+	});
+
+	test('StandardWebhookEvent parses a Standard Webhooks body', () => {
+		const result = StandardWebhookEvent.safeParse(standardTransparentCompleted);
+
+		expect(result.error?.issues).toBeUndefined();
+		expect(result.data?.type).toBe('transparent.completed');
+		expect(WebhookEvent.safeParse(standardTransparentCompleted).success).toBe(
+			false,
+		);
 	});
 });
