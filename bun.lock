@@ -14,9 +14,9 @@
     },
     "packages/adapters": {
       "name": "@abacatepay/adapters",
-      "version": "2.0.2",
+      "version": "2.1.0",
       "dependencies": {
-        "@abacatepay/zod": "^2.0.0",
+        "@abacatepay/zod": "^2.1.0",
       },
       "devDependencies": {
         "@biomejs/biome": "^2.3.11",
@@ -26,7 +26,7 @@
     },
     "packages/better-auth": {
       "name": "@abacatepay/better-auth",
-      "version": "1.0.2",
+      "version": "1.0.3",
       "devDependencies": {
         "@biomejs/biome": "^2.3.11",
         "typescript": "^5.0.0",
@@ -37,7 +37,7 @@
     },
     "packages/elysia": {
       "name": "@abacatepay/elysia",
-      "version": "2.0.2",
+      "version": "2.0.3",
       "dependencies": {
         "@abacatepay/adapters": "^2.0.0",
       },
@@ -51,7 +51,7 @@
     },
     "packages/eslint-plugin": {
       "name": "@abacatepay/eslint-plugin",
-      "version": "0.1.4",
+      "version": "0.1.5",
       "devDependencies": {
         "@types/eslint": "^9.6.1",
         "typescript": "^5",
@@ -62,7 +62,7 @@
     },
     "packages/express": {
       "name": "@abacatepay/express",
-      "version": "2.0.2",
+      "version": "2.0.3",
       "dependencies": {
         "@abacatepay/adapters": "^2.0.0",
       },
@@ -77,7 +77,7 @@
     },
     "packages/fastify": {
       "name": "@abacatepay/fastify",
-      "version": "2.0.2",
+      "version": "2.0.3",
       "dependencies": {
         "@abacatepay/adapters": "^2.0.0",
       },
@@ -91,7 +91,7 @@
     },
     "packages/hono": {
       "name": "@abacatepay/hono",
-      "version": "2.0.2",
+      "version": "2.0.3",
       "dependencies": {
         "@abacatepay/adapters": "^2.0.0",
       },
@@ -105,7 +105,7 @@
     },
     "packages/rest": {
       "name": "@abacatepay/rest",
-      "version": "1.0.1",
+      "version": "1.1.0",
       "devDependencies": {
         "@biomejs/biome": "^2.3.11",
         "dts-bundle-generator": "^9.5.1",
@@ -114,10 +114,10 @@
     },
     "packages/sdk": {
       "name": "@abacatepay/sdk",
-      "version": "2.0.2",
+      "version": "3.0.0",
       "dependencies": {
-        "@abacatepay/rest": "^1.0.0",
-        "@abacatepay/types": "^3.0.0",
+        "@abacatepay/rest": "^1.1.0",
+        "@abacatepay/types": "^4.0.0",
       },
       "devDependencies": {
         "@biomejs/biome": "^2.3.11",
@@ -127,7 +127,7 @@
     },
     "packages/supabase": {
       "name": "@abacatepay/supabase",
-      "version": "2.0.2",
+      "version": "2.0.3",
       "dependencies": {
         "@abacatepay/adapters": "^2.0.0",
       },
@@ -138,7 +138,7 @@
     },
     "packages/typebox": {
       "name": "@abacatepay/typebox",
-      "version": "2.0.2",
+      "version": "2.1.0",
       "devDependencies": {
         "@biomejs/biome": "^2.3.11",
         "dts-bundle-generator": "^9.5.1",
@@ -151,7 +151,7 @@
     },
     "packages/types": {
       "name": "@abacatepay/types",
-      "version": "3.0.2",
+      "version": "4.0.0",
       "devDependencies": {
         "@biomejs/biome": "^2.3.8",
         "dts-bundle-generator": "^9.5.1",
@@ -160,7 +160,7 @@
     },
     "packages/zod": {
       "name": "@abacatepay/zod",
-      "version": "2.0.2",
+      "version": "2.1.0",
       "devDependencies": {
         "@biomejs/biome": "^2.3.11",
         "dts-bundle-generator": "^9.5.1",
