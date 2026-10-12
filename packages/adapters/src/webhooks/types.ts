@@ -1,23 +1,23 @@
 import type {
 	WebhookCheckoutCompletedEvent,
+	WebhookCheckoutDisputedEvent,
+	WebhookCheckoutRefundedEvent,
 	WebhookEvent,
-	WebhookEventType,
 	WebhookPayoutCompletedEvent,
 	WebhookPayoutFailedEvent,
+	WebhookSubscriptionCancelledEvent,
+	WebhookSubscriptionCompletedEvent,
+	WebhookSubscriptionPaymentFailedEvent,
+	WebhookSubscriptionPlanChangedEvent,
+	WebhookSubscriptionRenewedEvent,
+	WebhookSubscriptionTrialStartedEvent,
+	WebhookTransferCompletedEvent,
+	WebhookTransferFailedEvent,
 	WebhookTransparentCompletedEvent,
+	WebhookTransparentDisputedEvent,
+	WebhookTransparentRefundedEvent,
 	WebhookUndocumentedEvent,
 } from '@abacatepay/zod/v2';
-
-/**
- * Narrows the generic `WebhookUndocumentedEvent` payload to a single event
- * type, for events whose `data` shape AbacatePay hasn't documented yet.
- *
- * @unstable
- */
-type UndocumentedEventPayload<Type extends WebhookEventType> = Omit<
-	WebhookUndocumentedEvent,
-	'event'
-> & { event: Type };
 
 /**
  * Options to use in Webhooks
@@ -49,94 +49,71 @@ export interface WebhookOptions {
 	onTransparentCompleted?(data: WebhookTransparentCompletedEvent): unknown;
 	/**
 	 * Function to execute when a `checkout.refunded` event is triggered
-	 *
-	 * @unstable
 	 */
-	onCheckoutRefunded?(
-		data: UndocumentedEventPayload<'checkout.refunded'>,
-	): unknown;
+	onCheckoutRefunded?(data: WebhookCheckoutRefundedEvent): unknown;
 	/**
-	 * Function to execute when a `checkout.disputed` event is triggered
-	 *
-	 * @unstable
+	 * Function to execute when a `checkout.disputed` event is triggered (When a dispute is
+	 * opened and again when it is resolved)
 	 */
-	onCheckoutDisputed?(
-		data: UndocumentedEventPayload<'checkout.disputed'>,
-	): unknown;
+	onCheckoutDisputed?(data: WebhookCheckoutDisputedEvent): unknown;
 	/**
 	 * Function to execute when a `checkout.lost` event is triggered
 	 *
-	 * @unstable
+	 * @deprecated AbacatePay never sends `checkout.lost`: a lost dispute arrives as `checkout.disputed` with `status: 'REFUNDED'`.
 	 */
-	onCheckoutLost?(data: UndocumentedEventPayload<'checkout.lost'>): unknown;
+	onCheckoutLost?(data: WebhookUndocumentedEvent): unknown;
 	/**
 	 * Function to execute when a `transparent.refunded` event is triggered
-	 *
-	 * @unstable
 	 */
-	onTransparentRefunded?(
-		data: UndocumentedEventPayload<'transparent.refunded'>,
-	): unknown;
+	onTransparentRefunded?(data: WebhookTransparentRefundedEvent): unknown;
 	/**
-	 * Function to execute when a `transparent.disputed` event is triggered
-	 *
-	 * @unstable
+	 * Function to execute when a `transparent.disputed` event is triggered (When a dispute is
+	 * opened and again when it is resolved)
 	 */
-	onTransparentDisputed?(
-		data: UndocumentedEventPayload<'transparent.disputed'>,
-	): unknown;
+	onTransparentDisputed?(data: WebhookTransparentDisputedEvent): unknown;
 	/**
 	 * Function to execute when a `transparent.lost` event is triggered
 	 *
-	 * @unstable
+	 * @deprecated AbacatePay never sends `transparent.lost`: a lost dispute arrives as `transparent.disputed` with `status: 'REFUNDED'`.
 	 */
-	onTransparentLost?(
-		data: UndocumentedEventPayload<'transparent.lost'>,
-	): unknown;
+	onTransparentLost?(data: WebhookUndocumentedEvent): unknown;
 	/**
 	 * Function to execute when a `subscription.completed` event is triggered
-	 *
-	 * @unstable
 	 */
-	onSubscriptionCompleted?(
-		data: UndocumentedEventPayload<'subscription.completed'>,
-	): unknown;
+	onSubscriptionCompleted?(data: WebhookSubscriptionCompletedEvent): unknown;
 	/**
 	 * Function to execute when a `subscription.cancelled` event is triggered
-	 *
-	 * @unstable
 	 */
-	onSubscriptionCancelled?(
-		data: UndocumentedEventPayload<'subscription.cancelled'>,
-	): unknown;
+	onSubscriptionCancelled?(data: WebhookSubscriptionCancelledEvent): unknown;
 	/**
 	 * Function to execute when a `subscription.renewed` event is triggered
-	 *
-	 * @unstable
 	 */
-	onSubscriptionRenewed?(
-		data: UndocumentedEventPayload<'subscription.renewed'>,
-	): unknown;
+	onSubscriptionRenewed?(data: WebhookSubscriptionRenewedEvent): unknown;
 	/**
 	 * Function to execute when a `subscription.trial_started` event is triggered
-	 *
-	 * @unstable
 	 */
 	onSubscriptionTrialStarted?(
-		data: UndocumentedEventPayload<'subscription.trial_started'>,
+		data: WebhookSubscriptionTrialStartedEvent,
+	): unknown;
+	/**
+	 * Function to execute when a `subscription.plan_changed` event is triggered (When the change
+	 * is requested and again when it is applied)
+	 */
+	onSubscriptionPlanChanged?(
+		data: WebhookSubscriptionPlanChangedEvent,
+	): unknown;
+	/**
+	 * Function to execute when a `subscription.payment_failed` event is triggered
+	 */
+	onSubscriptionPaymentFailed?(
+		data: WebhookSubscriptionPaymentFailedEvent,
 	): unknown;
 	/**
 	 * Function to execute when a `transfer.completed` event is triggered
-	 *
-	 * @unstable
 	 */
-	onTransferCompleted?(
-		data: UndocumentedEventPayload<'transfer.completed'>,
-	): unknown;
+	onTransferCompleted?(data: WebhookTransferCompletedEvent): unknown;
 	/**
 	 * Function to execute when a `transfer.failed` event is triggered
-	 *
-	 * @unstable
 	 */
-	onTransferFailed?(data: UndocumentedEventPayload<'transfer.failed'>): unknown;
+	onTransferFailed?(data: WebhookTransferFailedEvent): unknown;
 }

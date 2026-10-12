@@ -4,6 +4,25 @@ All notable changes to `@abacatepay/adapters` are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.1.0] - 2026-10-12
+
+### Fixed
+
+- `parse()` accepts the webhooks AbacatePay sends. It rejected every real `checkout.completed`, `transparent.completed`, `payout.*`, `subscription.plan_changed` and `subscription.payment_failed`, so the framework adapters answered 400 and the events were lost. Requires `@abacatepay/zod` `^2.1.0`.
+- `subscription.plan_changed` and `subscription.payment_failed` reach a handler: `dispatch()` had no case for them, not even `onPayload`.
+
+### Added
+
+- `onSubscriptionPlanChanged` and `onSubscriptionPaymentFailed` handlers.
+
+### Changed
+
+- Handler payloads are typed with the real event shapes instead of `Record<string, unknown>` data, so handler code may need adjustments.
+
+### Deprecated
+
+- `onCheckoutLost` and `onTransparentLost`: AbacatePay never sends `checkout.lost` or `transparent.lost`.
+
 ## [2.0.3] - 2026-07-27
 
 ### Fixed

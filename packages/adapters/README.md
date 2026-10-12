@@ -68,7 +68,7 @@ if (!verify(raw, signature)) {
 	throw new Error('Invalid signature');
 }
 
-const parsed = parse(raw);
+const parsed = parse(JSON.parse(raw));
 
 if (!parsed.success) {
     throw parsed.error;
@@ -79,7 +79,13 @@ await dispatch(parsed.data, {
 		console.log('Evento recebido:', event);
 	},
     onPayoutCompleted({ data }) {
-        console.log(data.transaction.id);
+        console.log(data.withdraw.id);
+    },
+    onTransparentCompleted({ data }) {
+        console.log(data.transparent.id, data.transparent.amount);
+    },
+    onSubscriptionPaymentFailed({ data }) {
+        console.log(data.subscription.id, data.installmentNumber);
     },
 });
 ```
