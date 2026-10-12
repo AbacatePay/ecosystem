@@ -1,12 +1,16 @@
 import { createREST } from '@abacatepay/rest';
 import type {
-	RESTDeleteCouponData,
-	RESTDeleteCustomerData,
+	CouponStatus,
+	DistributiveOmit,
 	RESTDeleteProductData,
 	RESTGetCheckoutData,
+	RESTGetCheckoutQueryParams,
 	RESTGetCheckQRCodePixStatusData,
 	RESTGetCouponData,
 	RESTGetCustomerData,
+	RESTGetCustomerQueryParams,
+	RESTGetListBankStatementData,
+	RESTGetListBankStatementQueryParams,
 	RESTGetListCheckoutsData,
 	RESTGetListCheckoutsQueryParams,
 	RESTGetListCouponsData,
@@ -21,6 +25,11 @@ import type {
 	RESTGetListPixTransfersQueryParams,
 	RESTGetListProductsData,
 	RESTGetListProductsQueryParams,
+	RESTGetListReportsData,
+	RESTGetListStoresData,
+	RESTGetListStoresQueryParams,
+	RESTGetListSubscriptionCheckoutsData,
+	RESTGetListSubscriptionCheckoutsQueryParams,
 	RESTGetListSubscriptionsData,
 	RESTGetListSubscriptionsQueryParams,
 	RESTGetListTransparentsData,
@@ -28,22 +37,35 @@ import type {
 	RESTGetListWebhooksData,
 	RESTGetListWebhooksQueryParams,
 	RESTGetMerchantData,
+	RESTGetMRRByDayData,
+	RESTGetMRRByDayQueryParams,
 	RESTGetMRRData,
 	RESTGetPaymentLinkData,
+	RESTGetPaymentLinkQueryParams,
 	RESTGetPixTransferData,
 	RESTGetPixTransferQueryParams,
 	RESTGetProductData,
 	RESTGetProductQueryParams,
 	RESTGetRevenueByPeriodData,
 	RESTGetRevenueByPeriodQueryParams,
+	RESTGetRunReportData,
+	RESTGetRunReportQueryParams,
 	RESTGetSearchPayoutData,
+	RESTGetSearchPayoutQueryParams,
 	RESTGetStoreDetailsData,
+	RESTGetSubscriptionCheckoutData,
+	RESTGetSubscriptionCheckoutQueryParams,
+	RESTGetSubscriptionData,
+	RESTGetSubscriptionQueryParams,
+	RESTGetTransparentData,
 	RESTGetWebhookData,
 	RESTPostCancelSubscriptionData,
 	RESTPostChangeSubscriptionPlanBody,
 	RESTPostChangeSubscriptionPlanData,
 	RESTPostCreateBoletoBody,
 	RESTPostCreateBoletoData,
+	RESTPostCreateCardBody,
+	RESTPostCreateCardData,
 	RESTPostCreateCouponBody,
 	RESTPostCreateCouponData,
 	RESTPostCreateCustomerBody,
@@ -51,7 +73,7 @@ import type {
 	RESTPostCreateNewCheckoutBody,
 	RESTPostCreateNewCheckoutData,
 	RESTPostCreateNewPayoutBody,
-	RESTPostCreateNewWPayoutData,
+	RESTPostCreateNewPayoutData,
 	RESTPostCreatePaymentLinkBody,
 	RESTPostCreatePaymentLinkData,
 	RESTPostCreateProductBody,
@@ -63,6 +85,11 @@ import type {
 	RESTPostCreateTransparentBody,
 	RESTPostCreateWebhookBody,
 	RESTPostCreateWebhookData,
+	RESTPostDeleteCheckoutData,
+	RESTPostDeleteCouponData,
+	RESTPostDeleteCustomerData,
+	RESTPostDeletePaymentLinkData,
+	RESTPostDeleteSubscriptionCheckoutData,
 	RESTPostDeleteWebhookData,
 	RESTPostRecordSubscriptionUsageBody,
 	RESTPostRecordSubscriptionUsageData,
@@ -85,6 +112,12 @@ export * from './types';
  *
  * No method here ever throws — every call resolves to the exact
  * `{ data, error, success }` shape the AbacatePay API itself returns.
+ *
+ * Methods that create, send or refund money are never retried after the request
+ * may have reached the API (Only on 429): check the result before trying again.
+ *
+ * List methods use cursor pagination: send `pagination.next` as `after` to get
+ * the next page and stop when it is `null` (Do not rely on `pagination.hasMore` alone).
  */
 export const AbacatePay = ({ secret, rest }: AbacatePayOptions) => {
 	const client = createREST({
@@ -107,29 +140,29 @@ export const AbacatePay = ({ secret, rest }: AbacatePayOptions) => {
 		 */
 		customers: {
 			/**
-			 * Retrieve a customer by its unique identifier.
+			 * Retrieve a customer by its ID, or by `email`/`taxId`.
 			 *
-			 * @param id Customer ID.
+			 * @param query Customer ID, or the lookup filters (At least one of `id`, `email` or `taxId`).
 			 * @returns The customer data.
 			 */
-			get(id: string) {
-				return client.get<RESTGetCustomerData>(Routes.customers.get(id));
+			get(query: string | RESTGetCustomerQueryParams) {
+				return client.get<RESTGetCustomerData>(Routes.customers.get(query));
 			},
 
 			/**
-			 * Permanently delete a customer.
+			 * Delete a customer.
 			 *
 			 * @param id Customer ID.
-			 * @returns Deletion result.
+			 * @returns The deleted customer.
 			 */
 			delete(id: string) {
-				return client.post<RESTDeleteCustomerData>(Routes.customers.delete, {
-					body: { id },
-				});
+				return client.post<RESTPostDeleteCustomerData>(
+					Routes.customers.delete(id),
+				);
 			},
 
 			/**
-			 * Create a new customer.
+			 * Create a new customer. An existing customer with the same taxId, email or cellphone is returned instead.
 			 *
 			 * @param body Customer creation payload.
 			 * @returns The created customer.
@@ -142,10 +175,10 @@ export const AbacatePay = ({ secret, rest }: AbacatePayOptions) => {
 			},
 
 			/**
-			 * List customers with optional pagination.
+			 * List customers, newest first.
 			 *
-			 * @param query Optional query parameters.
-			 * @returns A paginated list of customers.
+			 * @param query Optional filters and cursor (Send `pagination.next` as `after` for the next page).
+			 * @returns A cursor-paginated list of customers.
 			 */
 			list(query?: RESTGetListCustomersQueryParams) {
 				return client.get<RESTGetListCustomersData>(
@@ -172,10 +205,10 @@ export const AbacatePay = ({ secret, rest }: AbacatePayOptions) => {
 			},
 
 			/**
-			 * List checkouts with optional pagination.
+			 * List checkouts, newest first.
 			 *
-			 * @param query Optional query parameters.
-			 * @returns A paginated list of checkouts.
+			 * @param query Optional filters and cursor (Send `pagination.next` as `after` for the next page).
+			 * @returns A cursor-paginated list of checkouts.
 			 */
 			list(query?: RESTGetListCheckoutsQueryParams) {
 				return client.get<RESTGetListCheckoutsData>(
@@ -184,21 +217,33 @@ export const AbacatePay = ({ secret, rest }: AbacatePayOptions) => {
 			},
 
 			/**
-			 * Retrieve a checkout by ID.
+			 * Retrieve a checkout by its ID, or by `externalId`/`customerId`.
 			 *
-			 * @param id Checkout ID.
+			 * @param query Checkout ID, or the lookup filters (At least one of `id`, `externalId` or `customerId`).
 			 * @returns The checkout data.
 			 */
-			get(id: string) {
-				return client.get<RESTGetCheckoutData>(Routes.checkouts.get(id));
+			get(query: string | RESTGetCheckoutQueryParams) {
+				return client.get<RESTGetCheckoutData>(Routes.checkouts.get(query));
 			},
 
 			/**
-			 * Refund a completed checkout.
+			 * Delete a checkout.
 			 *
-			 * @param id Public ID of the resource to refund (e.g. `bill_`, `char_`, `pix_char_`, `card_`).
+			 * @param id Checkout ID (`bill_...`).
+			 * @returns The deleted checkout.
+			 */
+			delete(id: string) {
+				return client.post<RESTPostDeleteCheckoutData>(
+					Routes.checkouts.delete(id),
+				);
+			},
+
+			/**
+			 * Refund a paid checkout (Full amount).
+			 *
+			 * @param id Checkout ID (`bill_...`) or the ID of one of its charges (`char_`, `pix_char_`, `card_`).
 			 * @param reason Optional refund reason, shown in the transaction history.
-			 * @returns The public ID of the created refund transaction.
+			 * @returns The created refund.
 			 */
 			refund(id: string, reason?: string) {
 				return client.post<RESTPostRefundCheckoutData>(
@@ -227,10 +272,10 @@ export const AbacatePay = ({ secret, rest }: AbacatePayOptions) => {
 			},
 
 			/**
-			 * List payment links with optional pagination.
+			 * List payment links, newest first.
 			 *
-			 * @param query Optional query parameters.
-			 * @returns A paginated list of payment links.
+			 * @param query Optional filters and cursor (Send `pagination.next` as `after` for the next page).
+			 * @returns A cursor-paginated list of payment links.
 			 */
 			list(query?: RESTGetListPaymentLinksQueryParams) {
 				return client.get<RESTGetListPaymentLinksData>(
@@ -239,21 +284,35 @@ export const AbacatePay = ({ secret, rest }: AbacatePayOptions) => {
 			},
 
 			/**
-			 * Retrieve a payment link by ID.
+			 * Retrieve a payment link by its ID, or by `externalId`/`customerId`.
 			 *
-			 * @param id Payment link ID.
+			 * @param query Payment link ID, or the lookup filters.
 			 * @returns The payment link data.
 			 */
-			get(id: string) {
-				return client.get<RESTGetPaymentLinkData>(Routes.paymentLinks.get(id));
+			get(query: string | RESTGetPaymentLinkQueryParams) {
+				return client.get<RESTGetPaymentLinkData>(
+					Routes.paymentLinks.get(query),
+				);
 			},
 
 			/**
-			 * Refund a payment made through a payment link.
+			 * Delete a payment link.
 			 *
-			 * @param id Public ID of the resource to refund.
+			 * @param id Payment link ID (`bill_...`).
+			 * @returns The deleted payment link.
+			 */
+			delete(id: string) {
+				return client.post<RESTPostDeletePaymentLinkData>(
+					Routes.paymentLinks.delete(id),
+				);
+			},
+
+			/**
+			 * Refund a payment made through a payment link (Full amount).
+			 *
+			 * @param id ID of the charge to refund (`char_`, `pix_char_` or `card_`), not of the link.
 			 * @param reason Optional refund reason, shown in the transaction history.
-			 * @returns The public ID of the created refund transaction.
+			 * @returns The created refund.
 			 */
 			refund(id: string, reason?: string) {
 				return client.post<RESTPostRefundPaymentLinkData>(
@@ -286,10 +345,11 @@ export const AbacatePay = ({ secret, rest }: AbacatePayOptions) => {
 			},
 
 			/**
-			 * List embedded PIX QR-code (and Boleto) charges.
+			 * List transparent charges (PIX, Boleto and card).
 			 *
-			 * @param query Optional query parameters.
-			 * @returns A paginated list of transparent charges.
+			 * @deprecated Use `transparents.list`.
+			 * @param query Optional filters and cursor.
+			 * @returns A cursor-paginated list of transparent charges.
 			 */
 			list(query?: RESTGetListTransparentsQueryParams) {
 				return client.get<RESTGetListTransparentsData>(
@@ -298,23 +358,22 @@ export const AbacatePay = ({ secret, rest }: AbacatePayOptions) => {
 			},
 
 			/**
-			 * Simulate a PIX payment for testing purposes.
+			 * Simulate a PIX payment for testing purposes (Dev mode keys only, PIX QR Codes only).
 			 *
-			 * @param id PIX transaction ID.
-			 * @param metadata Optional metadata to attach to the simulation.
-			 * @returns The simulated payment result.
+			 * @param id PIX QR Code ID.
+			 * @param _metadata Deprecated and ignored: the API does not accept a body.
+			 * @returns The PIX QR Code. Its `PAID` status is optimistic, the payment is processed asynchronously.
 			 */
-			simulate(id: string, metadata?: Record<string, object>) {
+			simulate(id: string, _metadata?: Record<string, unknown>) {
 				return client.post<RESTPostSimulateQRCodePixPaymentData>(
 					Routes.transparents.simulatePayment(id),
-					{ body: { metadata } },
 				);
 			},
 
 			/**
-			 * Retrieve the current status of a PIX payment.
+			 * Retrieve the current status of a PIX QR Code. Not cached by the API, so use it to poll for the payment.
 			 *
-			 * @param id PIX transaction ID.
+			 * @param id PIX QR Code ID.
 			 * @returns The PIX payment status.
 			 */
 			status(id: string) {
@@ -324,11 +383,11 @@ export const AbacatePay = ({ secret, rest }: AbacatePayOptions) => {
 			},
 
 			/**
-			 * Refund an embedded PIX charge.
+			 * Refund an embedded PIX charge (Full amount).
 			 *
-			 * @param id Public ID of the resource to refund.
+			 * @param id ID of the PIX QR Code (`pix_char_...`).
 			 * @param reason Optional refund reason, shown in the transaction history.
-			 * @returns The public ID of the created refund transaction.
+			 * @returns The created refund.
 			 */
 			refund(id: string, reason?: string) {
 				return client.post<RESTPostRefundTransparentData>(
@@ -362,11 +421,80 @@ export const AbacatePay = ({ secret, rest }: AbacatePayOptions) => {
 		},
 
 		/**
+		 * Embedded card charge operations (Checkout transparente de cartão).
+		 */
+		card: {
+			/**
+			 * Charge a card tokenized in the browser by AbacatePay.js (`token`, a single-use `ctok_...`
+			 * that expires in 60 seconds and must be created for the same `amount`) or saved from a
+			 * previous charge (`cardToken`).
+			 *
+			 * Never retried after the request may have reached the API: a `ctok_` token is single-use
+			 * and a retry with `cardToken` could charge the card twice.
+			 *
+			 * @param body Card charge payload.
+			 * @returns The created charge. For installment sales it describes the first installment.
+			 */
+			create(body: RESTPostCreateCardBody) {
+				const wireBody: RESTPostCreateTransparentBody = {
+					method: 'CARD',
+					data: body,
+				};
+
+				return client.post<RESTPostCreateCardData>(Routes.transparents.create, {
+					body: wireBody,
+				});
+			},
+		},
+
+		/**
+		 * Operations shared by every transparent charge (PIX, Boleto and card).
+		 */
+		transparents: {
+			/**
+			 * Retrieve a transparent charge (Cached by the API for up to 60 seconds; use `pix.status` to poll a PIX payment).
+			 *
+			 * @param id Charge ID (`pix_char_...`, `bole_...` or `card_...`).
+			 * @returns The charge.
+			 */
+			get(id: string) {
+				return client.get<RESTGetTransparentData>(Routes.transparents.get(id));
+			},
+
+			/**
+			 * List transparent charges, newest first.
+			 *
+			 * @param query Optional filters (Including `method`) and cursor (Send `pagination.next` as `after` for the next page).
+			 * @returns A cursor-paginated list of charges.
+			 */
+			list(query?: RESTGetListTransparentsQueryParams) {
+				return client.get<RESTGetListTransparentsData>(
+					Routes.transparents.list(query),
+				);
+			},
+
+			/**
+			 * Refund a transparent charge (Full amount). Boletos cannot be refunded.
+			 *
+			 * @param id Charge ID (`pix_char_...` or `card_...`).
+			 * @param reason Optional refund reason, shown in the transaction history.
+			 * @returns The created refund.
+			 */
+			refund(id: string, reason?: string) {
+				return client.post<RESTPostRefundTransparentData>(
+					Routes.transparents.refund,
+					{ body: { id, reason } },
+				);
+			},
+		},
+
+		/**
 		 * Outbound PIX transfer operations (Sending money to a third-party PIX key).
 		 */
 		transfers: {
 			/**
-			 * Send a PIX transfer to a third-party PIX key.
+			 * Send a PIX transfer to a third-party PIX key. One transfer per store every 30 seconds;
+			 * `externalId` is not used to deduplicate requests.
 			 *
 			 * @param body Transfer payload.
 			 * @returns The created transfer.
@@ -388,12 +516,13 @@ export const AbacatePay = ({ secret, rest }: AbacatePayOptions) => {
 			},
 
 			/**
-			 * List PIX transfers with optional pagination.
+			 * Search transactions by a partial ID. The API requires `id`, returns at most 100 items
+			 * (Newest first) of any kind and supports no cursor.
 			 *
-			 * @param query Optional query parameters.
-			 * @returns A paginated list of transfers.
+			 * @param query The partial transaction ID to search for.
+			 * @returns The matching transactions.
 			 */
-			list(query?: RESTGetListPixTransfersQueryParams) {
+			list(query: RESTGetListPixTransfersQueryParams) {
 				return client.get<RESTGetListPixTransfersData>(
 					Routes.transfers.list(query),
 				);
@@ -405,7 +534,7 @@ export const AbacatePay = ({ secret, rest }: AbacatePayOptions) => {
 		 */
 		coupons: {
 			/**
-			 * Create a new coupon.
+			 * Create a new coupon. An existing coupon with the same code is returned unchanged.
 			 *
 			 * @param body Coupon creation payload.
 			 * @returns The created coupon.
@@ -419,40 +548,39 @@ export const AbacatePay = ({ secret, rest }: AbacatePayOptions) => {
 			/**
 			 * Delete a coupon.
 			 *
-			 * @param id Coupon ID.
-			 * @returns Deletion result.
+			 * @param id Coupon code.
+			 * @returns The deleted coupon.
 			 */
 			delete(id: string) {
-				return client.post<RESTDeleteCouponData>(Routes.coupons.delete, {
-					body: { id },
-				});
+				return client.post<RESTPostDeleteCouponData>(Routes.coupons.delete(id));
 			},
 
 			/**
-			 * Retrieve a coupon by ID.
+			 * Retrieve a coupon by its code.
 			 *
-			 * @param id Coupon ID.
+			 * @param id Coupon code.
+			 * @param status Only return the coupon when it has this status.
 			 * @returns The coupon data.
 			 */
-			get(id: string) {
-				return client.get<RESTGetCouponData>(Routes.coupons.get(id));
+			get(id: string, status?: CouponStatus) {
+				return client.get<RESTGetCouponData>(Routes.coupons.get(id, status));
 			},
 
 			/**
-			 * List coupons with optional filters.
+			 * List coupons, newest first.
 			 *
-			 * @param query Optional query parameters.
-			 * @returns A list of coupons.
+			 * @param query Optional filters and cursor (Send `pagination.next` as `after` for the next page).
+			 * @returns A cursor-paginated list of coupons.
 			 */
 			list(query?: RESTGetListCouponsQueryParams) {
 				return client.get<RESTGetListCouponsData>(Routes.coupons.list(query));
 			},
 
 			/**
-			 * Toggle the status of a coupon.
+			 * Toggle the status of a coupon (`ACTIVE` ↔ `DISABLED`).
 			 *
-			 * @param id Coupon ID.
-			 * @returns Updated coupon status.
+			 * @param id Coupon code.
+			 * @returns The updated coupon.
 			 */
 			toggleStatus(id: string) {
 				return client.post<RESTPostToggleCouponStatusData>(
@@ -465,23 +593,69 @@ export const AbacatePay = ({ secret, rest }: AbacatePayOptions) => {
 		/**
 		 * Store-related operations.
 		 */
-		store: {
+		stores: {
 			/**
-			 * Retrieve store details.
+			 * Retrieve your store and its balances (Cached by the API for up to one hour).
 			 *
 			 * @returns Store information.
 			 */
 			get() {
-				return client.get<RESTGetStoreDetailsData>(Routes.store.get);
+				return client.get<RESTGetStoreDetailsData>(Routes.stores.get);
+			},
+
+			/**
+			 * List stores. Only your own store is returned, with dev and production balances summed.
+			 *
+			 * @param query Optional filters and cursor.
+			 * @returns The stores.
+			 */
+			list(query?: RESTGetListStoresQueryParams) {
+				return client.get<RESTGetListStoresData>(Routes.stores.list(query));
 			},
 		},
 
 		/**
-		 * Monthly recurring revenue (MRR) and analytics.
+		 * @deprecated Use `stores`.
+		 */
+		store: {
+			/**
+			 * Retrieve your store and its balances.
+			 *
+			 * @deprecated Use `stores.get()`.
+			 * @returns Store information.
+			 */
+			get() {
+				return client.get<RESTGetStoreDetailsData>(Routes.stores.get);
+			},
+		},
+
+		/**
+		 * Bank statement operations (Every movement of your balance).
+		 */
+		bankStatement: {
+			/**
+			 * List bank statement entries, newest first.
+			 *
+			 * @param query Optional filters and cursor (Send `pagination.next` as `after` for the next page).
+			 * @returns A cursor-paginated list of entries.
+			 */
+			list(query?: RESTGetListBankStatementQueryParams) {
+				return client.get<RESTGetListBankStatementData>(
+					Routes.bankStatement.list(query),
+				);
+			},
+		},
+
+		/**
+		 * Public monthly recurring revenue (Trust MRR).
+		 *
+		 * These routes only accept an `mrr_` token (From the Trust MRR app installation), and that token
+		 * is rejected by every other route. Use a separate client:
+		 * `AbacatePay({ secret: process.env.ABACATEPAY_MRR_TOKEN })`.
 		 */
 		mrr: {
 			/**
-			 * Retrieve MRR metrics.
+			 * Retrieve the current MRR and the number of active subscriptions. Requires an `mrr_` token.
 			 *
 			 * @returns MRR data.
 			 */
@@ -490,9 +664,9 @@ export const AbacatePay = ({ secret, rest }: AbacatePayOptions) => {
 			},
 
 			/**
-			 * Retrieve revenue data for a specific period.
+			 * Retrieve the revenue of a period. Requires an `mrr_` token.
 			 *
-			 * @param params Date range parameters.
+			 * @param params Date range (`endDate` must be after `startDate`).
 			 * @returns Revenue metrics for the period.
 			 */
 			revenue({ startDate, endDate }: RESTGetRevenueByPeriodQueryParams) {
@@ -502,9 +676,21 @@ export const AbacatePay = ({ secret, rest }: AbacatePayOptions) => {
 			},
 
 			/**
-			 * Retrieve merchant-level revenue data.
+			 * Retrieve the MRR at the end of each day of a period. Requires an `mrr_` token.
 			 *
-			 * @returns Merchant revenue data.
+			 * @param params Date range (At most 366 days).
+			 * @returns The MRR of each day, keyed by `YYYY-MM-DD`.
+			 */
+			byDay({ startDate, endDate }: RESTGetMRRByDayQueryParams) {
+				return client.get<RESTGetMRRByDayData>(
+					Routes.mrr.byDay(startDate, endDate),
+				);
+			},
+
+			/**
+			 * Retrieve the public information of the store. Requires an `mrr_` token.
+			 *
+			 * @returns Store name, website, creation date and country.
 			 */
 			merchant() {
 				return client.get<RESTGetMerchantData>(Routes.mrr.merchant);
@@ -516,33 +702,34 @@ export const AbacatePay = ({ secret, rest }: AbacatePayOptions) => {
 		 */
 		payouts: {
 			/**
-			 * Create a new payout.
+			 * Create a new payout to a PIX key of your own store. One payout per store every 30 seconds.
 			 *
 			 * @param body Payout creation payload.
 			 * @returns The created payout.
 			 */
 			create(body: RESTPostCreateNewPayoutBody) {
-				return client.post<RESTPostCreateNewWPayoutData>(
-					Routes.payouts.create,
-					{ body },
+				return client.post<RESTPostCreateNewPayoutData>(Routes.payouts.create, {
+					body,
+				});
+			},
+
+			/**
+			 * Retrieve a payout by its ID, or by `externalId`.
+			 *
+			 * @param query Payout ID (`tran_...`), or `{ id }` / `{ externalId }`.
+			 * @returns Payout details.
+			 */
+			get(query: string | RESTGetSearchPayoutQueryParams) {
+				return client.get<RESTGetSearchPayoutData>(
+					Routes.payouts.get(typeof query === 'string' ? { id: query } : query),
 				);
 			},
 
 			/**
-			 * Retrieve a payout by ID.
+			 * List payouts, newest first.
 			 *
-			 * @param id Payout ID.
-			 * @returns Payout details.
-			 */
-			get(id: string) {
-				return client.get<RESTGetSearchPayoutData>(Routes.payouts.get(id));
-			},
-
-			/**
-			 * List payouts with optional pagination.
-			 *
-			 * @param query Optional query parameters.
-			 * @returns A list of payouts.
+			 * @param query Optional filters and cursor (Send `pagination.next` as `after` for the next page).
+			 * @returns A cursor-paginated list of payouts.
 			 */
 			list(query?: RESTGetListPayoutsQueryParams) {
 				return client.get<RESTGetListPayoutsData>(Routes.payouts.list(query));
@@ -554,10 +741,11 @@ export const AbacatePay = ({ secret, rest }: AbacatePayOptions) => {
 		 */
 		subscriptions: {
 			/**
-			 * Create a new subscription.
+			 * Create a subscription checkout (`bill_...`). The subscription itself (`subs_...`) is created
+			 * when a customer pays it.
 			 *
-			 * @param body Subscription creation payload.
-			 * @returns The created subscription.
+			 * @param body Subscription checkout creation payload.
+			 * @returns The created subscription checkout.
 			 */
 			create(body: RESTPostCreateSubscriptionBody) {
 				return client.post<RESTPostCreateSubscriptionData>(
@@ -567,10 +755,22 @@ export const AbacatePay = ({ secret, rest }: AbacatePayOptions) => {
 			},
 
 			/**
-			 * List subscriptions with optional pagination.
+			 * Retrieve a subscription by its ID, the `externalId` of its checkout or its customer.
 			 *
-			 * @param query Optional query parameters.
-			 * @returns A paginated list of subscriptions.
+			 * @param query At least one of `id`, `externalId` or `customerId`.
+			 * @returns The subscription.
+			 */
+			get(query: RESTGetSubscriptionQueryParams) {
+				return client.get<RESTGetSubscriptionData>(
+					Routes.subscriptions.get(query),
+				);
+			},
+
+			/**
+			 * List subscriptions, newest first.
+			 *
+			 * @param query Optional filters and cursor (Send `pagination.next` as `after` for the next page).
+			 * @returns A cursor-paginated list of subscriptions.
 			 */
 			list(query?: RESTGetListSubscriptionsQueryParams) {
 				return client.get<RESTGetListSubscriptionsData>(
@@ -581,7 +781,7 @@ export const AbacatePay = ({ secret, rest }: AbacatePayOptions) => {
 			/**
 			 * Cancel a subscription immediately (No grace period).
 			 *
-			 * @param id Subscription ID.
+			 * @param id Subscription ID (`subs_...`).
 			 * @returns The cancelled subscription.
 			 */
 			cancel(id: string) {
@@ -592,17 +792,16 @@ export const AbacatePay = ({ secret, rest }: AbacatePayOptions) => {
 			},
 
 			/**
-			 * Change the product of a subscription. The change is applied at
-			 * the next billing cycle; only one pending change can exist at a
-			 * time.
+			 * Change the products of a subscription. The change is applied at the next billing cycle;
+			 * only one pending change can exist at a time.
 			 *
 			 * @param id Subscription ID.
-			 * @param body The new product and quantity.
+			 * @param body Either `items` or `productId` + `quantity`.
 			 * @returns The requested plan change.
 			 */
 			changePlan(
 				id: string,
-				body: Omit<RESTPostChangeSubscriptionPlanBody, 'id'>,
+				body: DistributiveOmit<RESTPostChangeSubscriptionPlanBody, 'id'>,
 			) {
 				return client.post<RESTPostChangeSubscriptionPlanData>(
 					Routes.subscriptions.changePlan,
@@ -626,6 +825,47 @@ export const AbacatePay = ({ secret, rest }: AbacatePayOptions) => {
 					{ body: { id, ...body } },
 				);
 			},
+
+			/**
+			 * Subscription checkouts (`bill_...`), the links customers pay to subscribe.
+			 */
+			checkouts: {
+				/**
+				 * Retrieve a subscription checkout by its ID, or by `externalId`/`customerId`.
+				 *
+				 * @param query Subscription checkout ID, or the lookup filters.
+				 * @returns The subscription checkout.
+				 */
+				get(query: string | RESTGetSubscriptionCheckoutQueryParams) {
+					return client.get<RESTGetSubscriptionCheckoutData>(
+						Routes.subscriptions.checkouts.get(query),
+					);
+				},
+
+				/**
+				 * List subscription checkouts, newest first.
+				 *
+				 * @param query Optional filters and cursor (Send `pagination.next` as `after` for the next page).
+				 * @returns A cursor-paginated list of subscription checkouts.
+				 */
+				list(query?: RESTGetListSubscriptionCheckoutsQueryParams) {
+					return client.get<RESTGetListSubscriptionCheckoutsData>(
+						Routes.subscriptions.checkouts.list(query),
+					);
+				},
+
+				/**
+				 * Delete a subscription checkout. Subscriptions already created by it stay active.
+				 *
+				 * @param id Subscription checkout ID (`bill_...`).
+				 * @returns The deleted subscription checkout.
+				 */
+				delete(id: string) {
+					return client.post<RESTPostDeleteSubscriptionCheckoutData>(
+						Routes.subscriptions.checkouts.delete(id),
+					);
+				},
+			},
 		},
 
 		/**
@@ -647,7 +887,7 @@ export const AbacatePay = ({ secret, rest }: AbacatePayOptions) => {
 			/**
 			 * Retrieve a product by query parameters.
 			 *
-			 * @param query Product query parameters.
+			 * @param query At least one of `id`, `externalId` or `name`.
 			 * @returns The product data.
 			 */
 			get(query: RESTGetProductQueryParams) {
@@ -655,20 +895,20 @@ export const AbacatePay = ({ secret, rest }: AbacatePayOptions) => {
 			},
 
 			/**
-			 * List products with optional pagination.
+			 * List products, newest first.
 			 *
-			 * @param query Optional query parameters.
-			 * @returns A list of products.
+			 * @param query Optional filters and cursor (Send `pagination.next` as `after` for the next page).
+			 * @returns A cursor-paginated list of products.
 			 */
 			list(query?: RESTGetListProductsQueryParams) {
 				return client.get<RESTGetListProductsData>(Routes.products.list(query));
 			},
 
 			/**
-			 * Permanently delete a product.
+			 * Delete a product (And every variation of its group).
 			 *
 			 * @param id Product ID.
-			 * @returns Deletion result.
+			 * @returns The deleted product.
 			 */
 			delete(id: string) {
 				return client.post<RESTDeleteProductData>(Routes.products.delete(id));
@@ -692,10 +932,10 @@ export const AbacatePay = ({ secret, rest }: AbacatePayOptions) => {
 			},
 
 			/**
-			 * List webhooks with optional filters.
+			 * List webhooks, newest first.
 			 *
-			 * @param query Optional query parameters.
-			 * @returns A paginated list of webhooks.
+			 * @param query Optional filters and cursor (Send `pagination.next` as `after` for the next page).
+			 * @returns A cursor-paginated list of webhooks.
 			 */
 			list(query?: RESTGetListWebhooksQueryParams) {
 				return client.get<RESTGetListWebhooksData>(Routes.webhooks.list(query));
@@ -712,15 +952,39 @@ export const AbacatePay = ({ secret, rest }: AbacatePayOptions) => {
 			},
 
 			/**
-			 * Permanently delete a webhook.
+			 * Delete a webhook.
 			 *
 			 * @param id Webhook ID.
-			 * @returns Deletion result.
+			 * @returns The deletion result (No `data`).
 			 */
 			delete(id: string) {
-				return client.post<RESTPostDeleteWebhookData>(Routes.webhooks.delete, {
-					body: { id },
-				});
+				return client.post<RESTPostDeleteWebhookData>(
+					Routes.webhooks.delete(id),
+				);
+			},
+		},
+
+		/**
+		 * Financial reports.
+		 */
+		reports: {
+			/**
+			 * List the available reports and the input each one takes.
+			 *
+			 * @returns The report catalog.
+			 */
+			list() {
+				return client.get<RESTGetListReportsData>(Routes.reports.list);
+			},
+
+			/**
+			 * Run a report.
+			 *
+			 * @param query The report ID and, for period reports, `startDate` and `endDate`.
+			 * @returns The report, with raw and pt-BR formatted values.
+			 */
+			run(query: RESTGetRunReportQueryParams) {
+				return client.get<RESTGetRunReportData>(Routes.reports.run(query));
 			},
 		},
 	};
