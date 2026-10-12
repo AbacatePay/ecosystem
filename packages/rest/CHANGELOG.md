@@ -4,6 +4,24 @@ All notable changes to `@abacatepay/rest` are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [1.1.0] - 2026-10-12
+
+### Fixed
+
+- Requests other than `GET`/`HEAD` are no longer retried after they may have reached the API. They are only retried on 429, which the API answers before running the request, and never on timeouts or 408/425/5xx: retrying `POST /transparents/create` with a `cardToken`, `POST /payouts/create` or `POST /pix/send` could charge or send money twice. `GET` requests keep retrying on timeouts and on 408/425/429/5xx.
+- A non-`GET` request that times out resolves with an error that says it timed out and may still have been processed, instead of `N attempts were performed, all failed`.
+- The `query` request option is joined with `&` when the route already has a query string (it produced `?a=1?b=2`).
+- `RESTOptions` documentation: `base` defaults to `https://api.abacatepay.com/v` (the version is appended to it) and `version` defaults to `2`.
+
+### Added
+
+- Per-request `timeout` option, which overrides the client's.
+- `RETRY_SAFE_METHODS` export (`GET`, `HEAD`).
+
+### Changed
+
+- The default timeout is 30 seconds (was 5). Card charges, Boletos, PIX transfers and product uploads routinely take longer than 5 seconds, and a POST that times out is no longer retried.
+
 ## [1.0.2] - 2026-07-27
 
 ### Fixed

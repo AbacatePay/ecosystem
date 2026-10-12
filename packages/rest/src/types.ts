@@ -3,7 +3,7 @@
  */
 export interface RESTOptions {
 	/**
-	 * Base URL without the version for all requests (Default `https://api.abacatepay.com/`).
+	 * Base URL for all requests, to which the version is appended as-is (Default `https://api.abacatepay.com/v`).
 	 */
 	base?: string;
 	/**
@@ -11,15 +11,16 @@ export interface RESTOptions {
 	 */
 	secret?: string;
 	/**
-	 * The time to wait in milliseconds before a request is aborted (Default `5_000`).
+	 * The time to wait in milliseconds before a request is aborted (Default `30_000`).
 	 */
 	timeout?: number;
 	/**
-	 * Options to use when retrying.
+	 * Options to use when retrying. Only `GET`/`HEAD` requests are retried on timeouts and
+	 * 5xx; other methods are only retried on 429.
 	 */
 	retry?: RetryOptions;
 	/**
-	 * Version to use in requests (Default 1).
+	 * Version to use in requests (Default 2).
 	 */
 	version?: string | number;
 	/**
@@ -37,7 +38,7 @@ export interface RESTOptions {
  * Options to use when sending a request to the API.
  */
 export interface MakeRequestOptions
-	extends Pick<RESTOptions, 'retry' | 'headers'> {
+	extends Pick<RESTOptions, 'retry' | 'headers' | 'timeout'> {
 	/**
 	 * Optional data to send in the request body (We stringify with JSON.stringify internally).
 	 */
@@ -69,7 +70,7 @@ export type MakeRequestOptionsWithoutMethod = Omit<
  */
 export interface RetryOptions {
 	/**
-	 * Maximum number of attempts we should try.
+	 * Maximum number of retries after the first attempt (Default `3`).
 	 */
 	max: number;
 	/**
@@ -131,4 +132,9 @@ export interface InternalHandleErrorOptions {
 export type InternalHandleTimeoutErrorOptions = Omit<
 	InternalHandleErrorOptions,
 	'response'
->;
+> & {
+	/**
+	 * Timeout used in the request, in milliseconds.
+	 */
+	timeout: number;
+};
