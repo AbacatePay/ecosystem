@@ -3,7 +3,7 @@
  */
 export interface APIStore {
 	/**
-	 * Unique identifier for your store on AbacatePay.
+	 * Unique identifier for your store on AbacatePay (`store_...`).
 	 */
 	id: string;
 	/**
@@ -32,5 +32,9 @@ export interface APIStore {
 		 * @remarks The blocked balance represents amounts that are in dispute or under review. These amounts are not available for withdrawal until the situation is resolved.
 		 */
 		blocked: number;
+		/**
+		 * Balance of card receivables being anticipated, in cents.
+		 */
+		processingAnticipation: number;
 	};
 }

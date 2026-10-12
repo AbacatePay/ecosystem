@@ -1,23 +1,27 @@
+import type { TransactionStatus } from './transaction';
+
 /**
  * https://docs.abacatepay.com/pages/payouts/reference
  */
 export interface APIPayout {
 	/**
-	 * Unique transaction identifier.
+	 * Unique transaction identifier (`tran_...`).
 	 */
 	id: string;
 	/**
-	 * Current transaction status.
+	 * Current transaction status. A payout is `COMPLETE` when created and becomes `FAILED` if it is rejected afterwards.
+	 *
+	 * @see {@link PayoutStatus}
 	 */
-	status: PayoutStatus;
+	status: TransactionStatus;
 	/**
 	 * Indicates whether the transaction was created in a testing environment.
 	 */
 	devMode: boolean;
 	/**
-	 * Transaction proof URL.
+	 * Transaction receipt URL (`https://app.abacatepay.com/receipt/{id}`).
 	 */
-	receiptUrl: string | null;
+	receiptUrl: string;
 	/**
 	 * Payout value in cents.
 	 */
@@ -27,9 +31,9 @@ export interface APIPayout {
 	 */
 	platformFee: number;
 	/**
-	 * External transaction identifier.
+	 * External transaction identifier. Absent when none was sent.
 	 */
-	externalId: string;
+	externalId?: string;
 	/**
 	 * Transaction creation date.
 	 */
@@ -40,13 +44,9 @@ export interface APIPayout {
 	updatedAt: string;
 }
 
-/**
- * https://docs.abacatepay.com/pages/payouts/reference#atributos
- */
-export enum PayoutStatus {
-	Pending = 'PENDING',
-	Expired = 'EXPIRED',
-	Cancelled = 'CANCELLED',
-	Complete = 'COMPLETE',
-	Refunded = 'REFUNDED',
-}
+export {
+	/**
+	 * https://docs.abacatepay.com/pages/payouts/reference#atributos
+	 */
+	TransactionStatus as PayoutStatus,
+} from './transaction';

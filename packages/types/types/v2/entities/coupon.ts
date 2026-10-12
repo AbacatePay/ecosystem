@@ -1,9 +1,9 @@
 /**
- * https://docs.abacatepay.com/pages/coupon/reference#estrutura
+ * https://docs.abacatepay.com/pages/coupons/reference#estrutura
  */
 export interface APICoupon {
 	/**
-	 * Unique coupon code that your customers will use to apply the discount.
+	 * The coupon code, which is also its identifier.
 	 */
 	id: string;
 	/**
@@ -11,7 +11,7 @@ export interface APICoupon {
 	 */
 	discountKind: CouponDiscountKind;
 	/**
-	 * Discount amount. For `PERCENTAGE` use numbers from 1-100 (ex: 10 = 10%). For `FIXED` use the value in cents (ex: 500 = R$5.00).
+	 * Discount amount. For `PERCENTAGE` it is in basis points (1000 = 10%, max 10000). For `FIXED` it is in cents (e.g. 500 = R$5.00).
 	 */
 	discount: number;
 	/**
@@ -19,9 +19,7 @@ export interface APICoupon {
 	 */
 	status: CouponStatus;
 	/**
-	 * Limit on the number of times the coupon can be used. Use `-1` for unlimited coupons or a specific number to limit usage.
-	 *
-	 * @default 10
+	 * How many times the coupon can be redeemed, `-1` for unlimited.
 	 */
 	maxRedeems: number;
 	/**
@@ -33,9 +31,9 @@ export interface APICoupon {
 	 */
 	devMode: boolean;
 	/**
-	 * Internal description of the coupon for your organization and control.
+	 * Internal notes of the coupon (`''` when not set).
 	 */
-	notes?: string;
+	notes: string;
 	/**
 	 * Coupon creation date and time.
 	 */
@@ -44,22 +42,21 @@ export interface APICoupon {
 	 * Coupon last updated date and time.
 	 */
 	updatedAt: string;
-	/**
-	 * Object to store additional information about the coupon, such as campaign, category, or other data relevant to your organization.
-	 */
-	metadata?: Record<string, object>;
 }
 
 /**
- * https://docs.abacatepay.com/pages/coupon/reference#atributos
+ * https://docs.abacatepay.com/pages/coupons/reference#atributos
  */
 export enum CouponDiscountKind {
 	Percentage = 'PERCENTAGE',
 	Fixed = 'FIXED',
 }
 
+/**
+ * https://docs.abacatepay.com/pages/coupons/reference#atributos
+ */
 export enum CouponStatus {
 	Active = 'ACTIVE',
-	Inactive = 'INACTIVE',
-	Expired = 'EXPIRED',
+	Disabled = 'DISABLED',
+	Deleted = 'DELETED',
 }
