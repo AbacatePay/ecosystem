@@ -182,7 +182,16 @@ export interface APICheckout {
 		 * Maximum number of card installments offered (1-12).
 		 */
 		maxInstallments: number;
+		/**
+		 * Whether the customer pays the card fee on top of the price.
+		 */
+		passFeesToCustomer: boolean;
 	};
+	/**
+	 * Card fee paid by the customer on top of the price, in cents, when `card.passFeesToCustomer` is on
+	 * and the checkout was paid by card. `null` otherwise. `amount` is the price without it.
+	 */
+	customerFee: number | null;
 	/**
 	 * Boleto late interest.
 	 *

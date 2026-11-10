@@ -11,6 +11,7 @@ import type {
 	RESTGetListPixTransfersQueryParams,
 	RESTGetListProductsQueryParams,
 	RESTGetListStoresQueryParams,
+	RESTGetListSubAccountsQueryParams,
 	RESTGetListSubscriptionCheckoutsQueryParams,
 	RESTGetListSubscriptionsQueryParams,
 	RESTGetListTransparentsQueryParams,
@@ -247,6 +248,37 @@ export const Routes = {
 		list(query: RESTGetListPayoutsQueryParams = {}) {
 			return withQuery('/payouts/list', query);
 		},
+	},
+	subAccounts: {
+		/**
+		 * POST - https://api.abacatepay.com/v2/sub-accounts/create
+		 */
+		create: '/sub-accounts/create',
+
+		/**
+		 * GET - https://api.abacatepay.com/v2/sub-accounts/get
+		 */
+		get(id: string) {
+			return withQuery('/sub-accounts/get', { id });
+		},
+
+		/**
+		 * GET - https://api.abacatepay.com/v2/sub-accounts/list
+		 */
+		list(query: RESTGetListSubAccountsQueryParams = {}) {
+			return withQuery('/sub-accounts/list', query);
+		},
+
+		/**
+		 * POST - https://api.abacatepay.com/v2/sub-accounts/withdraw
+		 */
+		withdraw: '/sub-accounts/withdraw',
+	},
+	customerPortal: {
+		/**
+		 * POST - https://api.abacatepay.com/v2/customer-portal/create
+		 */
+		create: '/customer-portal/create',
 	},
 	bankStatement: {
 		/**

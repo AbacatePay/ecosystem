@@ -230,22 +230,23 @@ export interface WebhookUtms {
 }
 
 /**
- * Name and document shown for Pix and boleto payments. It comes from the
- * customer of the charge, so `isSameAsCustomer` is always `true`.
+ * Name and document shown for Pix and boleto payments: the payer reported by
+ * the provider when there is one (Even on charges without a customer), the
+ * customer of the charge otherwise.
  */
 export interface WebhookPayerDocument {
 	/**
-	 * Customer's name.
+	 * Payer's name (Or the customer's, when the provider reported no payer).
 	 */
 	name: string | null;
 	/**
-	 * Customer's masked CPF or CNPJ.
+	 * Payer's CPF or CNPJ, masked unless full documents are enabled for your store.
 	 */
 	taxId: string | null;
 	/**
-	 * Always `true`.
+	 * Whether the payer's document is the customer's. `true` when the provider reported no payer.
 	 */
-	isSameAsCustomer: true;
+	isSameAsCustomer: boolean;
 }
 
 /**
@@ -465,6 +466,16 @@ export interface WebhookCheckout {
 		maxInstallments: number;
 	};
 	/**
+	 * Card fee paid by the customer on top of the price, in cents, when the checkout passes the fee
+	 * to the customer (`card.passFeesToCustomer`). Already included in `amount`. `null` otherwise.
+	 */
+	customerFee: number | null;
+	/**
+	 * `true` when this event is the payment of the upsell offered after the purchase: same checkout `id`,
+	 * `items` holds only the upsell product and `paidAmount` adds up the purchase and the upsell.
+	 */
+	isUpSell: boolean;
+	/**
 	 * Late interest configuration (boleto). `{}` when it is not configured.
 	 */
 	interest?:
@@ -625,6 +636,11 @@ export interface WebhookTransparentBase {
 	 * Metadata you sent when creating the payment. An empty object when none.
 	 */
 	metadata: Record<string, unknown>;
+	/**
+	 * Card fee paid by the customer on top of the price, in cents (Already included in `amount`),
+	 * or `null`. Not sent by every delivery yet.
+	 */
+	customerFee?: number | null;
 }
 
 /**
@@ -1020,6 +1036,81 @@ export interface WebhookTransfer {
 }
 
 /**
+ * PIX received on your store's fixed PIX key (No charge behind it), sent in `pix_key.*` events.
+ */
+export interface WebhookPixKeyPayment {
+	/**
+	 * Unique transaction identifier (`tran_…`). Never repeats for the same PIX: use it as the idempotency key.
+	 */
+	id: string;
+	/**
+	 * Amount received in cents.
+	 */
+	amount: number;
+	/**
+	 * Fee in cents. The net amount is `amount - fee`; the fee never exceeds the amount.
+	 */
+	fee: number;
+	/**
+	 * `COMPLETE` (Received), `UNDER_DISPUTE` (MED dispute) or `REFUNDED`.
+	 */
+	status: WebhookTransactionStatus;
+	/**
+	 * PIX end-to-end identifier.
+	 */
+	endToEndId: string | null;
+	/**
+	 * Receipt URL.
+	 */
+	receiptUrl: string | null;
+	/**
+	 * When the PIX was received.
+	 */
+	createdAt: string;
+}
+
+/**
+ * Who sent a PIX to your fixed PIX key.
+ */
+export interface WebhookPixKeyPayer {
+	/**
+	 * Payer's name.
+	 */
+	name: string | null;
+	/**
+	 * Payer's CPF or CNPJ, masked unless full documents are enabled for your store.
+	 */
+	taxId: string | null;
+	/**
+	 * Payer's bank, or `null` when not reported.
+	 */
+	bank: {
+		/**
+		 * Bank ISPB.
+		 */
+		ispb: string;
+		/**
+		 * Bank name.
+		 */
+		name: string | null;
+	} | null;
+}
+
+/**
+ * `data` of the `pix_key.*` events.
+ */
+export interface WebhookPixKeyEventData {
+	/**
+	 * The PIX received.
+	 */
+	pixKey: WebhookPixKeyPayment;
+	/**
+	 * Who sent it.
+	 */
+	payer: WebhookPixKeyPayer;
+}
+
+/**
  * https://docs.abacatepay.com/pages/webhooks/events/checkout
  */
 export type WebhookCheckoutCompletedEvent = BaseWebhookEvent<
@@ -1182,6 +1273,26 @@ export type WebhookTransferFailedEvent = BaseWebhookEvent<
 >;
 
 /**
+ * Sent for every PIX received on your store's fixed PIX key. Production only.
+ *
+ * https://docs.abacatepay.com/pages/webhooks/events/pix-key
+ */
+export type WebhookPixKeyReceivedEvent = BaseWebhookEvent<
+	WebhookEventType.PixKeyReceived,
+	WebhookPixKeyEventData
+>;
+
+/**
+ * Sent when a PIX received on your fixed PIX key is refunded (`pixKey.status` is `REFUNDED`).
+ *
+ * https://docs.abacatepay.com/pages/webhooks/events/pix-key
+ */
+export type WebhookPixKeyRefundedEvent = BaseWebhookEvent<
+	WebhookEventType.PixKeyRefunded,
+	WebhookPixKeyEventData & WebhookReasonData
+>;
+
+/**
  * Events that can be subscribed to but are never sent.
  *
  * @deprecated AbacatePay does not send `checkout.lost` or `transparent.lost`:
@@ -1215,6 +1326,8 @@ export type WebhookEvent =
 	| WebhookPayoutFailedEvent
 	| WebhookTransferCompletedEvent
 	| WebhookTransferFailedEvent
+	| WebhookPixKeyReceivedEvent
+	| WebhookPixKeyRefundedEvent
 	| WebhookUndocumentedEvent;
 
 /**
@@ -1245,4 +1358,6 @@ export enum WebhookEventType {
 	PayoutFailed = 'payout.failed',
 	TransferCompleted = 'transfer.completed',
 	TransferFailed = 'transfer.failed',
+	PixKeyReceived = 'pix_key.received',
+	PixKeyRefunded = 'pix_key.refunded',
 }

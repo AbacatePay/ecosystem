@@ -130,6 +130,37 @@ await abacate.transparents.refund(charge.data!.id, 'Pedido cancelado');
 
 <div align="center">
 
+## Subcontas e split no PIX
+
+Guarde um saldo separado para cada vendedor do seu marketplace. O recurso precisa ser habilitado pelo suporte.
+
+</div>
+
+```ts
+const seller = await abacate.subAccounts.create({
+    name: 'João da Silva',
+    taxId: '111.444.777-35', // criar de novo com o mesmo CPF/CNPJ devolve a mesma subconta
+    externalId: 'vendedor-42',
+});
+
+if (seller.success) {
+    // Quando o PIX é pago, R$ 70,00 vão para o saldo da subconta
+    await abacate.pix.create({
+        amount: 10000,
+        splits: [{ subAccountId: seller.data.id, amount: 7000 }],
+    });
+
+    // O saque vai sempre para a chave PIX CPF/CNPJ do titular
+    await abacate.subAccounts.withdraw({
+        id: seller.data.id,
+        amount: 7000,
+        externalId: 'repasse-vendedor-42',
+    });
+}
+```
+
+<div align="center">
+
 ## Retries e timeout
 
 Requisições `GET` são repetidas automaticamente em timeout e em erros temporários (408, 425, 429 e 5xx).

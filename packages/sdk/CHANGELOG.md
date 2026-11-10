@@ -4,6 +4,21 @@ All notable changes to `@abacatepay/sdk` are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [3.1.0] - 2026-11-10
+
+### Added
+
+- `subAccounts.create`, `subAccounts.get`, `subAccounts.list` and `subAccounts.withdraw`, plus `splits` in `pix.create` to credit sub accounts when the PIX is paid.
+- `customerPortal.create`: the link for a customer to manage what they bought in a checkout.
+- `card.passFeesToCustomer` in `checkouts.create` and `paymentLinks.create`, and card installments in `paymentLinks.create`.
+- `address` and `metadata` in `customers.create`.
+- Every new field and webhook event of `@abacatepay/types` 4.1.0 (See its changelog).
+
+### Changed
+
+- Depends on `@abacatepay/types` `^4.1.0`.
+- `transfers.send` documents that a repeated `externalId` returns the existing transfer, so it is safe to retry with the same one.
+
 ## [3.0.0] - 2026-10-12
 
 ### Fixed

@@ -825,6 +825,126 @@ const cases: [
 			body: undefined,
 		},
 	],
+	[
+		'subAccounts.create',
+		(abacate) =>
+			abacate.subAccounts.create({
+				name: 'João da Silva',
+				taxId: '111.444.777-35',
+				externalId: 'vendedor-42',
+				metadata: { loja: 'centro' },
+			}),
+		{
+			url: `${BASE}/sub-accounts/create`,
+			method: 'POST',
+			body: {
+				name: 'João da Silva',
+				taxId: '111.444.777-35',
+				externalId: 'vendedor-42',
+				metadata: { loja: 'centro' },
+			},
+		},
+	],
+	[
+		'subAccounts.get',
+		(abacate) => abacate.subAccounts.get('sacc_123'),
+		{
+			url: `${BASE}/sub-accounts/get?id=sacc_123`,
+			method: 'GET',
+			body: undefined,
+		},
+	],
+	[
+		'subAccounts.list with filters',
+		(abacate) => abacate.subAccounts.list({ taxId: '11144477735', limit: 10 }),
+		{
+			url: `${BASE}/sub-accounts/list?taxId=11144477735&limit=10`,
+			method: 'GET',
+			body: undefined,
+		},
+	],
+	[
+		'subAccounts.withdraw',
+		(abacate) =>
+			abacate.subAccounts.withdraw({
+				id: 'sacc_123',
+				amount: 7000,
+				externalId: 'repasse-42',
+			}),
+		{
+			url: `${BASE}/sub-accounts/withdraw`,
+			method: 'POST',
+			body: { id: 'sacc_123', amount: 7000, externalId: 'repasse-42' },
+		},
+	],
+	[
+		'customerPortal.create',
+		(abacate) =>
+			abacate.customerPortal.create({
+				customerId: 'cust_123',
+				checkoutId: 'bill_123',
+			}),
+		{
+			url: `${BASE}/customer-portal/create`,
+			method: 'POST',
+			body: { customerId: 'cust_123', checkoutId: 'bill_123' },
+		},
+	],
+	[
+		'pix.create with splits',
+		(abacate) =>
+			abacate.pix.create({
+				amount: 10000,
+				splits: [{ subAccountId: 'sacc_123', amount: 7000 }],
+			}),
+		{
+			url: `${BASE}/transparents/create`,
+			method: 'POST',
+			body: {
+				method: 'PIX',
+				data: {
+					amount: 10000,
+					splits: [{ subAccountId: 'sacc_123', amount: 7000 }],
+				},
+			},
+		},
+	],
+	[
+		'checkouts.create passing the card fee to the customer',
+		(abacate) =>
+			abacate.checkouts.create({
+				items: [{ id: 'prod_123', quantity: 1 }],
+				methods: [PaymentMethod.Card],
+				card: { maxInstallments: 6, passFeesToCustomer: true },
+			}),
+		{
+			url: `${BASE}/checkouts/create`,
+			method: 'POST',
+			body: {
+				items: [{ id: 'prod_123', quantity: 1 }],
+				methods: ['CARD'],
+				card: { maxInstallments: 6, passFeesToCustomer: true },
+			},
+		},
+	],
+	[
+		'paymentLinks.create with card installments',
+		(abacate) =>
+			abacate.paymentLinks.create({
+				items: [{ id: 'prod_123', quantity: 1 }],
+				methods: [PaymentMethod.Card],
+				card: { maxInstallments: 3 },
+			}),
+		{
+			url: `${BASE}/payment-links/create`,
+			method: 'POST',
+			body: {
+				items: [{ id: 'prod_123', quantity: 1 }],
+				methods: ['CARD'],
+				card: { maxInstallments: 3 },
+			},
+		},
+	],
 ];
 
 describe('AbacatePay (v2) requests', () => {
