@@ -28,6 +28,8 @@ import type {
 	RESTGetListReportsData,
 	RESTGetListStoresData,
 	RESTGetListStoresQueryParams,
+	RESTGetListSubAccountsData,
+	RESTGetListSubAccountsQueryParams,
 	RESTGetListSubscriptionCheckoutsData,
 	RESTGetListSubscriptionCheckoutsQueryParams,
 	RESTGetListSubscriptionsData,
@@ -53,6 +55,7 @@ import type {
 	RESTGetSearchPayoutData,
 	RESTGetSearchPayoutQueryParams,
 	RESTGetStoreDetailsData,
+	RESTGetSubAccountData,
 	RESTGetSubscriptionCheckoutData,
 	RESTGetSubscriptionCheckoutQueryParams,
 	RESTGetSubscriptionData,
@@ -70,6 +73,8 @@ import type {
 	RESTPostCreateCouponData,
 	RESTPostCreateCustomerBody,
 	RESTPostCreateCustomerData,
+	RESTPostCreateCustomerPortalBody,
+	RESTPostCreateCustomerPortalData,
 	RESTPostCreateNewCheckoutBody,
 	RESTPostCreateNewCheckoutData,
 	RESTPostCreateNewPayoutBody,
@@ -80,6 +85,8 @@ import type {
 	RESTPostCreateProductData,
 	RESTPostCreateQRCodePixBody,
 	RESTPostCreateQRCodePixData,
+	RESTPostCreateSubAccountBody,
+	RESTPostCreateSubAccountData,
 	RESTPostCreateSubscriptionBody,
 	RESTPostCreateSubscriptionData,
 	RESTPostCreateTransparentBody,
@@ -100,6 +107,8 @@ import type {
 	RESTPostSendPixTransferData,
 	RESTPostSimulateQRCodePixPaymentData,
 	RESTPostToggleCouponStatusData,
+	RESTPostWithdrawSubAccountBody,
+	RESTPostWithdrawSubAccountData,
 } from '@abacatepay/types/v2';
 import { Routes } from '@abacatepay/types/v2';
 import type { AbacatePayOptions } from './types';
@@ -493,8 +502,9 @@ export const AbacatePay = ({ secret, rest }: AbacatePayOptions) => {
 		 */
 		transfers: {
 			/**
-			 * Send a PIX transfer to a third-party PIX key. One transfer per store every 30 seconds;
-			 * `externalId` is not used to deduplicate requests.
+			 * Send a PIX transfer to a third-party PIX key. One transfer per store every 30 seconds.
+			 * Sending an `externalId` already used returns that transfer instead of sending a new one
+			 * (An error when the `amount` differs), so reuse it when retrying.
 			 *
 			 * @param body Transfer payload.
 			 * @returns The created transfer.
@@ -733,6 +743,84 @@ export const AbacatePay = ({ secret, rest }: AbacatePayOptions) => {
 			 */
 			list(query?: RESTGetListPayoutsQueryParams) {
 				return client.get<RESTGetListPayoutsData>(Routes.payouts.list(query));
+			},
+		},
+
+		/**
+		 * Sub accounts: a separate balance for each seller of your marketplace, credited by `splits`
+		 * on PIX charges and withdrawn to the seller's own CPF/CNPJ PIX key. Requires the feature
+		 * enabled for your store.
+		 */
+		subAccounts: {
+			/**
+			 * Create a sub account for a seller. Creating it again with the same CPF/CNPJ returns the
+			 * existing sub account, with its current balance.
+			 *
+			 * @param body Sub account creation payload.
+			 * @returns The sub account, with its balance.
+			 */
+			create(body: RESTPostCreateSubAccountBody) {
+				return client.post<RESTPostCreateSubAccountData>(
+					Routes.subAccounts.create,
+					{ body },
+				);
+			},
+
+			/**
+			 * Retrieve a sub account and its current balance.
+			 *
+			 * @param id Sub account ID (`sacc_...`).
+			 * @returns The sub account, with its balance.
+			 */
+			get(id: string) {
+				return client.get<RESTGetSubAccountData>(Routes.subAccounts.get(id));
+			},
+
+			/**
+			 * List sub accounts.
+			 *
+			 * @param query Optional filters and cursor (Send `pagination.next` as `after` for the next page).
+			 * @returns A cursor-paginated list of sub accounts.
+			 */
+			list(query?: RESTGetListSubAccountsQueryParams) {
+				return client.get<RESTGetListSubAccountsData>(
+					Routes.subAccounts.list(query),
+				);
+			},
+
+			/**
+			 * Withdraw from a sub account by PIX, always to the PIX key equal to its `taxId`.
+			 * One withdrawal per sub account every 30 seconds.
+			 *
+			 * Never retried after the request may have reached the API: check the result before trying again.
+			 *
+			 * @param body Withdrawal payload.
+			 * @returns The withdrawal. Its final result also arrives in the `transfer.*` webhooks.
+			 */
+			withdraw(body: RESTPostWithdrawSubAccountBody) {
+				return client.post<RESTPostWithdrawSubAccountData>(
+					Routes.subAccounts.withdraw,
+					{ body },
+				);
+			},
+		},
+
+		/**
+		 * Customer portal: a link for your customer to manage what they bought in a checkout.
+		 */
+		customerPortal: {
+			/**
+			 * Create the portal link of a customer for a checkout they paid. Calling it again with the
+			 * same `customerId` and `checkoutId` returns the same link.
+			 *
+			 * @param body The customer and the checkout.
+			 * @returns The portal link.
+			 */
+			create(body: RESTPostCreateCustomerPortalBody) {
+				return client.post<RESTPostCreateCustomerPortalData>(
+					Routes.customerPortal.create,
+					{ body },
+				);
 			},
 		},
 
