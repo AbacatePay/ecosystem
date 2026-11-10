@@ -70,6 +70,15 @@ describe('Routes (v2)', () => {
 		expect(Routes.mrr.byDay('2026-01-01', '2026-01-31')).toBe(
 			'/public-mrr/mrr-by-day?startDate=2026-01-01&endDate=2026-01-31',
 		);
+		expect(Routes.subAccounts.create).toBe('/sub-accounts/create');
+		expect(Routes.subAccounts.get('sacc_1')).toBe(
+			'/sub-accounts/get?id=sacc_1',
+		);
+		expect(Routes.subAccounts.list({ externalId: 'seller 1' })).toBe(
+			'/sub-accounts/list?externalId=seller+1',
+		);
+		expect(Routes.subAccounts.withdraw).toBe('/sub-accounts/withdraw');
+		expect(Routes.customerPortal.create).toBe('/customer-portal/create');
 	});
 
 	test('pix/get always sends the id key the API requires', () => {

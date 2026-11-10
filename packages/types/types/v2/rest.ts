@@ -14,6 +14,7 @@ import type {
 	CouponStatus,
 } from './entities/coupon';
 import type { APICustomer, APICustomerAddress } from './entities/customer';
+import type { APICustomerPortalLink } from './entities/customerPortal';
 import type { APIPaymentLink } from './entities/paymentLink';
 import type { APIPayout } from './entities/payout';
 import type {
@@ -35,6 +36,10 @@ import type {
 	SnapshotReportId,
 } from './entities/report';
 import type { APIStore } from './entities/store';
+import type {
+	APISubAccount,
+	APISubAccountWithdraw,
+} from './entities/subAccount';
 import type {
 	APISubscription,
 	APISubscriptionPlanChange,
@@ -219,6 +224,14 @@ export interface RESTPostCreateCustomerBody {
 	 * Customer zip code.
 	 */
 	zipCode?: string;
+	/**
+	 * Customer's full address.
+	 */
+	address?: APICustomerAddress;
+	/**
+	 * Optional customer metadata, returned as-is. Values must be strings (A number or an object is rejected).
+	 */
+	metadata?: Record<string, string>;
 }
 
 /**
@@ -373,6 +386,13 @@ export interface RESTPostCreateNewCheckoutBody {
 		 * Maximum number of installments (1-12). Each installment must be at least R$10.
 		 */
 		maxInstallments: number;
+		/**
+		 * The customer pays the card fee on top of the price, so you receive the full price.
+		 * The surcharge paid comes back in `customerFee`. Requires card payments through Rinne.
+		 *
+		 * @default false
+		 */
+		passFeesToCustomer?: boolean;
 	};
 	/**
 	 * ID (Or `externalId`) of an active product without billing cycle offered as an upsell.
@@ -524,27 +544,18 @@ export type RESTPostRefundCheckoutData = APIResponse<APIRefund>;
 /**
  * https://api.abacatepay.com/v2/payment-links/create
  *
- * Payment links do not accept a `customerId`, card installments or Google/Apple Pay.
+ * Payment links do not accept a `customerId` or Google/Apple Pay.
  *
  * @reference https://docs.abacatepay.com/pages/payment-links/create
  */
 export type RESTPostCreatePaymentLinkBody = Omit<
 	RESTPostCreateNewCheckoutBody,
-	'customerId' | 'methods' | 'card'
+	'customerId' | 'methods'
 > & {
 	/**
 	 * Payment methods that will be accepted (Defaults to `[PIX, CARD]`).
 	 */
 	methods?: (PaymentMethod.Pix | PaymentMethod.Card | PaymentMethod.Boleto)[];
-	/**
-	 * Card configuration. Payment links do not support installments.
-	 */
-	card?: {
-		/**
-		 * Must be `1`.
-		 */
-		maxInstallments: 1;
-	};
 };
 
 /**
@@ -681,6 +692,13 @@ export interface RESTPostCreateQRCodePixBody {
 	 */
 	ensureSameTaxId?: boolean;
 	/**
+	 * Parts of the payment credited to your sub accounts when the PIX is paid (1-10 items).
+	 * The sum must fit in the amount minus the fee. Requires sub accounts enabled for your store.
+	 *
+	 * @reference https://docs.abacatepay.com/pages/sub-accounts/reference
+	 */
+	splits?: RESTPostCreateQRCodePixSplit[];
+	/**
 	 * UTM parameters of the charge.
 	 */
 	utm?: APITransparentUTM;
@@ -688,6 +706,20 @@ export interface RESTPostCreateQRCodePixBody {
 	 * Optional charge metadata, returned as-is.
 	 */
 	metadata?: Record<string, unknown>;
+}
+
+/**
+ * One part of a PIX charge credited to a sub account.
+ */
+export interface RESTPostCreateQRCodePixSplit {
+	/**
+	 * Sub account ID (`sacc_...`).
+	 */
+	subAccountId: string;
+	/**
+	 * Amount in cents credited to the sub account (Integer, min 1).
+	 */
+	amount: number;
 }
 
 /**
@@ -1281,7 +1313,7 @@ export interface RESTGetListPayoutsQueryParams
 /**
  * https://api.abacatepay.com/v2/payouts/list
  *
- * @remarks The API currently lists every transaction of your store here, not only payouts.
+ * Only payouts are listed: received payments, refunds and sub account withdrawals are not.
  *
  * @reference https://docs.abacatepay.com/pages/payouts/list
  */
@@ -1302,7 +1334,8 @@ export interface RESTPostSendPixTransferBody {
 	 */
 	amount: number;
 	/**
-	 * Unique identifier of the transfer in your system. Not used for idempotency.
+	 * Unique identifier of the transfer in your system. Sending an `externalId` already used returns
+	 * that transfer instead of sending a new one (An error when the `amount` differs).
 	 */
 	externalId: string;
 	/**
@@ -1363,8 +1396,8 @@ export type RESTGetPixTransferData = APIResponse<APIPixTransfer>;
  * https://api.abacatepay.com/v2/pix/list
  *
  * @remarks The API currently requires `id`, matches it partially (case-insensitive) against the IDs of
- * every transaction of your store (Not only PIX transfers), returns at most 100 items (Newest first) and
- * supports no cursor or other filter.
+ * your PIX transfers and payouts, returns at most 100 items (Newest first) and supports no cursor or
+ * other filter.
  *
  * @reference https://docs.abacatepay.com/pages/pix/list
  */
@@ -1383,6 +1416,147 @@ export interface RESTGetListPixTransfersQueryParams {
 export type RESTGetListPixTransfersData = APIResponseWithCursorBasedPagination<
 	APIPixTransfer[]
 >;
+
+/**
+ * https://api.abacatepay.com/v2/sub-accounts/create
+ *
+ * Creating a sub account again with the same CPF/CNPJ returns the existing one, with its current
+ * balance. The CPF/CNPJ cannot be your store's. Requires sub accounts enabled for your store.
+ *
+ * @reference https://docs.abacatepay.com/pages/sub-accounts/create
+ */
+export interface RESTPostCreateSubAccountBody {
+	/**
+	 * Name of the seller (1-100 characters).
+	 */
+	name: string;
+	/**
+	 * CPF or CNPJ of the seller, with or without punctuation (Check digits are validated).
+	 */
+	taxId: string;
+	/**
+	 * Your identifier for this sub account (1-100 characters).
+	 */
+	externalId?: string;
+	/**
+	 * Optional metadata, returned as-is. Values must be strings.
+	 */
+	metadata?: Record<string, string>;
+}
+
+/**
+ * https://api.abacatepay.com/v2/sub-accounts/create
+ *
+ * @reference https://docs.abacatepay.com/pages/sub-accounts/create
+ */
+export type RESTPostCreateSubAccountData = APIResponse<APISubAccount>;
+
+/**
+ * https://api.abacatepay.com/v2/sub-accounts/get
+ *
+ * @reference https://docs.abacatepay.com/pages/sub-accounts/get
+ */
+export interface RESTGetSubAccountQueryParams {
+	/**
+	 * Sub account ID (`sacc_...`).
+	 */
+	id: string;
+}
+
+/**
+ * https://api.abacatepay.com/v2/sub-accounts/get
+ *
+ * @reference https://docs.abacatepay.com/pages/sub-accounts/get
+ */
+export type RESTGetSubAccountData = APIResponse<APISubAccount>;
+
+/**
+ * https://api.abacatepay.com/v2/sub-accounts/list
+ *
+ * @reference https://docs.abacatepay.com/pages/sub-accounts/list
+ */
+export interface RESTGetListSubAccountsQueryParams
+	extends RESTCursorPaginationQueryParams {
+	/**
+	 * Filter by the seller's CPF or CNPJ.
+	 */
+	taxId?: string;
+	/**
+	 * Filter by your `externalId`.
+	 */
+	externalId?: string;
+}
+
+/**
+ * https://api.abacatepay.com/v2/sub-accounts/list
+ *
+ * @reference https://docs.abacatepay.com/pages/sub-accounts/list
+ */
+export type RESTGetListSubAccountsData = APIResponseWithCursorBasedPagination<
+	APISubAccount[]
+>;
+
+/**
+ * https://api.abacatepay.com/v2/sub-accounts/withdraw
+ *
+ * Always sent to the PIX key equal to the sub account `taxId`, so there is no key in the body.
+ * The seller receives `amount - platformFee`. One withdrawal per sub account every 30 seconds;
+ * the daily limits are your store's. The result also arrives in the `transfer.*` webhooks.
+ *
+ * @reference https://docs.abacatepay.com/pages/sub-accounts/withdraw
+ */
+export interface RESTPostWithdrawSubAccountBody {
+	/**
+	 * Sub account ID (`sacc_...`).
+	 */
+	id: string;
+	/**
+	 * Withdrawal amount in cents (Integer, min 100), fee included.
+	 */
+	amount: number;
+	/**
+	 * Your identifier for this withdrawal (1-100 characters).
+	 */
+	externalId: string;
+	/**
+	 * PIX description (Max 140 characters).
+	 */
+	description?: string;
+}
+
+/**
+ * https://api.abacatepay.com/v2/sub-accounts/withdraw
+ *
+ * @reference https://docs.abacatepay.com/pages/sub-accounts/withdraw
+ */
+export type RESTPostWithdrawSubAccountData = APIResponse<APISubAccountWithdraw>;
+
+/**
+ * https://api.abacatepay.com/v2/customer-portal/create
+ *
+ * Calling it again with the same `customerId` and `checkoutId` returns the same link. The customer must
+ * have an email (The access code is sent there) and must have paid the checkout.
+ *
+ * @reference https://docs.abacatepay.com/pages/customer-portal/create
+ */
+export interface RESTPostCreateCustomerPortalBody {
+	/**
+	 * Customer ID (`cust_...`).
+	 */
+	customerId: string;
+	/**
+	 * ID of a checkout the customer paid (`bill_...`).
+	 */
+	checkoutId: string;
+}
+
+/**
+ * https://api.abacatepay.com/v2/customer-portal/create
+ *
+ * @reference https://docs.abacatepay.com/pages/customer-portal/create
+ */
+export type RESTPostCreateCustomerPortalData =
+	APIResponse<APICustomerPortalLink>;
 
 /**
  * https://api.abacatepay.com/v2/bank-statement/list
@@ -2092,9 +2266,17 @@ export interface RESTPostCreateWebhookBody {
 	 * Event types this webhook should be notified about. v1 event names are also accepted and are
 	 * delivered with the v1 payload.
 	 *
+	 * @remarks The API does not accept the `pix_key.*` events here yet.
+	 *
 	 * @see {@link WebhookEventType}
 	 */
-	events: (WebhookEventType | WebhookV1EventName)[];
+	events: (
+		| Exclude<
+				WebhookEventType,
+				WebhookEventType.PixKeyReceived | WebhookEventType.PixKeyRefunded
+		  >
+		| WebhookV1EventName
+	)[];
 }
 
 /**

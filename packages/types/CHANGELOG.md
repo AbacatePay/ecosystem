@@ -4,6 +4,26 @@ All notable changes to `@abacatepay/types` are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [4.1.0] - 2026-11-10
+
+### Added
+
+- Sub accounts: `Routes.subAccounts` (`create`, `get`, `list`, `withdraw`), the `APISubAccount`, `APISubAccountBalance` and `APISubAccountWithdraw` entities and their request/response types (`RESTPostCreateSubAccountBody`, `RESTGetListSubAccountsQueryParams`, `RESTPostWithdrawSubAccountBody`, ...).
+- `splits` in `RESTPostCreateQRCodePixBody` (`RESTPostCreateQRCodePixSplit`): parts of a PIX charge credited to sub accounts when it is paid.
+- Customer portal: `Routes.customerPortal.create`, `APICustomerPortalLink`, `RESTPostCreateCustomerPortalBody` and `RESTPostCreateCustomerPortalData`.
+- `card.passFeesToCustomer` in `RESTPostCreateNewCheckoutBody` and `RESTPostCreatePaymentLinkBody`; `APICheckout` gained `card.passFeesToCustomer` and `customerFee`.
+- `APISubscription` gained `currentPeriodStart`, `currentPeriodEnd` and `nextChargeAt`.
+- `APICardTransparentBase` gained `currency`; `APITransparentUTM` gained `src` and `sck`.
+- `address` and `metadata` (string values) in `RESTPostCreateCustomerBody`: the API stores them now.
+- Webhooks: `pix_key.received` and `pix_key.refunded` (`WebhookEventType.PixKeyReceived`/`PixKeyRefunded`, `WebhookPixKeyReceivedEvent`, `WebhookPixKeyRefundedEvent`, `WebhookPixKeyEventData`), `isUpSell` and `customerFee` in `WebhookCheckout`, and `customerFee` in `WebhookTransparentBase`.
+
+### Changed
+
+- `RESTPostCreatePaymentLinkBody.card` takes the checkout card options: payment links accept 1-12 installments.
+- `WebhookPayerDocument` is the payer reported by the provider when there is one, so `isSameAsCustomer` is a `boolean` (It was always `true`).
+- `RESTPostCreateWebhookBody.events` leaves out the `pix_key.*` events, which the API does not accept there yet.
+- `RESTPostSendPixTransferBody.externalId` is idempotent: a repeated `externalId` returns the existing transfer (An error when the `amount` differs). `/payouts/list` and `/pix/list` only list payouts and PIX transfers.
+
 ## [4.0.0] - 2026-10-12
 
 ### Fixed

@@ -70,6 +70,21 @@ export interface APISubscription {
 		 */
 		retryEvery: number;
 	};
+	/**
+	 * Start of the current billing cycle (`YYYY-MM-DD`). During the trial, the day the subscription was created.
+	 * `null` when there is no current cycle.
+	 */
+	currentPeriodStart: string | null;
+	/**
+	 * End of the current billing cycle (`YYYY-MM-DD`, exclusive): the day the next cycle starts.
+	 * During the trial, the end of the trial. `null` when there is no current cycle.
+	 */
+	currentPeriodEnd: string | null;
+	/**
+	 * Scheduled date of the next charge (`YYYY-MM-DD`), already accounting for retries.
+	 * `null` when the subscription is not active.
+	 */
+	nextChargeAt: string | null;
 }
 
 /**

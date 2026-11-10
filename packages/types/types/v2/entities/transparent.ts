@@ -53,6 +53,14 @@ export interface APITransparentUTM {
 	campaign?: string;
 	term?: string;
 	content?: string;
+	/**
+	 * `src` tracking parameter (e.g. Utmify).
+	 */
+	src?: string;
+	/**
+	 * `sck` tracking parameter (e.g. Utmify).
+	 */
+	sck?: string;
 }
 
 /**
@@ -64,9 +72,14 @@ export interface APICardTransparentBase {
 	 */
 	id: string;
 	/**
-	 * Total of the sale in cents (Not the installment amount).
+	 * Total of the sale in cents (Not the installment amount), including the card fee paid by the
+	 * customer when the fee is passed on.
 	 */
 	amount: number;
+	/**
+	 * Currency of the charge (`BRL`).
+	 */
+	currency: string;
 	/**
 	 * Charge status. `APPROVED` when authorized (and always in dev mode), `PENDING` while the provider has not settled it.
 	 *
