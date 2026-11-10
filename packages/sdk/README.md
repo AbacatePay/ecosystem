@@ -164,7 +164,8 @@ if (seller.success) {
 ## Retries e timeout
 
 Requisições `GET` são repetidas automaticamente em timeout e em erros temporários (408, 425, 429 e 5xx).
-Requisições que criam, enviam ou reembolsam dinheiro (`POST`) **só são repetidas em 429**: se uma cobrança de cartão, saque ou PIX der timeout, ela pode ter sido processada, então consulte antes de tentar de novo.
+Requisições que criam, enviam ou reembolsam dinheiro (`POST`) **só são repetidas em 429**. Se uma cobrança de cartão der timeout, ela pode ter sido processada, então consulte antes de tentar de novo.
+Saque (`payouts.create`), saque de subconta (`subAccounts.withdraw`) e envio de PIX (`transfers.send`) podem ser repetidos com o mesmo `externalId`: a API devolve o que já foi feito em vez de mandar outro PIX.
 O timeout padrão é de 30 segundos.
 
 </div>

@@ -503,8 +503,8 @@ export const AbacatePay = ({ secret, rest }: AbacatePayOptions) => {
 		transfers: {
 			/**
 			 * Send a PIX transfer to a third-party PIX key. One transfer per store every 30 seconds.
-			 * Sending an `externalId` already used returns that transfer instead of sending a new one
-			 * (An error when the `amount` differs), so reuse it when retrying.
+			 * Sending an `externalId` already used returns that transfer, in any status, instead of sending a
+			 * new one (An error when the `amount` differs), so reuse it when retrying after a timeout.
 			 *
 			 * @param body Transfer payload.
 			 * @returns The created transfer.
@@ -713,6 +713,8 @@ export const AbacatePay = ({ secret, rest }: AbacatePayOptions) => {
 		payouts: {
 			/**
 			 * Create a new payout to a PIX key of your own store. One payout per store every 30 seconds.
+			 * Sending an `externalId` already used returns that payout, in any status, instead of creating a
+			 * new one (An error when the `amount` differs), so send one and reuse it when retrying after a timeout.
 			 *
 			 * @param body Payout creation payload.
 			 * @returns The created payout.
@@ -792,7 +794,9 @@ export const AbacatePay = ({ secret, rest }: AbacatePayOptions) => {
 			 * Withdraw from a sub account by PIX, always to the PIX key equal to its `taxId`.
 			 * One withdrawal per sub account every 30 seconds.
 			 *
-			 * Never retried after the request may have reached the API: check the result before trying again.
+			 * The SDK never retries it after the request may have reached the API. Sending an `externalId`
+			 * already used returns that withdrawal, in any status, instead of creating a new one (An error when
+			 * the `amount` differs), so reuse it when retrying after a timeout.
 			 *
 			 * @param body Withdrawal payload.
 			 * @returns The withdrawal. Its final result also arrives in the `transfer.*` webhooks.

@@ -4,6 +4,12 @@ All notable changes to `@abacatepay/sdk` are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [3.1.1] - 2026-11-10
+
+### Changed
+
+- `payouts.create` and `subAccounts.withdraw` document that an `externalId` already used returns that payout or withdrawal instead of a new one, like `transfers.send`, so retrying after a timeout with the same `externalId` is safe.
+
 ## [3.1.0] - 2026-11-10
 
 ### Added
