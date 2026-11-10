@@ -3,7 +3,7 @@
 /**
  * Current version of [@abacatepay/types](https://www.npmjs.com/package/@abacatepay/types).
  */
-export const version = '4.1.0' as const;
+export const version = '4.1.1' as const;
 /**
  * Current version of the AbacatePay API.
  */

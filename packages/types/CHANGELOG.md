@@ -4,6 +4,12 @@ All notable changes to `@abacatepay/types` are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [4.1.1] - 2026-11-10
+
+### Changed
+
+- `externalId` in `RESTPostCreateNewPayoutBody`, `RESTPostWithdrawSubAccountBody` and `RESTPostSendPixTransferBody` documents the idempotency of the API: an `externalId` already used returns that payout, withdrawal or transfer, in any status, instead of a new one. The API refuses it when the `amount` differs, or when it belongs to another balance (Your store or another sub account).
+
 ## [4.1.0] - 2026-11-10
 
 ### Added

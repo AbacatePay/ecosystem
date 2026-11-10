@@ -1253,7 +1253,10 @@ export interface RESTPostCreateNewPayoutBody {
 	 */
 	description?: string;
 	/**
-	 * Unique identifier of the payout in your system. Not used for idempotency.
+	 * Unique identifier of the payout in your system, and its idempotency key: sending an `externalId`
+	 * already used returns that payout, in any status, instead of creating a new one. The API refuses it
+	 * when the `amount` differs or when a sub account withdrawal already used it. Without it, every call
+	 * creates a new payout.
 	 */
 	externalId?: string;
 }
@@ -1334,8 +1337,9 @@ export interface RESTPostSendPixTransferBody {
 	 */
 	amount: number;
 	/**
-	 * Unique identifier of the transfer in your system. Sending an `externalId` already used returns
-	 * that transfer instead of sending a new one (An error when the `amount` differs).
+	 * Unique identifier of the transfer in your system, and its idempotency key: sending an `externalId`
+	 * already used returns that transfer, in any status, instead of sending a new one. The API refuses it
+	 * when the `amount` differs or when a sub account withdrawal already used it.
 	 */
 	externalId: string;
 	/**
@@ -1515,7 +1519,9 @@ export interface RESTPostWithdrawSubAccountBody {
 	 */
 	amount: number;
 	/**
-	 * Your identifier for this withdrawal (1-100 characters).
+	 * Your identifier for this withdrawal (1-100 characters), and its idempotency key: sending an
+	 * `externalId` already used returns that withdrawal, in any status, instead of creating a new one. The
+	 * API refuses it when the `amount` differs or when your store or another sub account already used it.
 	 */
 	externalId: string;
 	/**
